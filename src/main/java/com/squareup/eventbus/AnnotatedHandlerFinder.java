@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2012 Square, Inc.
  * Copyright (C) 2007 The Guava Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,20 +27,27 @@ import java.util.Queue;
 import java.util.Set;
 
 /**
- * A {@link com.squareup.eventbus.HandlerFindingStrategy} for collecting all event handler
- * methods that are marked with
- * the {@link com.squareup.eventbus.Subscribe} annotation.
+ * Helper methods for finding methods annotated with {@link Produce} and {@link Subscribe}.
  *
  * @author Cliff Biffle
  * @author Louis Wasserman
+ * @author Jake Wharton
  */
-class AnnotatedHandlerFinder implements HandlerFindingStrategy {
+final class AnnotatedHandlerFinder {
+
+  /** Cache event bus producer methods for each class. */
+  private static final Map<Class<?>, Map<Class<?>, Method>> PRODUCERS_CACHE =
+      new HashMap<Class<?>, Map<Class<?>, Method>>();
+
+  /** Cache event bus subscriber methods for each class. */
+  private static final Map<Class<?>, Map<Class<?>, Set<Method>>> SUBSCRIBERS_CACHE =
+      new HashMap<Class<?>, Map<Class<?>, Set<Method>>>();
 
   /**
    * Returns all interfaces implemented by the class and all superclasses: all Classes that this is
    * assignable to.
    */
-  static Set<Class<?>> getAllSuperclasses(Class<?> clazz) {
+  private static Set<Class<?>> getAllSuperclasses(Class<?> clazz) {
     Queue<Class<?>> queue = new LinkedList<Class<?>>();
     Set<Class<?>> supers = new HashSet<Class<?>>();
     queue.add(clazz);
@@ -56,20 +64,99 @@ class AnnotatedHandlerFinder implements HandlerFindingStrategy {
   }
 
   /**
-   * {@inheritDoc}
-   *
-   * This implementation finds all methods marked with a {@link com.squareup.eventbus.Subscribe}
-   * annotation.
+   * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective caches for the
+   * specified class.
    */
-  @Override public Map<Class<?>, Set<EventHandler>> findAllHandlers(Object listener) {
+  private static void loadAnnotatedMethods(Class<?> listenerClass) {
+    Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
+    Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
+
+    Set<Class<?>> supers = getAllSuperclasses(listenerClass);
+
+    for (Method method : listenerClass.getMethods()) {
+      /*
+       * Iterate over each distinct method of {@code clazz}, checking if it is annotated with
+       * @Subscribe or @Produce by any of the superclasses or superinterfaces that declare it.
+       */
+      for (Class<?> c : supers) {
+        try {
+          Method m = c.getDeclaredMethod(method.getName(), method.getParameterTypes());
+          if (m.isAnnotationPresent(Produce.class)) {
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            if (parameterTypes.length != 0) {
+              throw new IllegalArgumentException("Method " + method + "has @Produce annotation but requires "
+                  + parameterTypes.length + " arguments.  Methods must require zero arguments.");
+            }
+            if (method.getReturnType() == Void.class) {
+              throw new IllegalArgumentException("Method " + method
+                  + " has a return type of void.  Must declare a non-void type.");
+            }
+
+            Class<?> eventType = method.getReturnType();
+            if (producerMethods.containsKey(eventType)) {
+              throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
+            }
+            producerMethods.put(eventType, method);
+            break;
+          } else if (m.isAnnotationPresent(Subscribe.class)) {
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            if (parameterTypes.length != 1) {
+              throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation but requires "
+                  + parameterTypes.length + " arguments.  Methods must require a single argument.");
+            }
+
+            Class<?> eventType = parameterTypes[0];
+            Set<Method> methods = subscriberMethods.get(eventType);
+            if (methods == null) {
+              methods = new HashSet<Method>();
+              subscriberMethods.put(eventType, methods);
+            }
+            methods.add(m);
+            break;
+          }
+        } catch (NoSuchMethodException ignored) {
+          // Move on.
+        }
+      }
+    }
+
+    PRODUCERS_CACHE.put(listenerClass, producerMethods);
+    SUBSCRIBERS_CACHE.put(listenerClass, subscriberMethods);
+  }
+
+  /** This implementation finds all methods marked with a {@link Produce} annotation. */
+  static Map<Class<?>, EventProducer> findAllProducers(Object listener) {
+    final Class<?> listenerClass = listener.getClass();
+    Map<Class<?>, EventProducer> handlersInMethod = new HashMap<Class<?>, EventProducer>();
+
+    if (!PRODUCERS_CACHE.containsKey(listenerClass)) {
+      loadAnnotatedMethods(listenerClass);
+    }
+    Map<Class<?>, Method> methods = PRODUCERS_CACHE.get(listenerClass);
+    if (!methods.isEmpty()) {
+      for (Map.Entry<Class<?>, Method> e : methods.entrySet()) {
+        EventProducer producer = new EventProducer(listener, e.getValue());
+        handlersInMethod.put(e.getKey(), producer);
+      }
+    }
+
+    return handlersInMethod;
+  }
+
+  /** This implementation finds all methods marked with a {@link Subscribe} annotation. */
+  static Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener) {
+    Class<?> listenerClass = listener.getClass();
     Map<Class<?>, Set<EventHandler>> handlersInMethod = new HashMap<Class<?>, Set<EventHandler>>();
 
-    Map<Class<?>, Set<Method>> methods = getSubscriberMethods(listener.getClass());
-    if (methods.size() > 0) {
+    if (!SUBSCRIBERS_CACHE.containsKey(listenerClass)) {
+      loadAnnotatedMethods(listenerClass);
+    }
+    Map<Class<?>, Set<Method>> methods = SUBSCRIBERS_CACHE.get(listenerClass);
+    if (!methods.isEmpty()) {
       for (Map.Entry<Class<?>, Set<Method>> e : methods.entrySet()) {
         Set<EventHandler> handlers = new HashSet<EventHandler>();
         for (Method m : e.getValue()) {
-          handlers.add(new SynchronizedEventHandler(listener, m));
+          handlers.add(new EventHandler(listener, m));
         }
         handlersInMethod.put(e.getKey(), handlers);
       }
@@ -78,52 +165,8 @@ class AnnotatedHandlerFinder implements HandlerFindingStrategy {
     return handlersInMethod;
   }
 
-  /** Cache event bus subscriber methods for each class. */
-  private static Map<Class<?>, Map<Class<?>, Set<Method>>> subscriberMethodsCache =
-      new HashMap<Class<?>, Map<Class<?>, Set<Method>>>();
-
-  static Map<Class<?>, Set<Method>> getSubscriberMethods(Class<?> listenerClass) {
-    Map<Class<?>, Set<Method>> subscriberMethods = subscriberMethodsCache.get(listenerClass);
-    if (subscriberMethods == null) {
-      // Allocate and cache for rapid retrieval next time.
-      subscriberMethods = new HashMap<Class<?>, Set<Method>>();
-      subscriberMethodsCache.put(listenerClass, subscriberMethods);
-
-      Set<Class<?>> supers = getAllSuperclasses(listenerClass);
-
-      for (Method method : listenerClass.getMethods()) {
-        /*
-         * Iterate over each distinct method of {@code clazz}, checking if it is annotated with
-         * @Subscribe by any of the superclasses or superinterfaces that declare it.
-         */
-        for (Class<?> c : supers) {
-          try {
-            Method m = c.getMethod(method.getName(), method.getParameterTypes());
-            if (m.isAnnotationPresent(Subscribe.class)) {
-              Class<?>[] parameterTypes = method.getParameterTypes();
-              if (parameterTypes.length != 1) {
-                throw new IllegalArgumentException("Method "
-                    + method
-                    + " has @Subscribe annotation, but requires "
-                    + parameterTypes.length
-                    + " arguments.  Event handler methods must require a single argument.");
-              }
-
-              Class<?> eventType = parameterTypes[0];
-              Set<Method> methods = subscriberMethods.get(eventType);
-              if (methods == null) {
-                methods = new HashSet<Method>();
-                subscriberMethods.put(eventType, methods);
-              }
-              methods.add(m);
-              break;
-            }
-          } catch (NoSuchMethodException ignored) {
-            // Move on.
-          }
-        }
-      }
-    }
-    return subscriberMethods;
+  private AnnotatedHandlerFinder() {
+    // No instances.
   }
+
 }

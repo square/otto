@@ -16,12 +16,13 @@
 
 package com.squareup.eventbus;
 
+import junit.framework.TestCase;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import junit.framework.TestCase;
 
 /**
  * Test case for {@link com.squareup.eventbus.EventBus}.
@@ -144,6 +145,16 @@ public class EventBusTest extends TestCase {
         1, events.size());
     assertEquals("The dead event must not be re-wrapped.",
         EVENT, events.get(0).getEvent());
+  }
+
+  public void testProducerCalledForExistingSubscribers() {
+    StringCatcher catcher = new StringCatcher();
+    StringProducer producer = new StringProducer();
+
+    bus.register(catcher);
+    bus.register(producer);
+
+    assertEquals(Arrays.asList(StringProducer.VALUE), catcher.getEvents());
   }
 
   public void testFlattenHierarchy() {
