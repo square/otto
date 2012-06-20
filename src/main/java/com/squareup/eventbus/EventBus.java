@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2012 Square, Inc.
  * Copyright (C) 2007 The Guava Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +30,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.squareup.eventbus.AnnotatedHandlerFinder.findAllSubscribers;
+import static com.squareup.eventbus.AnnotatedHandlerFinder.findAllProducers;
 
 /**
  * Dispatches events to listeners, and provides ways for listeners to register
@@ -102,21 +106,16 @@ import java.util.logging.Logger;
 public class EventBus {
 
   /** All registered event handlers, indexed by event type. */
-  private final Map<Class<?>, Set<EventHandler>> handlersByType =
-      new ConcurrentHashMap<Class<?>, Set<EventHandler>>();
+  private final Map<Class<?>, Set<EventHandler>> handlersByType = new ConcurrentHashMap<Class<?>, Set<EventHandler>>();
+
+  /** All registered event producers, index by event type. */
+  private final Map<Class<?>, EventProducer> producersByType = new ConcurrentHashMap<Class<?>, EventProducer>();
 
   /**
    * Logger for event dispatch failures.  Named by the fully-qualified name of
    * this class, followed by the identifier provided at construction.
    */
   private final Logger logger;
-
-  /**
-   * Strategy for finding handler methods in registered objects.  Currently,
-   * only the {@link com.squareup.eventbus.AnnotatedHandlerFinder} is supported, but this is
-   * encapsulated for future expansion.
-   */
-  private final HandlerFindingStrategy finder = new AnnotatedHandlerFinder();
 
   /** Queues of events for the current thread to dispatch. */
   private final ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>> eventsToDispatch =
@@ -149,42 +148,88 @@ public class EventBus {
   }
 
   /**
-   * Registers all handler methods on {@code object} to receive events.
-   * Handler methods are selected and classified using this EventBus's
-   * {@link com.squareup.eventbus.HandlerFindingStrategy}; the default strategy is the
-   * {@link com.squareup.eventbus.AnnotatedHandlerFinder}.
+   * Registers all handler methods on {@code object} to receive events and producer methods to provide events.
+   * <p>
+   * If any subscribers are registering for types which already have a producer they will be called immediately
+   * with the result of calling that producer.
+   * <p>
+   * If any producers are registering for types which already have subscribers, each subscriber will be called with
+   * the value from the result of calling the producer.
    *
    * @param object object whose handler methods should be registered.
    */
   public void register(Object object) {
-    Map<Class<?>, Set<EventHandler>> found = finder.findAllHandlers(object);
+    Map<Class<?>, EventProducer> foundProducers = findAllProducers(object);
+    for (Class<?> type : foundProducers.keySet()) {
+      if (producersByType.containsKey(type)) {
+        throw new IllegalArgumentException("Producer method for type " + type + " already registered.");
+      }
+      final EventProducer producer = foundProducers.get(type);
+      producersByType.put(type, producer);
 
-    for (Class<?> type : found.keySet()) {
+      Set<EventHandler> handlers = handlersByType.get(type);
+      if (handlers != null && !handlers.isEmpty()) {
+        for (EventHandler handler : handlers) {
+          dispatchProducerResultToHandler(handler, producer);
+        }
+      }
+    }
+
+    Map<Class<?>, Set<EventHandler>> foundHandlersMap = findAllSubscribers(object);
+    for (Class<?> type : foundHandlersMap.keySet()) {
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers == null) {
         handlers = new CopyOnWriteArraySet<EventHandler>();
         handlersByType.put(type, handlers);
       }
-      handlers.addAll(found.get(type));
+      final Set<EventHandler> foundHandlers = foundHandlersMap.get(type);
+      handlers.addAll(foundHandlers);
+
+      EventProducer producer = producersByType.get(type);
+      if (producer != null) {
+        for (EventHandler foundHandler : foundHandlers) {
+          dispatchProducerResultToHandler(foundHandler, producer);
+        }
+      }
+    }
+  }
+
+  private void dispatchProducerResultToHandler(EventHandler handler, EventProducer producer) {
+    try {
+      handler.handleEvent(producer.produceEvent());
+    } catch (InvocationTargetException e) {
+      logger.log(Level.SEVERE, "Could not dispatch event from " + producer + " to handler " + handler, e);
     }
   }
 
   /**
-   * Unregisters all handler methods on a registered {@code object}.
+   * Unregisters all producer and handler methods on a registered {@code object}.
    *
-   * @param object object whose handler methods should be unregistered.
+   * @param object object whose producer and handler methods should be unregistered.
    * @throws IllegalArgumentException if the object was not previously registered.
    */
   public void unregister(Object object) {
-    Map<Class<?>, Set<EventHandler>> methodsInListener = finder.findAllHandlers(object);
+    Map<Class<?>, EventProducer> producersInListener = findAllProducers(object);
+    for (Map.Entry<Class<?>, EventProducer> entry : producersInListener.entrySet()) {
+      final Class<?> key = entry.getKey();
+      EventProducer producer = getProducerForEventType(key);
+      EventProducer value = entry.getValue();
 
-    for (Map.Entry<Class<?>, Set<EventHandler>> entry : methodsInListener.entrySet()) {
+      if (value == null || value != producer) {
+        throw new IllegalArgumentException(
+            "Missing event producer for an annotated method. Is " + object + " registered?");
+      }
+      producersInListener.remove(key);
+    }
+
+    Map<Class<?>, Set<EventHandler>> handlersInListener = findAllSubscribers(object);
+    for (Map.Entry<Class<?>, Set<EventHandler>> entry : handlersInListener.entrySet()) {
       Set<EventHandler> currentHandlers = getHandlersForEventType(entry.getKey());
       Collection<EventHandler> eventMethodsInListener = entry.getValue();
 
       if (currentHandlers == null || !currentHandlers.containsAll(entry.getValue())) {
         throw new IllegalArgumentException(
-            "missing event handler for an annotated method. Is " + object + " registered?");
+            "Missing event handler for an annotated method. Is " + object + " registered?");
       }
       currentHandlers.removeAll(eventMethodsInListener);
     }
@@ -275,6 +320,18 @@ public class EventBus {
     } catch (InvocationTargetException e) {
       logger.log(Level.SEVERE, "Could not dispatch event: " + event + " to handler " + wrapper, e);
     }
+  }
+
+  /**
+   * Retrieves a mutable set of the currently registered producers for
+   * {@code type}.  If no producers are currently registered for {@code type},
+   * this method will return {@code null}.
+   *
+   * @param type type of producers to retrieve.
+   * @return currently registered producer, or {@code null}.
+   */
+  EventProducer getProducerForEventType(Class<?> type) {
+    return producersByType.get(type);
   }
 
   /**

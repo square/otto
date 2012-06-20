@@ -21,6 +21,8 @@ import com.squareup.eventbus.Subscribe;
 import java.util.ArrayList;
 import java.util.List;
 import junit.framework.TestCase;
+import org.junit.experimental.runners.Enclosed;
+import org.junit.runner.RunWith;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -31,7 +33,9 @@ import static org.fest.assertions.Assertions.assertThat;
  *
  * @author Louis Wasserman
  */
-@SuppressWarnings("UnusedDeclaration") public class AnnotatedHandlerFinderTests {
+@RunWith(Enclosed.class)
+@SuppressWarnings("UnusedDeclaration")
+public class AnnotatedHandlerFinderTest {
 
   private static final Object EVENT = new Object();
 
