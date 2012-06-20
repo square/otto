@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2012 Square, Inc.
- * Copyright (C) 2007 The Guava Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,30 +20,26 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Wraps a single-argument 'handler' method on a specific object.
+ * Wraps a 'producer' method on a specific object.
  *
  * <p>This class only verifies the suitability of the method and event type if
  * something fails.  Callers are expected to verify their uses of this class.
  *
- * <p>Two EventHandlers are equivalent when they refer to the same method on the
- * same object (not class).   This property is used to ensure that no handler
- * method is registered more than once.
- *
- * @author Cliff Biffle
+ * @author Jake Wharton
  */
-class EventHandler {
+class EventProducer {
 
-  /** Object sporting the handler method. */
+  /** Object sporting the producer method. */
   private final Object target;
-  /** Handler method. */
+  /** Producer method. */
   private final Method method;
 
-  EventHandler(Object target, Method method) {
+  EventProducer(Object target, Method method) {
     if (target == null) {
-      throw new NullPointerException("EventHandler target cannot be null.");
+      throw new NullPointerException("EventProducer target cannot be null.");
     }
     if (method == null) {
-      throw new NullPointerException("EventHandler method cannot be null.");
+      throw new NullPointerException("EventProducer method cannot be null.");
     }
 
     this.target = target;
@@ -53,16 +48,15 @@ class EventHandler {
   }
 
   /**
-   * Invokes the wrapped handler method to handle {@code event}.
+   * Invokes the wrapped producer method.
    *
-   * @param event  event to handle
    * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any
    *     {@link Throwable} that is not an {@link Error} ({@code Error}s are
    *     propagated as-is).
    */
-  public void handleEvent(Object event) throws InvocationTargetException {
+  public Object produceEvent() throws InvocationTargetException {
     try {
-      method.invoke(target, new Object[] {event});
+      return method.invoke(target);
     } catch (IllegalAccessException e) {
       throw new AssertionError(e);
     } catch (InvocationTargetException e) {
@@ -74,30 +68,7 @@ class EventHandler {
   }
 
   @Override public String toString() {
-    return "[EventHandler " + method + "]";
-  }
-
-  @Override public int hashCode() {
-    final int prime = 31;
-    return (prime + method.hashCode()) * prime + target.hashCode();
-  }
-
-  @Override public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-
-    if (obj == null) {
-      return false;
-    }
-
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final EventHandler other = (EventHandler) obj;
-
-    return method.equals(other.method) && target == other.target;
+    return "[EventProducer " + method + "]";
   }
 
 }
