@@ -38,6 +38,8 @@ class EventHandler {
   private final Object target;
   /** Handler method. */
   private final Method method;
+  /** Object hash code. */
+  private final int hashCode;
 
   EventHandler(Object target, Method method) {
     if (target == null) {
@@ -50,6 +52,11 @@ class EventHandler {
     this.target = target;
     this.method = method;
     method.setAccessible(true);
+
+    // Compute hash code eagerly since we know it will be used frequently and we cannot estimate the runtime of the
+    // target's hashCode call.
+    final int prime = 31;
+    hashCode = (prime + method.hashCode()) * prime + target.hashCode();
   }
 
   /**
@@ -78,8 +85,7 @@ class EventHandler {
   }
 
   @Override public int hashCode() {
-    final int prime = 31;
-    return (prime + method.hashCode()) * prime + target.hashCode();
+    return hashCode;
   }
 
   @Override public boolean equals(Object obj) {
