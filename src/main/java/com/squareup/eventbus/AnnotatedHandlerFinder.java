@@ -18,12 +18,9 @@
 package com.squareup.eventbus;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -44,26 +41,6 @@ final class AnnotatedHandlerFinder {
       new HashMap<Class<?>, Map<Class<?>, Set<Method>>>();
 
   /**
-   * Returns all interfaces implemented by the class and all superclasses: all Classes that this is
-   * assignable to.
-   */
-  private static Set<Class<?>> getAllSuperclasses(Class<?> clazz) {
-    Queue<Class<?>> queue = new LinkedList<Class<?>>();
-    Set<Class<?>> supers = new HashSet<Class<?>>();
-    queue.add(clazz);
-    while (!queue.isEmpty()) {
-      Class<?> c = queue.poll();
-      if (supers.add(c)) {
-        queue.addAll(Arrays.asList(c.getInterfaces()));
-        if (c.getSuperclass() != null) {
-          queue.add(c.getSuperclass());
-        }
-      }
-    }
-    return supers;
-  }
-
-  /**
    * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective caches for the
    * specified class.
    */
@@ -71,52 +48,45 @@ final class AnnotatedHandlerFinder {
     Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
     Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
 
-    Set<Class<?>> supers = getAllSuperclasses(listenerClass);
-
     for (Method method : listenerClass.getMethods()) {
-      /*
-       * Iterate over each distinct method of {@code clazz}, checking if it is annotated with
-       * @Subscribe or @Produce by any of the superclasses or superinterfaces that declare it.
-       */
-      for (Class<?> c : supers) {
-        try {
-          Method m = c.getDeclaredMethod(method.getName(), method.getParameterTypes());
-          if (m.isAnnotationPresent(Produce.class)) {
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            if (parameterTypes.length != 0) {
-              throw new IllegalArgumentException("Method " + method + "has @Produce annotation but requires "
-                  + parameterTypes.length + " arguments.  Methods must require zero arguments.");
-            }
-            if (method.getReturnType() == Void.class) {
-              throw new IllegalArgumentException("Method " + method
-                  + " has a return type of void.  Must declare a non-void type.");
-            }
-
-            Class<?> eventType = method.getReturnType();
-            if (producerMethods.containsKey(eventType)) {
-              throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
-            }
-            producerMethods.put(eventType, method);
-            break;
-          } else if (m.isAnnotationPresent(Subscribe.class)) {
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            if (parameterTypes.length != 1) {
-              throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation but requires "
-                  + parameterTypes.length + " arguments.  Methods must require a single argument.");
-            }
-
-            Class<?> eventType = parameterTypes[0];
-            Set<Method> methods = subscriberMethods.get(eventType);
-            if (methods == null) {
-              methods = new HashSet<Method>();
-              subscriberMethods.put(eventType, methods);
-            }
-            methods.add(m);
-            break;
-          }
-        } catch (NoSuchMethodException ignored) {
-          // Move on.
+      if (method.isAnnotationPresent(Subscribe.class)) {
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length != 1) {
+          throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation but requires "
+              + parameterTypes.length + " arguments.  Methods must require a single argument.");
         }
+
+        Class<?> eventType = parameterTypes[0];
+        if (eventType.isInterface()) {
+          throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
+              + " which is an interface.  Subscription must be on a concrete class type.");
+        }
+        Set<Method> methods = subscriberMethods.get(eventType);
+        if (methods == null) {
+          methods = new HashSet<Method>();
+          subscriberMethods.put(eventType, methods);
+        }
+        methods.add(method);
+      } else if (method.isAnnotationPresent(Produce.class)) {
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length != 0) {
+          throw new IllegalArgumentException("Method " + method + "has @Produce annotation but requires "
+              + parameterTypes.length + " arguments.  Methods must require zero arguments.");
+        }
+        if (method.getReturnType() == Void.class) {
+          throw new IllegalArgumentException("Method " + method
+              + " has a return type of void.  Must declare a non-void type.");
+        }
+
+        Class<?> eventType = method.getReturnType();
+        if (eventType.isInterface()) {
+          throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
+              + " which is an interface.  Producers must return a concrete class type.");
+        }
+        if (producerMethods.containsKey(eventType)) {
+          throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
+        }
+        producerMethods.put(eventType, method);
       }
     }
 
