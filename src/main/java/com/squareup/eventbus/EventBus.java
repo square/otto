@@ -31,8 +31,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.squareup.eventbus.AnnotatedHandlerFinder.findAllSubscribers;
 import static com.squareup.eventbus.AnnotatedHandlerFinder.findAllProducers;
+import static com.squareup.eventbus.AnnotatedHandlerFinder.findAllSubscribers;
 
 /**
  * Dispatches events to listeners, and provides ways for listeners to register
@@ -227,11 +227,10 @@ public class EventBus {
       Set<EventHandler> currentHandlers = getHandlersForEventType(entry.getKey());
       Collection<EventHandler> eventMethodsInListener = entry.getValue();
 
-      if (currentHandlers == null || !currentHandlers.containsAll(entry.getValue())) {
+      if (currentHandlers == null || !currentHandlers.removeAll(eventMethodsInListener)) {
         throw new IllegalArgumentException(
             "Missing event handler for an annotated method. Is " + object + " registered?");
       }
-      currentHandlers.removeAll(eventMethodsInListener);
     }
   }
 
