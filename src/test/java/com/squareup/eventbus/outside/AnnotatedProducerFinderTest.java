@@ -18,13 +18,12 @@ package com.squareup.eventbus.outside;
 
 import com.squareup.eventbus.EventBus;
 import com.squareup.eventbus.Produce;
+import com.squareup.eventbus.Subscribe;
+import junit.framework.TestCase;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import com.squareup.eventbus.Subscribe;
-import junit.framework.TestCase;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -57,17 +56,6 @@ public class AnnotatedProducerFinderTest extends TestCase {
     }
   }
 
-  static class ExtendingProducer extends SimpleProducer {
-    static final Object EXTEND_VALUE = new Object();
-
-    int extendingProduceCalled = 0;
-
-    @Override public Object produceIt() {
-      extendingProduceCalled += 1;
-      return EXTEND_VALUE;
-    }
-  }
-
   public void testSimpleProducer() {
     EventBus bus = new EventBus();
     Subscriber subscriber = new Subscriber();
@@ -89,17 +77,5 @@ public class AnnotatedProducerFinderTest extends TestCase {
     assertThat(producer.produceCalled).isEqualTo(1);
     bus.register(new Subscriber());
     assertThat(producer.produceCalled).isEqualTo(2);
-  }
-
-  public void testInheritanceProducer() {
-    EventBus bus = new EventBus();
-    Subscriber subscriber = new Subscriber();
-    ExtendingProducer extendingProducer = new ExtendingProducer();
-
-    bus.register(extendingProducer);
-    bus.register(subscriber);
-    assertThat(extendingProducer.extendingProduceCalled).isEqualTo(1);
-    assertThat(extendingProducer.produceCalled).isEqualTo(0);
-    assertEquals(Arrays.asList(ExtendingProducer.EXTEND_VALUE), subscriber.events);
   }
 }
