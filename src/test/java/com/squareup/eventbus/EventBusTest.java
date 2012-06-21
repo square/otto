@@ -76,16 +76,8 @@ public class EventBusTest extends TestCase {
       }
     };
 
-    final List<Comparable<?>> compEvents = new ArrayList<Comparable<?>>();
-    Object compCatcher = new Object() {
-      @SuppressWarnings("unused")
-      @Subscribe public void eat(Comparable<?> food) {
-        compEvents.add(food);
-      }
-    };
     bus.register(stringCatcher);
     bus.register(objCatcher);
-    bus.register(compCatcher);
 
     // Two additional event types: Object and Comparable<?> (played by Integer)
     final Object OBJ_EVENT = new Object();
@@ -111,14 +103,6 @@ public class EventBusTest extends TestCase {
         OBJ_EVENT, objectEvents.get(1));
     assertEquals("Comparable fixture must be thirdobject delivered.",
         COMP_EVENT, objectEvents.get(2));
-
-    // Check the Catcher<Comparable<?>>...
-    assertEquals("Two Comparable<?>s should be delivered.",
-        2, compEvents.size());
-    assertEquals("String fixture must be first comparable delivered.",
-        EVENT, compEvents.get(0));
-    assertEquals("Comparable fixture must be second comparable delivered.",
-        COMP_EVENT, compEvents.get(1));
   }
 
   public void testDeadEventForwarding() {
@@ -161,10 +145,8 @@ public class EventBusTest extends TestCase {
     HierarchyFixture fixture = new HierarchyFixture();
     Set<Class<?>> hierarchy = bus.flattenHierarchy(fixture.getClass());
 
-    assertEquals(5, hierarchy.size());
+    assertEquals(3, hierarchy.size());
     assertContains(Object.class, hierarchy);
-    assertContains(HierarchyFixtureInterface.class, hierarchy);
-    assertContains(HierarchyFixtureSubinterface.class, hierarchy);
     assertContains(HierarchyFixtureParent.class, hierarchy);
     assertContains(HierarchyFixture.class, hierarchy);
   }

@@ -347,17 +347,6 @@ public class EventBus {
   }
 
   /**
-   * Creates a new Set for insertion into the handler map.  This is provided
-   * as an override point for subclasses. The returned set should support
-   * concurrent access.
-   *
-   * @return a new, mutable set for handlers.
-   */
-  protected Set<EventHandler> newHandlerSet() {
-    return new CopyOnWriteArraySet<EventHandler>();
-  }
-
-  /**
    * Flattens a class's type hierarchy into a set of Class objects.  The set
    * will include all superclasses (transitively), and all interfaces
    * implemented by these superclasses.
@@ -389,15 +378,11 @@ public class EventBus {
       if (parent != null) {
         parents.add(parent);
       }
-
-      for (Class<?> iface : clazz.getInterfaces()) {
-        parents.add(iface);
-      }
     }
     return classes;
   }
 
-  private Map<Class<?>, Set<Class<?>>> flattenHierarchyCache =
+  private final Map<Class<?>, Set<Class<?>>> flattenHierarchyCache =
       new HashMap<Class<?>, Set<Class<?>>>();
 
   /** Simple struct representing an event and it's handler. */
