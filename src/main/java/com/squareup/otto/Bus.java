@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.squareup.eventbus;
+package com.squareup.otto;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
@@ -31,14 +31,14 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.squareup.eventbus.AnnotatedHandlerFinder.findAllProducers;
-import static com.squareup.eventbus.AnnotatedHandlerFinder.findAllSubscribers;
+import static com.squareup.otto.AnnotatedHandlerFinder.findAllProducers;
+import static com.squareup.otto.AnnotatedHandlerFinder.findAllSubscribers;
 
 /**
  * Dispatches events to listeners, and provides ways for listeners to register
  * themselves.
  *
- * <p>The EventBus allows publish-subscribe-style communication between
+ * <p>The Bus allows publish-subscribe-style communication between
  * components without requiring the components to explicitly register with one
  * another (and thus be aware of each other).  It is designed exclusively to
  * replace traditional Java in-process event distribution using explicit
@@ -49,14 +49,14 @@ import static com.squareup.eventbus.AnnotatedHandlerFinder.findAllSubscribers;
  * To receive events, an object should:<ol>
  * <li>Expose a public method, known as the <i>event handler</i>, which accepts
  * a single argument of the type of event desired;</li>
- * <li>Mark it with a {@link com.squareup.eventbus.Subscribe} annotation;</li>
- * <li>Pass itself to an EventBus instance's {@link #register(Object)} method.
+ * <li>Mark it with a {@link com.squareup.otto.Subscribe} annotation;</li>
+ * <li>Pass itself to an Bus instance's {@link #register(Object)} method.
  * </li>
  * </ol>
  *
  * <h2>Posting Events</h2>
  * To post an event, simply provide the event object to the
- * {@link #post(Object)} method.  The EventBus instance will determine the type
+ * {@link #post(Object)} method.  The Bus instance will determine the type
  * of event and route it to all registered listeners.
  *
  * <p>Events are routed based on their type &mdash; an event will be delivered
@@ -67,27 +67,27 @@ import static com.squareup.eventbus.AnnotatedHandlerFinder.findAllSubscribers;
  * <p>When {@code post} is called, all registered handlers for an event are run
  * in sequence, so handlers should be reasonably quick.  If an event may trigger
  * an extended process (such as a database load), spawn a thread or queue it for
- * later.  (For a convenient way to do this, use an {@link com.squareup.eventbus.AsyncEventBus}.)
+ * later.  (For a convenient way to do this, use an {@link com.squareup.otto.AsyncEventBus}.)
  *
  * <h2>Handler Methods</h2>
  * Event handler methods must accept only one argument: the event.
  *
- * <p>Handlers should not, in general, throw.  If they do, the EventBus will
+ * <p>Handlers should not, in general, throw.  If they do, the Bus will
  * catch and log the exception.  This is rarely the right solution for error
  * handling and should not be relied upon; it is intended solely to help find
  * problems during development.
  *
- * <p>The EventBus guarantees that it will not call a handler method from
+ * <p>The Bus guarantees that it will not call a handler method from
  * multiple threads simultaneously, unless the method explicitly allows it by
- * bearing the {@link com.squareup.eventbus.AllowConcurrentEvents} annotation.  If this
+ * bearing the {@link com.squareup.otto.AllowConcurrentEvents} annotation.  If this
  * annotation is
  * not present, handler methods need not worry about being reentrant, unless
- * also called from outside the EventBus.
+ * also called from outside the Bus.
  *
  * <h2>Dead Events</h2>
  * If an event is posted, but no registered handlers can accept it, it is
  * considered "dead."  To give the system a second chance to handle dead events,
- * they are wrapped in an instance of {@link com.squareup.eventbus.DeadEvent} and reposted.
+ * they are wrapped in an instance of {@link com.squareup.otto.DeadEvent} and reposted.
  *
  * <p>If a handler for a supertype of all events (such as Object) is registered,
  * no event will ever be considered dead, and no DeadEvents will be generated.
@@ -98,12 +98,12 @@ import static com.squareup.eventbus.AnnotatedHandlerFinder.findAllSubscribers;
  *
  * <p>See the Guava User Guide article on <a href=
  * "http://code.google.com/p/guava-libraries/wiki/EventBusExplained">
- * {@code EventBus}</a>.
+ * {@code Bus}</a>.
  *
  * @author Cliff Biffle
  * @since 10.0
  */
-public class EventBus {
+public class Bus {
 
   /** All registered event handlers, indexed by event type. */
   private final Map<Class<?>, Set<EventHandler>> handlersByType = new ConcurrentHashMap<Class<?>, Set<EventHandler>>();
@@ -132,19 +132,19 @@ public class EventBus {
     }
   };
 
-  /** Creates a new EventBus named "default". */
-  public EventBus() {
+  /** Creates a new Bus named "default". */
+  public Bus() {
     this("default");
   }
 
   /**
-   * Creates a new EventBus with the given {@code identifier}.
+   * Creates a new Bus with the given {@code identifier}.
    *
    * @param identifier a brief name for this bus, for logging purposes.  Should
    * be a valid Java identifier.
    */
-  public EventBus(String identifier) {
-    logger = Logger.getLogger(EventBus.class.getName() + "." + identifier);
+  public Bus(String identifier) {
+    logger = Logger.getLogger(Bus.class.getName() + "." + identifier);
   }
 
   /**
@@ -240,7 +240,7 @@ public class EventBus {
    * regardless of any exceptions thrown by handlers.
    *
    * <p>If no handlers have been subscribed for {@code event}'s class, and
-   * {@code event} is not already a {@link com.squareup.eventbus.DeadEvent}, it will be
+   * {@code event} is not already a {@link com.squareup.otto.DeadEvent}, it will be
    * wrapped
    * in a
    * DeadEvent and reposted.

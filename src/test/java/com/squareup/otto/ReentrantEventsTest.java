@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.squareup.eventbus;
+package com.squareup.otto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +22,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 /**
- * Validate that {@link com.squareup.eventbus.EventBus} behaves carefully when listeners publish
+ * Validate that {@link Bus} behaves carefully when listeners publish
  * their own events.
  *
  * @author Jesse Wilson
@@ -32,7 +32,7 @@ public class ReentrantEventsTest extends TestCase {
   static final String FIRST = "one";
   static final Double SECOND = 2.0d;
 
-  final EventBus bus = new EventBus();
+  final Bus bus = new Bus();
 
   public void testNoReentrantEvents() {
     ReentrantEventsHater hater = new ReentrantEventsHater();

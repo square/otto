@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.squareup.eventbus;
+package com.squareup.otto;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -23,14 +23,14 @@ import java.lang.annotation.Target;
 
 /**
  * Marks a method as an event handler, as used by
- * {@link com.squareup.eventbus.AnnotatedHandlerFinder} and {@link com.squareup.eventbus.EventBus}.
+ * {@link com.squareup.otto.AnnotatedHandlerFinder} and {@link Bus}.
  *
  * <p>The type of event will be indicated by the method's first (and only)
  * parameter.  If this annotation is applied to methods with zero parameters,
  * or more than one parameter, the object containing the method will not be able
- * to register for event delivery from the {@link com.squareup.eventbus.EventBus}.
+ * to register for event delivery from the {@link Bus}.
  *
- * <p>Unless also annotated with @{@link com.squareup.eventbus.AllowConcurrentEvents}, event handler
+ * <p>Unless also annotated with @{@link com.squareup.otto.AllowConcurrentEvents}, event handler
  * methods will be invoked serially by each event bus that they are registered
  * with.
  *
