@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.squareup.eventbus;
+package com.squareup.otto;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a method as an instance producer, as used by {@link AnnotatedHandlerFinder} and {@link EventBus}.
+ * Marks a method as an instance producer, as used by {@link AnnotatedHandlerFinder} and {@link Bus}.
  * <p>
  * The type of instance will be indicated by the method's return type parameter.
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Square, Inc.
+ * Copyright (C) 2007 The Guava Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package com.squareup.eventbus;
-
-import junit.framework.TestCase;
+package com.squareup.otto;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import junit.framework.TestCase;
 
-public class EventProducerTest extends TestCase {
+public class EventHandlerTest extends TestCase {
 
-  private static final Object FIXTURE_RETURN_VALUE = new Object();
+  private static final Object FIXTURE_ARGUMENT = new Object();
 
   private boolean methodCalled;
-  private Object methodReturnValue;
+  private Object methodArgument;
 
   @Override protected void setUp() throws Exception {
     super.setUp();
 
     methodCalled = false;
-    methodReturnValue = FIXTURE_RETURN_VALUE;
+    methodArgument = null;
   }
 
   /**
@@ -42,29 +41,32 @@ public class EventProducerTest extends TestCase {
    */
   public void testBasicMethodCall() throws Exception {
     Method method = getRecordingMethod();
-    EventProducer producer = new EventProducer(this, method);
-    Object methodResult = producer.produceEvent();
 
-    assertTrue("Producer must call provided method.", methodCalled);
-    assertSame("Producer result must be *exactly* the specified return value.", methodResult, FIXTURE_RETURN_VALUE);
+    EventHandler handler = new EventHandler(this, method);
+
+    handler.handleEvent(FIXTURE_ARGUMENT);
+
+    assertTrue("Handler must call provided method.", methodCalled);
+    assertSame("Handler argument must be *exactly* the provided object.",
+        methodArgument, FIXTURE_ARGUMENT);
   }
 
-  /** Checks that EventProducer's constructor disallows null methods. */
+  /** Checks that EventHandler's constructor disallows null methods. */
   public void testRejectionOfNullMethods() {
     try {
-      new EventProducer(this, null);
-      fail("EventProducer must immediately reject null methods.");
+      new EventHandler(this, null);
+      fail("EventHandler must immediately reject null methods.");
     } catch (NullPointerException expected) {
       // Hooray!
     }
   }
 
-  /** Checks that EventProducer's constructor disallows null targets. */
+  /** Checks that EventHandler's constructor disallows null targets. */
   public void testRejectionOfNullTargets() throws NoSuchMethodException {
     Method method = getRecordingMethod();
     try {
-      new EventProducer(null, method);
-      fail("EventProducer must immediately reject null targets.");
+      new EventHandler(null, method);
+      fail("EventHandler must immediately reject null targets.");
     } catch (NullPointerException expected) {
       // Huzzah!
     }
@@ -72,11 +74,11 @@ public class EventProducerTest extends TestCase {
 
   public void testExceptionWrapping() throws NoSuchMethodException {
     Method method = getExceptionThrowingMethod();
-    EventProducer producer = new EventProducer(this, method);
+    EventHandler handler = new EventHandler(this, method);
 
     try {
-      producer.produceEvent();
-      fail("Producers whose methods throw must throw InvocationTargetException");
+      handler.handleEvent(new Object());
+      fail("Handlers whose methods throw must throw InvocationTargetException");
     } catch (InvocationTargetException e) {
       assertTrue("Expected exception must be wrapped.",
           e.getCause() instanceof IntentionalException);
@@ -85,54 +87,43 @@ public class EventProducerTest extends TestCase {
 
   public void testErrorPassthrough() throws InvocationTargetException, NoSuchMethodException {
     Method method = getErrorThrowingMethod();
-    EventProducer producer = new EventProducer(this, method);
+    EventHandler handler = new EventHandler(this, method);
 
     try {
-      producer.produceEvent();
-      fail("Producers whose methods throw Errors must rethrow them");
+      handler.handleEvent(new Object());
+      fail("Handlers whose methods throw Errors must rethrow them");
     } catch (JudgmentError expected) {
       // Expected.
     }
   }
 
-  public void testReturnValueNotCached() throws Exception {
-    Method method = getRecordingMethod();
-    EventProducer producer = new EventProducer(this, method);
-    producer.produceEvent();
-    methodReturnValue = new Object();
-    methodCalled = false;
-    Object secondReturnValue = producer.produceEvent();
-
-    assertTrue("Producer must call provided method twice.", methodCalled);
-    assertSame("Producer result must be *exactly* the specified return value on each invocation.",
-        secondReturnValue, methodReturnValue);
-  }
-
   private Method getRecordingMethod() throws NoSuchMethodException {
-    return getClass().getMethod("recordingMethod");
+    return getClass().getMethod("recordingMethod", Object.class);
   }
 
   private Method getExceptionThrowingMethod() throws NoSuchMethodException {
-    return getClass().getMethod("exceptionThrowingMethod");
+    return getClass().getMethod("exceptionThrowingMethod", Object.class);
   }
 
   private Method getErrorThrowingMethod() throws NoSuchMethodException {
-    return getClass().getMethod("errorThrowingMethod");
+    return getClass().getMethod("errorThrowingMethod", Object.class);
   }
 
   /**
-   * Records the invocation in {@link #methodCalled} and returns the value in
-   * {@link #FIXTURE_RETURN_VALUE}.
+   * Records the provided object in {@link #methodArgument} and sets
+   * {@link #methodCalled}.
+   *
+   * @param arg  argument to record.
    */
-  public Object recordingMethod() {
+  public void recordingMethod(Object arg) {
     if (methodCalled) {
       throw new IllegalStateException("Method called more than once.");
     }
     methodCalled = true;
-    return methodReturnValue;
+    methodArgument = arg;
   }
 
-  public Object exceptionThrowingMethod() throws Exception {
+  public void exceptionThrowingMethod(Object arg) throws Exception {
     throw new IntentionalException();
   }
 
@@ -141,7 +132,7 @@ public class EventProducerTest extends TestCase {
     private static final long serialVersionUID = -2500191180248181379L;
   }
 
-  public Object errorThrowingMethod() {
+  public void errorThrowingMethod(Object arg) {
     throw new JudgmentError();
   }
 

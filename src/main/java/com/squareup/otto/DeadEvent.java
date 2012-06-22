@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.squareup.eventbus;
+package com.squareup.otto;
 
 /**
  * Wraps an event that was posted, but which had no subscribers and thus could
@@ -35,7 +35,7 @@ public class DeadEvent {
    * Creates a new DeadEvent.
    *
    * @param source  object broadcasting the DeadEvent (generally the
-   *                {@link com.squareup.eventbus.EventBus}).
+   *                {@link Bus}).
    * @param event   the event that could not be delivered.
    */
   public DeadEvent(Object source, Object event) {
@@ -45,7 +45,7 @@ public class DeadEvent {
 
   /**
    * Returns the object that originated this event (<em>not</em> the object that
-   * originated the wrapped event).  This is generally an {@link com.squareup.eventbus.EventBus}.
+   * originated the wrapped event).  This is generally an {@link Bus}.
    *
    * @return the source of this event.
    */
