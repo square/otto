@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.squareup.eventbus.outside;
+package com.squareup.otto.outside;
 
-import com.squareup.eventbus.EventBus;
-import com.squareup.eventbus.Subscribe;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 import junit.framework.TestCase;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -28,7 +28,7 @@ import java.util.List;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Test that EventBus finds the correct handlers.
+ * Test that Bus finds the correct handlers.
  *
  * This test must be outside the c.g.c.eventbus package to test correctly.
  *
@@ -52,7 +52,7 @@ public class AnnotatedHandlerFinderTest {
     @Override
     protected void setUp() throws Exception {
       handler = createHandler();
-      EventBus bus = new EventBus();
+      Bus bus = new Bus();
       bus.register(handler);
       bus.post(EVENT);
     }
@@ -190,7 +190,7 @@ public class AnnotatedHandlerFinderTest {
 
     public void testSubscribingToInterfacesFails() {
       try {
-        new EventBus().register(new InterfaceSubscriber());
+        new Bus().register(new InterfaceSubscriber());
         fail("Annotation finder allowed subscription to illegal interface type.");
       } catch (IllegalArgumentException expected) {
         // Do nothing.

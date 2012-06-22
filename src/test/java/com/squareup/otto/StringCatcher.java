@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.squareup.eventbus;
+package com.squareup.otto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ import junit.framework.Assert;
 /**
  * A simple EventHandler mock that records Strings.
  *
- * For testing fun, also includes a landmine method that EventBus tests are
+ * For testing fun, also includes a landmine method that Bus tests are
  * required <em>not</em> to call ({@link #methodWithoutAnnotation(String)}).
  *
  * @author Cliff Biffle

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.squareup.eventbus.outside;
+package com.squareup.otto.outside;
 
-import com.squareup.eventbus.EventBus;
-import com.squareup.eventbus.Produce;
-import com.squareup.eventbus.Subscribe;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Produce;
+import com.squareup.otto.Subscribe;
 import junit.framework.TestCase;
 
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ import java.util.List;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Test that EventBus finds the correct producers.
+ * Test that Bus finds the correct producers.
  *
  * This test must be outside the c.g.c.eventbus package to test correctly.
  *
@@ -57,7 +57,7 @@ public class AnnotatedProducerFinderTest extends TestCase {
   }
 
   public void testSimpleProducer() {
-    EventBus bus = new EventBus();
+    Bus bus = new Bus();
     Subscriber subscriber = new Subscriber();
     SimpleProducer producer = new SimpleProducer();
 
@@ -69,7 +69,7 @@ public class AnnotatedProducerFinderTest extends TestCase {
   }
 
   public void testMultipleSubscriptionsCallsProviderEachTime() {
-    EventBus bus = new EventBus();
+    Bus bus = new Bus();
     SimpleProducer producer = new SimpleProducer();
 
     bus.register(producer);

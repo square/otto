@@ -18,11 +18,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.squareup</groupId>
-    <artifactId>eventbus</artifactId>
+    <artifactId>otto</artifactId>
     <version>1.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>EventBus</name>
+    <name>Otto</name>
     <description>An enhanced, Guava-based event bus with emphasis on Android support.</description>
     <url>http://git.squareup.com/square/eventbus/</url>
 

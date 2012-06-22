@@ -1,4 +1,4 @@
-package com.squareup.eventbus;
+package com.squareup.otto;
 
 public class StringProducer {
   public static final String VALUE = "Hello, Producer";
