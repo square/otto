@@ -18,9 +18,11 @@ package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
+import com.squareup.otto.ThreadEnforcer;
+import junit.framework.TestCase;
+
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import junit.framework.TestCase;
 
 /**
  * Test cases for {@code Bus} that must not be in the same package.
@@ -37,7 +39,7 @@ public class OutsideEventBusTest extends TestCase {
   public void testAnonymous() {
     final AtomicReference<String> holder = new AtomicReference<String>();
     final AtomicInteger deliveries = new AtomicInteger();
-    Bus bus = new Bus();
+    Bus bus = new Bus(ThreadEnforcer.ANY);
     bus.register(new Object() {
       @Subscribe
       public void accept(String str) {
