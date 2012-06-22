@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.squareup.eventbus;
+package com.squareup.otto;
 
 import junit.framework.TestCase;
 
@@ -25,19 +25,19 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Test case for {@link com.squareup.eventbus.EventBus}.
+ * Test case for {@link Bus}.
  *
  * @author Cliff Biffle
  */
-public class EventBusTest extends TestCase {
+public class BusTest extends TestCase {
   private static final String EVENT = "Hello";
   private static final String BUS_IDENTIFIER = "test-bus";
 
-  private EventBus bus;
+  private Bus bus;
 
   @Override protected void setUp() throws Exception {
     super.setUp();
-    bus = new EventBus(BUS_IDENTIFIER);
+    bus = new Bus(BUS_IDENTIFIER);
   }
 
   public void testBasicCatcherDistribution() {

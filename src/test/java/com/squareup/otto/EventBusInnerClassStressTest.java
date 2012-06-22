@@ -1,10 +1,10 @@
 // Copyright 2012 Square, Inc.
-package com.squareup.eventbus;
+package com.squareup.otto;
 
 import junit.framework.TestCase;
 
 /**
- * Stress test of {@link EventBus} against inner classes. The anon inner class tests
+ * Stress test of {@link Bus} against inner classes. The anon inner class tests
  * were broken when we switched to weak references.
  *
  * @author Ray Ryan (ray@squareup.com)
@@ -23,7 +23,7 @@ public class EventBusInnerClassStressTest extends TestCase {
   Sub sub = new Sub();
 
   public void testEventBusOkayWithNonStaticInnerClass() {
-    EventBus eb = new EventBus();
+    Bus eb = new Bus();
     eb.register(sub);
     int i = 0;
     while (i < REPS) {
@@ -35,7 +35,7 @@ public class EventBusInnerClassStressTest extends TestCase {
   }
 
   public void testEventBusFailWithAnonInnerClass() {
-    EventBus eb = new EventBus();
+    Bus eb = new Bus();
     eb.register(new Object() {
       @Subscribe
       public void in(String o) {
@@ -52,7 +52,7 @@ public class EventBusInnerClassStressTest extends TestCase {
   }
 
   public void testEventBusNpeWithAnonInnerClassWaitingForObject() {
-    EventBus eb = new EventBus();
+    Bus eb = new Bus();
     eb.register(new Object() {
       @Subscribe
       public void in(Object o) {

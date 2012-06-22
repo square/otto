@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.squareup.eventbus;
+package com.squareup.otto;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;

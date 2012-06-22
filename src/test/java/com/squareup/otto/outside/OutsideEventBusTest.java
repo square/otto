@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-package com.squareup.eventbus.outside;
+package com.squareup.otto.outside;
 
-import com.squareup.eventbus.EventBus;
-import com.squareup.eventbus.Subscribe;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import junit.framework.TestCase;
 
 /**
- * Test cases for {@code EventBus} that must not be in the same package.
+ * Test cases for {@code Bus} that must not be in the same package.
  *
  * @author Louis Wasserman
  */
 public class OutsideEventBusTest extends TestCase {
 
   /*
-   * If you do this test from common.eventbus.EventBusTest, it doesn't actually test the behavior.
+   * If you do this test from common.eventbus.BusTest, it doesn't actually test the behavior.
    * That is, even if exactly the same method works from inside the common.eventbus package tests,
    * it can fail here.
    */
   public void testAnonymous() {
     final AtomicReference<String> holder = new AtomicReference<String>();
     final AtomicInteger deliveries = new AtomicInteger();
-    EventBus bus = new EventBus();
+    Bus bus = new Bus();
     bus.register(new Object() {
       @Subscribe
       public void accept(String str) {

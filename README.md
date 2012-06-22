@@ -1,5 +1,5 @@
-Square Event Bus
-================
+Otto - Square's Event Bus
+=========================
 
 An enhanced, Guava-based event bus with emphasis on Android support.
 
