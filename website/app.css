@@ -1,0 +1,53 @@
+body {
+    background: #eee url('light_toast.png') repeat fixed;
+    margin-top: 60px;
+}
+
+@media(min-width:768px) {
+    .side {
+        text-align: right;
+        position: fixed;
+    }
+}
+
+code {
+    color: #707070;
+}
+
+.side h1 {
+    font-size: 90px;
+    line-height: 90px;
+    margin-bottom: 15px;
+}
+.side h3 {
+    font-weight: normal;
+    margin-bottom: 20px;
+}
+.side ul {
+    margin-bottom: 60px;
+}
+.side h5 {
+    font-size: 12px;
+    font-weight: normal;
+    color: #777;
+}
+
+.main {
+    padding-top: 110px;
+    padding-bottom: 100px;
+}
+.main h4 {
+    margin-top: 30px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+.main h4:first-child {
+    margin-top: 0;
+}
+
+#ribbon img {
+    position: fixed;
+    top: 0;
+    right: 0;
+    border: 0;
+}

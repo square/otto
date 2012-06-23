@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Otto Sample</string>
+    <string name="move_location">Move Location</string>
+    <string name="clear_location">Clear History</string>
+</resources>

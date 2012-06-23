@@ -250,11 +250,11 @@ public class Bus {
       EventProducer producer = getProducerForEventType(key);
       EventProducer value = entry.getValue();
 
-      if (value == null || value != producer) {
+      if (value == null || !value.equals(producer)) {
         throw new IllegalArgumentException(
             "Missing event producer for an annotated method. Is " + object + " registered?");
       }
-      producersInListener.remove(key);
+      producersByType.remove(key);
     }
 
     Map<Class<?>, Set<EventHandler>> handlersInListener = findAllSubscribers(object);

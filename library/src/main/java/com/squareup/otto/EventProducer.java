@@ -33,6 +33,8 @@ class EventProducer {
   private final Object target;
   /** Producer method. */
   private final Method method;
+  /** Object hash code. */
+  private final int hashCode;
 
   EventProducer(Object target, Method method) {
     if (target == null) {
@@ -45,6 +47,11 @@ class EventProducer {
     this.target = target;
     this.method = method;
     method.setAccessible(true);
+
+    // Compute hash code eagerly since we know it will be used frequently and we cannot estimate the runtime of the
+    // target's hashCode call.
+    final int prime = 31;
+    hashCode = (prime + method.hashCode()) * prime + target.hashCode();
   }
 
   /**
@@ -69,6 +76,28 @@ class EventProducer {
 
   @Override public String toString() {
     return "[EventProducer " + method + "]";
+  }
+
+  @Override public int hashCode() {
+    return hashCode;
+  }
+
+  @Override public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (obj == null) {
+      return false;
+    }
+
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+
+    final EventProducer other = (EventProducer) obj;
+
+    return method.equals(other.method) && target == other.target;
   }
 
 }
