@@ -141,6 +141,15 @@ public class BusTest extends TestCase {
     assertEquals(Arrays.asList(StringProducer.VALUE), catcher.getEvents());
   }
 
+  public void testProducerUnregisterAllowsReregistering() {
+    StringProducer producer1 = new StringProducer();
+    StringProducer producer2 = new StringProducer();
+
+    bus.register(producer1);
+    bus.unregister(producer1);
+    bus.register(producer2);
+  }
+
   public void testFlattenHierarchy() {
     HierarchyFixture fixture = new HierarchyFixture();
     Set<Class<?>> hierarchy = bus.flattenHierarchy(fixture.getClass());
