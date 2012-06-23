@@ -37,7 +37,7 @@ public class BusTest extends TestCase {
 
   @Override protected void setUp() throws Exception {
     super.setUp();
-    bus = new Bus(BUS_IDENTIFIER);
+    bus = new Bus(ThreadEnforcer.ANY, BUS_IDENTIFIER);
   }
 
   public void testBasicCatcherDistribution() {
