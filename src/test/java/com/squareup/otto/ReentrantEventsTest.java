@@ -16,10 +16,11 @@
 
 package com.squareup.otto;
 
+import junit.framework.TestCase;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import junit.framework.TestCase;
 
 /**
  * Validate that {@link Bus} behaves carefully when listeners publish
@@ -32,7 +33,7 @@ public class ReentrantEventsTest extends TestCase {
   static final String FIRST = "one";
   static final Double SECOND = 2.0d;
 
-  final Bus bus = new Bus();
+  final Bus bus = new Bus(ThreadEnforcer.ANY);
 
   public void testNoReentrantEvents() {
     ReentrantEventsHater hater = new ReentrantEventsHater();

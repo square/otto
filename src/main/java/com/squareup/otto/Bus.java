@@ -104,6 +104,7 @@ import static com.squareup.otto.AnnotatedHandlerFinder.findAllSubscribers;
  * @since 10.0
  */
 public class Bus {
+  public static final String DEFAULT_IDENTIFIER = "default";
 
   /** All registered event handlers, indexed by event type. */
   private final Map<Class<?>, Set<EventHandler>> handlersByType = new ConcurrentHashMap<Class<?>, Set<EventHandler>>();
@@ -116,6 +117,12 @@ public class Bus {
    * this class, followed by the identifier provided at construction.
    */
   private final Logger logger;
+
+  /** Identifier used to differentiate the event bus instance. */
+  private final String identifier;
+
+  /** Thread enforcer for register, unregister, and posting events. */
+  private final ThreadEnforcer enforcer;
 
   /** Queues of events for the current thread to dispatch. */
   private final ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>> eventsToDispatch =
@@ -132,19 +139,43 @@ public class Bus {
     }
   };
 
-  /** Creates a new Bus named "default". */
+  /** Creates a new Bus named "default" that enforces actions on the main thread. */
   public Bus() {
-    this("default");
+    this(DEFAULT_IDENTIFIER);
   }
 
   /**
-   * Creates a new Bus with the given {@code identifier}.
+   * Creates a new Bus with the given {@code identifier} that enforces actions on the main thread.
    *
-   * @param identifier a brief name for this bus, for logging purposes.  Should
-   * be a valid Java identifier.
+   * @param identifier a brief name for this bus, for logging purposes.  Should be a valid Java identifier.
    */
   public Bus(String identifier) {
+    this(ThreadEnforcer.MAIN, identifier);
+  }
+
+  /**
+   * Creates a new Bus named "default" with the given {@code enforcer} for actions.
+   *
+   * @param enforcer Thread enforcer for register, unregister, and post actions.
+   */
+  public Bus(ThreadEnforcer enforcer) {
+    this(enforcer, DEFAULT_IDENTIFIER);
+  }
+
+  /**
+   * Creates a new Bus with the given {@code enforcer} for actions and the given {@code identifier}.
+   *
+   * @param enforcer Thread enforcer for register, unregister, and post actions.
+   * @param identifier A brief name for this bus, for logging purposes.  Should be a valid Java identifier.
+   */
+  public Bus(ThreadEnforcer enforcer, String identifier) {
+    this.enforcer = enforcer;
+    this.identifier = identifier;
     logger = Logger.getLogger(Bus.class.getName() + "." + identifier);
+  }
+
+  @Override public String toString() {
+    return "[Bus \"" + identifier + "\"]";
   }
 
   /**
@@ -159,6 +190,8 @@ public class Bus {
    * @param object object whose handler methods should be registered.
    */
   public void register(Object object) {
+    enforcer.enforce(this);
+
     Map<Class<?>, EventProducer> foundProducers = findAllProducers(object);
     for (Class<?> type : foundProducers.keySet()) {
       if (producersByType.containsKey(type)) {
@@ -209,6 +242,8 @@ public class Bus {
    * @throws IllegalArgumentException if the object was not previously registered.
    */
   public void unregister(Object object) {
+    enforcer.enforce(this);
+
     Map<Class<?>, EventProducer> producersInListener = findAllProducers(object);
     for (Map.Entry<Class<?>, EventProducer> entry : producersInListener.entrySet()) {
       final Class<?> key = entry.getKey();
@@ -248,6 +283,8 @@ public class Bus {
    * @param event event to post.
    */
   public void post(Object event) {
+    enforcer.enforce(this);
+
     Set<Class<?>> dispatchTypes = flattenHierarchy(event.getClass());
 
     boolean dispatched = false;
