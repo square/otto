@@ -23,12 +23,11 @@ import java.lang.reflect.Method;
 /**
  * Wraps a single-argument 'handler' method on a specific object.
  *
- * <p>This class only verifies the suitability of the method and event type if
- * something fails.  Callers are expected to verify their uses of this class.
+ * <p>This class only verifies the suitability of the method and event type if something fails.  Callers are expected t
+ * verify their uses of this class.
  *
- * <p>Two EventHandlers are equivalent when they refer to the same method on the
- * same object (not class).   This property is used to ensure that no handler
- * method is registered more than once.
+ * <p>Two EventHandlers are equivalent when they refer to the same method on the same object (not class).   This
+ * property is used to ensure that no handler method is registered more than once.
  *
  * @author Cliff Biffle
  */
@@ -63,9 +62,8 @@ class EventHandler {
    * Invokes the wrapped handler method to handle {@code event}.
    *
    * @param event  event to handle
-   * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any
-   *     {@link Throwable} that is not an {@link Error} ({@code Error}s are
-   *     propagated as-is).
+   * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
+   *     an {@link Error} ({@code Error}s are propagated as-is).
    */
   public void handleEvent(Object event) throws InvocationTargetException {
     try {

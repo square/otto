@@ -22,8 +22,8 @@ import java.lang.reflect.Method;
 /**
  * Wraps a 'producer' method on a specific object.
  *
- * <p>This class only verifies the suitability of the method and event type if
- * something fails.  Callers are expected to verify their uses of this class.
+ * <p> This class only verifies the suitability of the method and event type if something fails.  Callers are expected
+ * to verify their uses of this class.
  *
  * @author Jake Wharton
  */
@@ -57,9 +57,8 @@ class EventProducer {
   /**
    * Invokes the wrapped producer method.
    *
-   * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any
-   *     {@link Throwable} that is not an {@link Error} ({@code Error}s are
-   *     propagated as-is).
+   * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
+   *     an {@link Error} ({@code Error}s are propagated as-is).
    */
   public Object produceEvent() throws InvocationTargetException {
     try {
