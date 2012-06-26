@@ -120,7 +120,7 @@ public class BusTest {
     List<DeadEvent> events = catcher.getEvents();
     assertEquals("One dead event should be delivered.", 1, events.size());
     assertEquals("The dead event should wrap the original event.",
-        EVENT, events.get(0).getEvent());
+        EVENT, events.get(0).event);
   }
 
   @Test public void deadEventPosting() {
@@ -133,7 +133,7 @@ public class BusTest {
     assertEquals("The explicit DeadEvent should be delivered.",
         1, events.size());
     assertEquals("The dead event must not be re-wrapped.",
-        EVENT, events.get(0).getEvent());
+        EVENT, events.get(0).event);
   }
 
   @Test public void producerCalledForExistingSubscribers() {
