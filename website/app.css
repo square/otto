@@ -5,6 +5,7 @@ body {
 
 code {
     color: #707070;
+    white-space: nowrap;
 }
 
 pre.license {
