@@ -5,27 +5,27 @@
     <meta charset="utf-8">
     <title>Otto - An event bus by Square, Inc.</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="An enhanced Guava-based event bus with emphasis on Android support." />
     <link href="bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap-responsive.min.css" rel="stylesheet">
     <link href="prettify.css" rel="stylesheet">
     <link href="app.css" rel="stylesheet">
-    <!--[if lt IE 9]><script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 </head>
 <body>
 <div class="container">
     <div class="row">
         <div class="span4 side">
             <h1>Otto</h1>
-            <h3>An enhanced, Guava-based event bus with emphasis on Android support.</h3>
+            <h3>An enhanced Guava-based event bus with emphasis on Android support.</h3>
             <ul class="unstyled">
                 <li><a href="http://github.com/square/otto" class="btn btn-large btn-inverse">Download v1.2.0</a></li>
             </ul>
             <img src="square.png" alt="by Square, Inc.">
       </div>
-        <div class="offset5 span7 main">
+        <div class="offset4 span8 main"><div class="main-inner">
             <h4>Introduction</h4>
-            <p>Otto is an event bus designed to decouple parts of your application while still allowing them to
-            communicate efficiently.</p>
+            <p>Otto is an event bus designed to decouple different parts of your application while still allowing them
+            to communicate efficiently.</p>
             <p>Forked from Guava, Otto adds unique functionality to an already refined event bus as well as specializing
             it to the Android platform.</p>
 
@@ -35,8 +35,8 @@
             instance in the variable <code>bus</code> obtained through Guice or another appropriate mechanism.</p>
 
             <h5>Publishing</h5>
-            <p>Event publishing is the most important part of the bus as it allows you to tell others that an action
-            has occurred. An instance of any class may be published on the bus and it will only be dispatched to
+            <p>Event publishing is the most important part of the bus as it allows you to tell subscribers that an
+            action has occurred. An instance of any class may be published on the bus and it will only be dispatched to
             subscribers for that type.</p>
             <p>To publish a new event, call the <code>post</code> method:</p>
             <pre class="prettyprint">bus.post(new AnswerAvailableEvent(42));</pre>
@@ -51,31 +51,37 @@
             <pre class="prettyprint">@Subscribe public void answerAvailable(AnswerAvailableEvent event) {
     // TODO: React to the event somehow!
 }</pre>
-            <p>The name of the method can be anything you like. The only requirement is the single parameter.</p>
-            <p>You also need to register to receive events. If <code>this</code> refers to an instance of the class
-            in which the previous method was present, we can register using the following:</p>
+            <p>The name of the method can be anything you like. The annotation and single parameter are all that is
+            required.</p>
+            <p>In order to receive events, a class instance needs to register with the bus. If <code>this</code> refers
+            to an instance of the class in which the previous method was present, we can register using the
+            following:</p>
             <pre class="prettyprint">bus.register(this);</pre>
             <p><strong>Registering will only find methods on the immediate class type.</strong> Unlike the Guava event
-            bus, Otto will not walk the class hierarchy. This is an explicit design decision to improve performance of
-            the library as well as keep your code simple and unambiguous.</p>
-            <p>Remember to also call the <code>unregister</code> method when appropriate. See the sample application in
-            the download for an example.</p>
+            bus, Otto will not traverse the class hierarchy and add methods from base classes or interfaces that are
+            annotated. This is an explicit design decision to improve performance of the library as well as keep your
+            code simple and unambiguous.</p>
+            <p>Remember to also call the <code>unregister</code> method when appropriate. See the sample application
+            included in the download for a complete example.</p>
 
             <h5>Producing</h5>
-            <p>When subscribing to events its often desired to also fetch the current known value for that event (e.g.,
-            current location, active user, etc.). To address this common paradigm, Otto adds the concept of 'Producers'
-            which provide an immediate callback to any subscribers upon their registration.</p>
+            <p>When subscribing to events its often desired to also fetch the current known value for specific events
+            (e.g., current location, active user, etc.). To address this common paradigm, Otto adds the concept of
+            'Producers' which provide an immediate callback to any subscribers upon their registration.</p>
             <p>To create a producer, annotate a method with <code>@Produce</code>. The method should take no parameters
             and its return type will be used as the type of event for which it can produce initial values. If we are
             keeping track of the last answer event somewhere from above we can register to produce its initial
             value:</p>
             <pre class="prettyprint">@Produce public AnswerAvailableEvent produceAnswer() {
-    // Assuming 'lastAnswer' is the variable where you are keeping track.
-    return new AnswerAvailableEvent(lastAnswer);
+    // Assuming 'lastAnswer' exists.
+    return new AnswerAvailableEvent(this.lastAnswer);
 }</pre>
             <p>Producers, like subscribers, must also be registered:</p>
             <pre class="prettyprint">bus.register(this);</pre>
-            <p>You may only have one producer per type registered at a time on a bus.</p>
+            <p>When registering, the producer method will be called once for each subscriber previously registered for
+            the same type. The producer method will also be called once for each new method that subscribes to an event
+            of the same type.</p>
+            <p>You may only have one producer per event type registered at a time on a bus.</p>
 
             <h5>Thread Enforcement</h5>
             <p>Since at times it may be ambiguous on which thread you are receiving callbacks, Otto provides an
@@ -84,16 +90,16 @@
             <pre class="prettyprint">// Both of these are functionally equivalent.
 Bus bus1 = new Bus();
 Bus bus2 = new Bus(ThreadEnforcer.MAIN);</pre>
-            <p>If you are not concerned with what thread interaction is occurring, instantiate an instance with
+            <p>If you are not concerned on which thread interaction is occurring, instantiate a bus instance with
             <code>ThreadEnforcer.ANY</code>. You can also provider your own implementation of the
-            <code>ThreadEnforcer</code> interface for additional functionality.</p>
+            <code>ThreadEnforcer</code> interface if you need additional functionality or validation.</p>
 
-            <h4>Including In Your App</h4>
+            <h4>Including In Your Application</h4>
             <p>Otto is packaged as a standalone .jar file which you can place in the <code>libs/</code> folder of your
-            of your application. It is compatible with all versions of Android and has no minimum SDK required. You can
-            download the latest .jar on the GitHub project by clicking the "Download" button in the left pane.</p>
+            of your application. It is compatible with all versions of Android and has no minimum SDK requirement. You
+            can download the latest .jar on the GitHub project by clicking the "Download" button.</p>
             <p>If you are a Maven user, you can also fetch Otto from the central repositories by including the following
-            dependnecy in your <code>pom.xml</code>:</p>
+            dependnecy in your application's <code>pom.xml</code>:</p>
             <pre class="prettyprint">&lt;dependency>
     &lt;groupId>com.squareup&lt;/groupid>
     &lt;artifactId>otto&lt;/artifactId>
@@ -128,7 +134,7 @@ See the License for the specific language governing permissions and
 limitations under the License.</pre>
 
             <a id="ribbon" href="https://github.com/square/otto"><img src="ribbon.png" alt="Fork me on GitHub"></a>
-        </div>
+        </div></div>
     </div>
 </div>
 <script src="prettify.js"></script>

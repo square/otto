@@ -74,6 +74,9 @@ pre.license {
         padding-top: 110px;
         padding-bottom: 100px;
     }
+    .main-inner {
+        margin-left: 25px;
+    }
 
     #ribbon img {
         position: fixed;
