@@ -17,50 +17,27 @@
 package com.squareup.otto;
 
 /**
- * Wraps an event that was posted, but which had no subscribers and thus could
- * not be delivered.
+ * Wraps an event that was posted, but which had no subscribers and thus could not be delivered.
  *
- * <p>Subscribing a DeadEvent handler is useful for debugging or logging, as it
- * can detect misconfigurations in a system's event distribution.
+ * <p>Subscribing a DeadEvent handler is useful for debugging or logging, as it can detect misconfigurations in a
+ * system's event distribution.
  *
  * @author Cliff Biffle
- * @since 10.0
  */
 public class DeadEvent {
 
-  private final Object source;
-  private final Object event;
+  public final Object source;
+  public final Object event;
 
   /**
    * Creates a new DeadEvent.
    *
-   * @param source  object broadcasting the DeadEvent (generally the
-   *                {@link Bus}).
-   * @param event   the event that could not be delivered.
+   * @param source object broadcasting the DeadEvent (generally the {@link Bus}).
+   * @param event the event that could not be delivered.
    */
   public DeadEvent(Object source, Object event) {
     this.source = source;
     this.event = event;
-  }
-
-  /**
-   * Returns the object that originated this event (<em>not</em> the object that
-   * originated the wrapped event).  This is generally an {@link Bus}.
-   *
-   * @return the source of this event.
-   */
-  public Object getSource() {
-    return source;
-  }
-
-  /**
-   * Returns the wrapped, 'dead' event, which the system was unable to deliver
-   * to any registered handler.
-   *
-   * @return the 'dead' event that could not be delivered.
-   */
-  public Object getEvent() {
-    return event;
   }
 
 }
