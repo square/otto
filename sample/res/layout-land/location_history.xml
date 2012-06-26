@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:padding="@dimen/holo_gap">
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/holo_gap"
+            android:orientation="horizontal">
+        <Button android:id="@+id/clear_location"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginRight="@dimen/holo_gap"
+                android:text="@string/clear_location"
+                />
+        <Button android:id="@+id/move_location"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/move_location"
+                />
+    </LinearLayout>
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+        <fragment class="com.squareup.otto.sample.LocationMapFragment"
+                  android:id="@+id/map"
+                  android:layout_width="0dp"
+                  android:layout_height="match_parent"
+                  android:layout_weight="1"
+                  android:layout_marginRight="@dimen/holo_gap"/>
+        <fragment class="com.squareup.otto.sample.LocationHistoryFragment"
+                  android:id="@+id/history"
+                  android:layout_width="0dp"
+                  android:layout_height="match_parent"
+                  android:layout_weight="1"
+                />
+    </LinearLayout>
+</LinearLayout>
