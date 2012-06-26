@@ -1,6 +1,16 @@
 Change Log
 ==========
 
+Version 1.2.0 *(In Development)*
+--------------------------------
+
+ * Add thread enforcer which verifies bus interaction is occuring on a specific
+   thread.
+ * Add Android sample application demonstrating communication between activity
+   and two fragments.
+ * Fix: Correct producer unregister failing to remove registration.
+
+
 Version 1.1.0 *(2012-06-22)*
 ----------------------------
 

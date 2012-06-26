@@ -14,28 +14,37 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.squareup</groupId>
-    <artifactId>otto</artifactId>
+    <artifactId>otto-parent</artifactId>
     <version>1.2.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
-    <name>Otto</name>
+    <name>Otto (Parent)</name>
     <description>An enhanced, Guava-based event bus with emphasis on Android support.</description>
     <url>http://git.squareup.com/square/eventbus/</url>
 
+    <modules>
+        <module>library</module>
+        <module>sample</module>
+    </modules>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <binary.prefix>square</binary.prefix>
 
         <!-- Compilation -->
         <android-maven.version>3.2.0</android-maven.version>
         <java.version>1.6</java.version>
 
         <!-- Dependencies -->
-        <android.version>2.2.1</android.version>
-        <android.platform>8</android.platform>
+        <android.version>4.0.1.2</android.version>
+        <android.platform>14</android.platform>
+        <android.support.version>r7</android.support.version>
 
         <!-- Test Dependencies -->
         <junit.version>4.10</junit.version>
@@ -65,64 +74,71 @@
         <url>http://squareup.com</url>
     </organization>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.google.android</groupId>
-            <artifactId>android</artifactId>
-            <version>${android.version}</version>
-        </dependency>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.android</groupId>
+                <artifactId>android</artifactId>
+                <version>${android.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.android</groupId>
+                <artifactId>support-v4</artifactId>
+                <version>${android.support.version}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.easytesting</groupId>
-            <artifactId>fest-assert</artifactId>
-            <version>${fest.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.easytesting</groupId>
+                <artifactId>fest-assert</artifactId>
+                <version>${fest.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
-        <finalName>square-${project.artifactId}-${project.version}</finalName>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                    <artifactId>android-maven-plugin</artifactId>
+                    <version>${android-maven.version}</version>
+                </plugin>
 
-        <plugins>
-            <plugin>
-                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
-                <artifactId>android-maven-plugin</artifactId>
-                <version>${android-maven.version}</version>
-            </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>2.5</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                    </configuration>
+                </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.9.1</version>
-                <configuration>
-                    <failsOnError>true</failsOnError>
-                    <configLocation>checkstyle.xml</configLocation>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>checkstyle</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>2.9.1</version>
+                    <configuration>
+                        <failsOnError>true</failsOnError>
+                        <configLocation>../checkstyle.xml</configLocation>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>checkstyle</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>
