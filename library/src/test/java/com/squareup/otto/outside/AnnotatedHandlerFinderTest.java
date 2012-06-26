@@ -19,13 +19,17 @@ package com.squareup.otto.outside;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.squareup.otto.ThreadEnforcer;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
@@ -41,7 +45,8 @@ public class AnnotatedHandlerFinderTest {
 
   private static final Object EVENT = new Object();
 
-  abstract static class AbstractEventBusTest<H> extends TestCase {
+  @Ignore // Tests are in extending classes.
+  public abstract static class AbstractEventBusTest<H> {
     abstract H createHandler();
 
     private H handler;
@@ -50,16 +55,16 @@ public class AnnotatedHandlerFinderTest {
       return handler;
     }
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
       handler = createHandler();
       Bus bus = new Bus(ThreadEnforcer.ANY);
       bus.register(handler);
       bus.post(EVENT);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
       handler = null;
     }
   }
@@ -83,11 +88,11 @@ public class AnnotatedHandlerFinderTest {
       }
     }
 
-    public void testNonSubscriber() {
+    @Test public void nonSubscriber() {
       assertThat(getHandler().nonSubscriberEvents).isEmpty();
     }
 
-    public void testSubscriber() {
+    @Test public void subscriber() {
       assertThat(getHandler().subscriberEvents).containsExactly(EVENT);
     }
 
@@ -119,11 +124,11 @@ public class AnnotatedHandlerFinderTest {
       }
     }
 
-    public void testOverriddenAndAnnotatedInSubclass() {
+    @Test public void overriddenAndAnnotatedInSubclass() {
       assertThat(getHandler().overriddenAndAnnotatedInSubclassEvents).containsExactly(EVENT);
     }
 
-    public void testOverriddenInSubclassNowhereAnnotated() {
+    @Test public void overriddenInSubclassNowhereAnnotated() {
       assertThat(getHandler().overriddenInSubclassNowhereAnnotatedEvents).isEmpty();
     }
 
@@ -164,15 +169,15 @@ public class AnnotatedHandlerFinderTest {
       }
     }
 
-    public void testNeitherOverriddenNorAnnotated() {
+    @Test public void neitherOverriddenNorAnnotated() {
       assertThat(getHandler().neitherOverriddenNorAnnotatedEvents).isEmpty();
     }
 
-    public void testOverriddenInSubclassNowhereAnnotated() {
+    @Test public void overriddenInSubclassNowhereAnnotated() {
       assertThat(getHandler().overriddenInSubclassNowhereAnnotatedEvents).isEmpty();
     }
 
-    public void testOverriddenAndAnnotatedInSubclass() {
+    @Test public void overriddenAndAnnotatedInSubclass() {
       assertThat(getHandler().overriddenAndAnnotatedInSubclassEvents).containsExactly(EVENT);
     }
 
@@ -181,7 +186,7 @@ public class AnnotatedHandlerFinderTest {
     }
   }
 
-  public static class FailsOnInterfaceSubscription extends TestCase {
+  public static class FailsOnInterfaceSubscription {
 
     static class InterfaceSubscriber {
       @Subscribe public void whatever(Comparable thingy) {
@@ -189,7 +194,7 @@ public class AnnotatedHandlerFinderTest {
       }
     }
 
-    public void testSubscribingToInterfacesFails() {
+    @Test public void subscribingToInterfacesFails() {
       try {
         new Bus(ThreadEnforcer.ANY).register(new InterfaceSubscriber());
         fail("Annotation finder allowed subscription to illegal interface type.");

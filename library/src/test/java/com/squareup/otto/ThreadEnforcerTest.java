@@ -16,10 +16,12 @@
 
 package com.squareup.otto;
 
-import com.squareup.otto.ThreadEnforcer;
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class ThreadEnforcerTest extends TestCase {
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+
+public class ThreadEnforcerTest {
 
   private static class RecordingThreadEnforcer implements ThreadEnforcer {
     boolean called = false;
@@ -29,7 +31,7 @@ public class ThreadEnforcerTest extends TestCase {
     }
   }
 
-  public void testEnforerCalledForRegister() {
+  @Test public void enforerCalledForRegister() {
     RecordingThreadEnforcer enforcer = new RecordingThreadEnforcer();
     Bus bus = new Bus(enforcer);
 
@@ -38,7 +40,7 @@ public class ThreadEnforcerTest extends TestCase {
     assertTrue(enforcer.called);
   }
 
-  public void testEnforcerCalledForPost() {
+  @Test public void enforcerCalledForPost() {
     RecordingThreadEnforcer enforcer = new RecordingThreadEnforcer();
     Bus bus = new Bus(enforcer);
 
@@ -47,7 +49,7 @@ public class ThreadEnforcerTest extends TestCase {
     assertTrue(enforcer.called);
   }
 
-  public void testEnforcerCalledForUnregister() {
+  @Test public void enforcerCalledForUnregister() {
     RecordingThreadEnforcer enforcer = new RecordingThreadEnforcer();
     Bus bus = new Bus(enforcer);
 

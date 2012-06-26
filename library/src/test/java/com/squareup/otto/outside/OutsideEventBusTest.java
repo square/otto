@@ -19,24 +19,26 @@ package com.squareup.otto.outside;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.squareup.otto.ThreadEnforcer;
-import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static junit.framework.Assert.assertEquals;
 
 /**
  * Test cases for {@code Bus} that must not be in the same package.
  *
  * @author Louis Wasserman
  */
-public class OutsideEventBusTest extends TestCase {
+public class OutsideEventBusTest {
 
   /*
    * If you do this test from common.eventbus.BusTest, it doesn't actually test the behavior.
    * That is, even if exactly the same method works from inside the common.eventbus package tests,
    * it can fail here.
    */
-  public void testAnonymous() {
+  @Test public void anonymous() {
     final AtomicReference<String> holder = new AtomicReference<String>();
     final AtomicInteger deliveries = new AtomicInteger();
     Bus bus = new Bus(ThreadEnforcer.ANY);

@@ -16,21 +16,24 @@
 
 package com.squareup.otto;
 
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class EventProducerTest extends TestCase {
+import static junit.framework.Assert.assertSame;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+
+public class EventProducerTest {
 
   private static final Object FIXTURE_RETURN_VALUE = new Object();
 
   private boolean methodCalled;
   private Object methodReturnValue;
 
-  @Override protected void setUp() throws Exception {
-    super.setUp();
-
+  @Before public void setUp() throws Exception {
     methodCalled = false;
     methodReturnValue = FIXTURE_RETURN_VALUE;
   }
@@ -40,7 +43,7 @@ public class EventProducerTest extends TestCase {
    *
    * @throws Exception  if the aforementioned proper execution is not to be had.
    */
-  public void testBasicMethodCall() throws Exception {
+  @Test public void basicMethodCall() throws Exception {
     Method method = getRecordingMethod();
     EventProducer producer = new EventProducer(this, method);
     Object methodResult = producer.produceEvent();
@@ -50,7 +53,7 @@ public class EventProducerTest extends TestCase {
   }
 
   /** Checks that EventProducer's constructor disallows null methods. */
-  public void testRejectionOfNullMethods() {
+  @Test public void rejectionOfNullMethods() {
     try {
       new EventProducer(this, null);
       fail("EventProducer must immediately reject null methods.");
@@ -60,7 +63,7 @@ public class EventProducerTest extends TestCase {
   }
 
   /** Checks that EventProducer's constructor disallows null targets. */
-  public void testRejectionOfNullTargets() throws NoSuchMethodException {
+  @Test public void rejectionOfNullTargets() throws NoSuchMethodException {
     Method method = getRecordingMethod();
     try {
       new EventProducer(null, method);
@@ -70,7 +73,7 @@ public class EventProducerTest extends TestCase {
     }
   }
 
-  public void testExceptionWrapping() throws NoSuchMethodException {
+  @Test public void testExceptionWrapping() throws NoSuchMethodException {
     Method method = getExceptionThrowingMethod();
     EventProducer producer = new EventProducer(this, method);
 
@@ -83,7 +86,7 @@ public class EventProducerTest extends TestCase {
     }
   }
 
-  public void testErrorPassthrough() throws InvocationTargetException, NoSuchMethodException {
+  @Test public void errorPassthrough() throws InvocationTargetException, NoSuchMethodException {
     Method method = getErrorThrowingMethod();
     EventProducer producer = new EventProducer(this, method);
 
@@ -95,7 +98,7 @@ public class EventProducerTest extends TestCase {
     }
   }
 
-  public void testReturnValueNotCached() throws Exception {
+  @Test public void returnValueNotCached() throws Exception {
     Method method = getRecordingMethod();
     EventProducer producer = new EventProducer(this, method);
     producer.produceEvent();

@@ -1,7 +1,9 @@
 // Copyright 2012 Square, Inc.
 package com.squareup.otto;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+
+import static junit.framework.Assert.assertTrue;
 
 /**
  * Stress test of {@link Bus} against inner classes. The anon inner class tests
@@ -9,7 +11,7 @@ import junit.framework.TestCase;
  *
  * @author Ray Ryan (ray@squareup.com)
  */
-public class EventBusInnerClassStressTest extends TestCase {
+public class EventBusInnerClassStressTest {
   public static final int REPS = 1000000;
   boolean called;
 
@@ -22,7 +24,7 @@ public class EventBusInnerClassStressTest extends TestCase {
 
   Sub sub = new Sub();
 
-  public void testEventBusOkayWithNonStaticInnerClass() {
+  @Test public void eventBusOkayWithNonStaticInnerClass() {
     Bus eb = new Bus(ThreadEnforcer.ANY);
     eb.register(sub);
     int i = 0;
@@ -34,7 +36,7 @@ public class EventBusInnerClassStressTest extends TestCase {
     }
   }
 
-  public void testEventBusFailWithAnonInnerClass() {
+  @Test public void eventBusFailWithAnonInnerClass() {
     Bus eb = new Bus(ThreadEnforcer.ANY);
     eb.register(new Object() {
       @Subscribe
@@ -51,7 +53,7 @@ public class EventBusInnerClassStressTest extends TestCase {
     }
   }
 
-  public void testEventBusNpeWithAnonInnerClassWaitingForObject() {
+  @Test public void eventBusNpeWithAnonInnerClassWaitingForObject() {
     Bus eb = new Bus(ThreadEnforcer.ANY);
     eb.register(new Object() {
       @Subscribe
