@@ -20,12 +20,13 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
 import com.squareup.otto.ThreadEnforcer;
-import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static junit.framework.Assert.assertEquals;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
@@ -36,7 +37,7 @@ import static org.fest.assertions.Assertions.assertThat;
  * @author Jake Wharton
  */
 @SuppressWarnings("UnusedDeclaration")
-public class AnnotatedProducerFinderTest extends TestCase {
+public class AnnotatedProducerFinderTest {
 
   static class Subscriber {
     final List<Object> events = new ArrayList<Object>();
@@ -57,7 +58,7 @@ public class AnnotatedProducerFinderTest extends TestCase {
     }
   }
 
-  public void testSimpleProducer() {
+  @Test public void simpleProducer() {
     Bus bus = new Bus(ThreadEnforcer.ANY);
     Subscriber subscriber = new Subscriber();
     SimpleProducer producer = new SimpleProducer();
@@ -69,7 +70,7 @@ public class AnnotatedProducerFinderTest extends TestCase {
     assertEquals(Arrays.asList(SimpleProducer.VALUE), subscriber.events);
   }
 
-  public void testMultipleSubscriptionsCallsProviderEachTime() {
+  @Test public void multipleSubscriptionsCallsProviderEachTime() {
     Bus bus = new Bus(ThreadEnforcer.ANY);
     SimpleProducer producer = new SimpleProducer();
 

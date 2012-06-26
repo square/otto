@@ -16,7 +16,8 @@
 
 package com.squareup.otto;
 
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,23 +25,27 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+
 /**
  * Test case for {@link Bus}.
  *
  * @author Cliff Biffle
  */
-public class BusTest extends TestCase {
+public class BusTest {
   private static final String EVENT = "Hello";
   private static final String BUS_IDENTIFIER = "test-bus";
 
   private Bus bus;
 
-  @Override protected void setUp() throws Exception {
-    super.setUp();
+  @Before public void setUp() throws Exception {
     bus = new Bus(ThreadEnforcer.ANY, BUS_IDENTIFIER);
   }
 
-  public void testBasicCatcherDistribution() {
+  @Test public void basicCatcherDistribution() {
     StringCatcher catcher = new StringCatcher();
     bus.register(catcher);
 
@@ -61,7 +66,7 @@ public class BusTest extends TestCase {
    *
    * Also checks delivery ordering in such cases.
    */
-  public void testPolymorphicDistribution() {
+  @Test public void polymorphicDistribution() {
     // Three catchers for related types String, Object, and Comparable<?>.
     // String isa Object
     // String isa Comparable<?>
@@ -105,7 +110,7 @@ public class BusTest extends TestCase {
         COMP_EVENT, objectEvents.get(2));
   }
 
-  public void testDeadEventForwarding() {
+  @Test public void deadEventForwarding() {
     GhostCatcher catcher = new GhostCatcher();
     bus.register(catcher);
 
@@ -118,7 +123,7 @@ public class BusTest extends TestCase {
         EVENT, events.get(0).getEvent());
   }
 
-  public void testDeadEventPosting() {
+  @Test public void deadEventPosting() {
     GhostCatcher catcher = new GhostCatcher();
     bus.register(catcher);
 
@@ -131,7 +136,7 @@ public class BusTest extends TestCase {
         EVENT, events.get(0).getEvent());
   }
 
-  public void testProducerCalledForExistingSubscribers() {
+  @Test public void producerCalledForExistingSubscribers() {
     StringCatcher catcher = new StringCatcher();
     StringProducer producer = new StringProducer();
 
@@ -141,7 +146,7 @@ public class BusTest extends TestCase {
     assertEquals(Arrays.asList(StringProducer.VALUE), catcher.getEvents());
   }
 
-  public void testProducerUnregisterAllowsReregistering() {
+  @Test public void producerUnregisterAllowsReregistering() {
     StringProducer producer1 = new StringProducer();
     StringProducer producer2 = new StringProducer();
 
@@ -150,7 +155,7 @@ public class BusTest extends TestCase {
     bus.register(producer2);
   }
 
-  public void testFlattenHierarchy() {
+  @Test public void flattenHierarchy() {
     HierarchyFixture fixture = new HierarchyFixture();
     Set<Class<?>> hierarchy = bus.flattenHierarchy(fixture.getClass());
 
@@ -160,11 +165,11 @@ public class BusTest extends TestCase {
     assertContains(HierarchyFixture.class, hierarchy);
   }
 
-  public void testMissingSubscribe() {
+  @Test public void missingSubscribe() {
     bus.register(new Object());
   }
 
-  public void testUnregister() {
+  @Test public void unregister() {
     StringCatcher catcher1 = new StringCatcher();
     StringCatcher catcher2 = new StringCatcher();
     try {

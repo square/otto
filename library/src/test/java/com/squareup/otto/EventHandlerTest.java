@@ -16,20 +16,24 @@
 
 package com.squareup.otto;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import junit.framework.TestCase;
 
-public class EventHandlerTest extends TestCase {
+import static junit.framework.Assert.assertSame;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+
+public class EventHandlerTest {
 
   private static final Object FIXTURE_ARGUMENT = new Object();
 
   private boolean methodCalled;
   private Object methodArgument;
 
-  @Override protected void setUp() throws Exception {
-    super.setUp();
-
+  @Before public void setUp() throws Exception {
     methodCalled = false;
     methodArgument = null;
   }
@@ -39,7 +43,7 @@ public class EventHandlerTest extends TestCase {
    *
    * @throws Exception  if the aforementioned proper execution is not to be had.
    */
-  public void testBasicMethodCall() throws Exception {
+  @Test public void basicMethodCall() throws Exception {
     Method method = getRecordingMethod();
 
     EventHandler handler = new EventHandler(this, method);
@@ -52,7 +56,7 @@ public class EventHandlerTest extends TestCase {
   }
 
   /** Checks that EventHandler's constructor disallows null methods. */
-  public void testRejectionOfNullMethods() {
+  @Test public void rejectionOfNullMethods() {
     try {
       new EventHandler(this, null);
       fail("EventHandler must immediately reject null methods.");
@@ -62,7 +66,7 @@ public class EventHandlerTest extends TestCase {
   }
 
   /** Checks that EventHandler's constructor disallows null targets. */
-  public void testRejectionOfNullTargets() throws NoSuchMethodException {
+  @Test public void rejectionOfNullTargets() throws NoSuchMethodException {
     Method method = getRecordingMethod();
     try {
       new EventHandler(null, method);
@@ -72,7 +76,7 @@ public class EventHandlerTest extends TestCase {
     }
   }
 
-  public void testExceptionWrapping() throws NoSuchMethodException {
+  @Test public void exceptionWrapping() throws NoSuchMethodException {
     Method method = getExceptionThrowingMethod();
     EventHandler handler = new EventHandler(this, method);
 
@@ -85,7 +89,7 @@ public class EventHandlerTest extends TestCase {
     }
   }
 
-  public void testErrorPassthrough() throws InvocationTargetException, NoSuchMethodException {
+  @Test public void errorPassthrough() throws InvocationTargetException, NoSuchMethodException {
     Method method = getErrorThrowingMethod();
     EventHandler handler = new EventHandler(this, method);
 

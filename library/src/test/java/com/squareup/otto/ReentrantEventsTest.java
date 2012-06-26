@@ -16,11 +16,14 @@
 
 package com.squareup.otto;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 /**
  * Validate that {@link Bus} behaves carefully when listeners publish
@@ -28,14 +31,14 @@ import java.util.List;
  *
  * @author Jesse Wilson
  */
-public class ReentrantEventsTest extends TestCase {
+public class ReentrantEventsTest {
 
   static final String FIRST = "one";
   static final Double SECOND = 2.0d;
 
   final Bus bus = new Bus(ThreadEnforcer.ANY);
 
-  public void testNoReentrantEvents() {
+  @Test public void noReentrantEvents() {
     ReentrantEventsHater hater = new ReentrantEventsHater();
     bus.register(hater);
 
@@ -67,7 +70,7 @@ public class ReentrantEventsTest extends TestCase {
     }
   }
 
-  public void testEventOrderingIsPredictable() {
+  @Test public void eventOrderingIsPredictable() {
     EventProcessor processor = new EventProcessor();
     bus.register(processor);
 
