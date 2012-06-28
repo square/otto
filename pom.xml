@@ -30,8 +30,8 @@
     <packaging>pom</packaging>
 
     <name>Otto (Parent)</name>
-    <description>An enhanced, Guava-based event bus with emphasis on Android support.</description>
-    <url>http://git.squareup.com/square/eventbus/</url>
+    <description>An enhanced Guava-based event bus with emphasis on Android support.</description>
+    <url>http://github.com/square/otto/</url>
 
     <modules>
         <module>library</module>
@@ -58,14 +58,14 @@
     </properties>
 
     <scm>
-        <url>http://git.squareup.com/square/eventbus/</url>
-        <connection>scm:git:git://git.squareup.com/square/eventbus.git</connection>
-        <developerConnection>scm:git:ssh://git@git.squareup.com/square/eventbus.git</developerConnection>
+        <url>http://github.com/square/otto/</url>
+        <connection>scm:git:git://github.com/square/otto.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/square/otto.git</developerConnection>
     </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>http://git.squareup.com/square/eventbus/issues</url>
+        <url>http://github.com/square/otto/issues</url>
     </issueManagement>
 
     <licenses>
