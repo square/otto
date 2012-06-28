@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Version 1.2.0 *(In Development)*
---------------------------------
+Version 1.2.0 *(2012-06-28)*
+----------------------------
 
  * Add thread enforcer which verifies bus interaction is occuring on a specific
    thread.
