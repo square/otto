@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 /**
  * Marks a method as an instance producer, as used by {@link AnnotatedHandlerFinder} and {@link Bus}.
  * <p>
- * The type of instance will be indicated by the method's return type parameter.
+ * The type of instance will be indicated by the method's return type parameter. Must never return {@code null}.
  *
  * @author Jake Wharton
  */
