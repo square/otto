@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 1.3.0 *(In Development)*
+--------------------------------
+
+ * Producer methods can no longer return `null`.
+
+
 Version 1.2.0 *(2012-06-28)*
 ----------------------------
 
