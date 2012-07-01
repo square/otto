@@ -215,7 +215,11 @@ public class Bus {
 
   private void dispatchProducerResultToHandler(EventHandler handler, EventProducer producer) {
     try {
-      handler.handleEvent(producer.produceEvent());
+      final Object event = producer.produceEvent();
+      if (event == null) {
+        throw new IllegalStateException("Producer " + producer + " must return a non-null value.");
+      }
+      handler.handleEvent(event);
     } catch (InvocationTargetException e) {
       logger.log(Level.SEVERE, "Could not dispatch event from " + producer + " to handler " + handler, e);
     }
