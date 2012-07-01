@@ -217,6 +217,14 @@ public class BusTest {
                  expectedEvents, catcher2.getEvents());
   }
 
+  @Test public void producingNullIsInvalid() {
+    try {
+      bus.register(new NullProducer());
+    } catch (IllegalStateException expected) {
+      // Expected.
+    }
+  }
+
   private <T> void assertContains(T element, Collection<T> collection) {
     assertTrue("Collection must contain " + element,
         collection.contains(element));
@@ -238,6 +246,16 @@ public class BusTest {
 
     public List<DeadEvent> getEvents() {
       return events;
+    }
+  }
+
+  public static class NullProducer {
+    @Produce public Object produceNull() {
+      return null;
+    }
+
+    @Subscribe public void method(Object event) {
+      fail();
     }
   }
 
