@@ -401,7 +401,7 @@ public class Bus {
   private final Map<Class<?>, Set<Class<?>>> flattenHierarchyCache =
       new HashMap<Class<?>, Set<Class<?>>>();
 
-  /** Simple struct representing an event and it's handler. */
+  /** Simple struct representing an event and its handler. */
   static class EventWithHandler {
     final Object event;
     final EventHandler handler;
