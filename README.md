@@ -20,12 +20,13 @@ Downloadable .jars can be found on the [GitHub download page][2].
 
 You can also depend on the .jar through Maven:
 
-    <dependency>
-        <groupId>com.squareup</groupId>
-        <artifactId>otto<artifactId>
-        <version>(insert latest version)</version>
-    </dependency>
-
+```xml
+<dependency>
+    <groupId>com.squareup</groupId>
+    <artifactId>otto<artifactId>
+    <version>(insert latest version)</version>
+</dependency>
+```
 
 
 Contributing
