@@ -23,7 +23,7 @@ You can also depend on the .jar through Maven:
 ```xml
 <dependency>
     <groupId>com.squareup</groupId>
-    <artifactId>otto<artifactId>
+    <artifactId>otto</artifactId>
     <version>(insert latest version)</version>
 </dependency>
 ```
