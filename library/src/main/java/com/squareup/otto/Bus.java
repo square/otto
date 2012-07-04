@@ -221,7 +221,8 @@ public class Bus {
       }
       handler.handleEvent(event);
     } catch (InvocationTargetException e) {
-      logger.log(Level.SEVERE, "Could not dispatch event from " + producer + " to handler " + handler, e);
+      logger.log(Level.SEVERE, "Could not dispatch event from " + producer + " to handler "
+          + handler, e.getCause());
     }
   }
 
@@ -242,7 +243,8 @@ public class Bus {
 
       if (value == null || !value.equals(producer)) {
         throw new IllegalArgumentException(
-            "Missing event producer for an annotated method. Is " + object + " registered?");
+            "Missing event producer for an annotated method. Is " + object.getClass()
+                + " registered?");
       }
       producersByType.remove(key);
     }
@@ -254,7 +256,8 @@ public class Bus {
 
       if (currentHandlers == null || !currentHandlers.removeAll(eventMethodsInListener)) {
         throw new IllegalArgumentException(
-            "Missing event handler for an annotated method. Is " + object + " registered?");
+            "Missing event handler for an annotated method. Is " + object.getClass()
+                + " registered?");
       }
     }
   }
@@ -337,7 +340,8 @@ public class Bus {
     try {
       wrapper.handleEvent(event);
     } catch (InvocationTargetException e) {
-      logger.log(Level.SEVERE, "Could not dispatch event: " + event + " to handler " + wrapper, e);
+      logger.log(Level.SEVERE, "Could not dispatch event: " + event.getClass() + " to handler "
+          + wrapper, e.getCause());
     }
   }
 
