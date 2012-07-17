@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 1.3.0 *(In Development)*
+--------------------------------
+
+ * Exceptions in handlers and producers are no longer caught and logged.
+
+
 Version 1.2.1 *(2012-07-01)*
 ----------------------------
 
