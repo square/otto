@@ -28,8 +28,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.squareup.otto.AnnotatedHandlerFinder.findAllProducers;
 import static com.squareup.otto.AnnotatedHandlerFinder.findAllSubscribers;
@@ -67,9 +65,8 @@ import static com.squareup.otto.AnnotatedHandlerFinder.findAllSubscribers;
  * <h2>Handler Methods</h2>
  * Event handler methods must accept only one argument: the event.
  *
- * <p>Handlers should not, in general, throw.  If they do, the Bus will catch and log the exception.  This is rarely the
- * right solution for error handling and should not be relied upon; it is intended solely to help find problems during
- * development.
+ * <p>Handlers should not, in general, throw.  If they do, the Bus will wrap the exception and
+ * re-throw it.
  *
  * <p>The Bus by default enforces that all interactions occur on the main thread.  You can provide an alternate
  * enforcement by passing a {@link ThreadEnforcer} to the constructor.
@@ -97,12 +94,6 @@ public class Bus {
 
   /** All registered event producers, index by event type. */
   private final Map<Class<?>, EventProducer> producersByType = new ConcurrentHashMap<Class<?>, EventProducer>();
-
-  /**
-   * Logger for event dispatch failures.  Named by the fully-qualified name of
-   * this class, followed by the identifier provided at construction.
-   */
-  private final Logger logger;
 
   /** Identifier used to differentiate the event bus instance. */
   private final String identifier;
@@ -133,7 +124,7 @@ public class Bus {
   /**
    * Creates a new Bus with the given {@code identifier} that enforces actions on the main thread.
    *
-   * @param identifier a brief name for this bus, for logging purposes.  Should be a valid Java identifier.
+   * @param identifier a brief name for this bus, for debugging purposes.  Should be a valid Java identifier.
    */
   public Bus(String identifier) {
     this(ThreadEnforcer.MAIN, identifier);
@@ -152,12 +143,11 @@ public class Bus {
    * Creates a new Bus with the given {@code enforcer} for actions and the given {@code identifier}.
    *
    * @param enforcer Thread enforcer for register, unregister, and post actions.
-   * @param identifier A brief name for this bus, for logging purposes.  Should be a valid Java identifier.
+   * @param identifier A brief name for this bus, for debugging purposes.  Should be a valid Java identifier.
    */
   public Bus(ThreadEnforcer enforcer, String identifier) {
     this.enforcer = enforcer;
     this.identifier = identifier;
-    logger = Logger.getLogger(Bus.class.getName() + "." + identifier);
   }
 
   @Override public String toString() {
@@ -214,15 +204,17 @@ public class Bus {
   }
 
   private void dispatchProducerResultToHandler(EventHandler handler, EventProducer producer) {
+    Object event = null;
     try {
-      final Object event = producer.produceEvent();
+      event = producer.produceEvent();
       if (event == null) {
         throw new IllegalStateException("Producer " + producer + " must return a non-null value.");
       }
       handler.handleEvent(event);
     } catch (InvocationTargetException e) {
-      logger.log(Level.SEVERE, "Could not dispatch event from " + producer + " to handler "
-          + handler, e.getCause());
+      String type = event == null ? "[null]" : event.getClass().toString();
+      throw new RuntimeException(
+          "Could not dispatch event " + type + " from " + producer + " to handler " + handler, e);
     }
   }
 
@@ -340,8 +332,8 @@ public class Bus {
     try {
       wrapper.handleEvent(event);
     } catch (InvocationTargetException e) {
-      logger.log(Level.SEVERE, "Could not dispatch event: " + event.getClass() + " to handler "
-          + wrapper, e.getCause());
+      throw new RuntimeException(
+          "Could not dispatch event: " + event.getClass() + " to handler " + wrapper, e);
     }
   }
 

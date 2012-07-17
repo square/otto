@@ -225,6 +225,43 @@ public class BusTest {
     }
   }
 
+  @Test public void testExceptionThrowingProducer() throws Exception {
+    bus.register(new ExceptionThrowingProducer());
+    try {
+      bus.register(new DummySubscriber());
+      fail("Should have failed due to exception-throwing producer.");
+    } catch (RuntimeException e) {
+      // Expected.
+    }
+  }
+
+  @Test public void testExceptionThrowingHandler() throws Exception {
+    bus.register(new ExceptionThrowingHandler());
+    try {
+      bus.post("I love tacos");
+      fail("Should have failed due to exception-throwing handler.");
+    } catch (RuntimeException e) {
+      // Expected
+    }
+  }
+
+  private class ExceptionThrowingProducer {
+    @Produce public String produceThingsExceptionally() {
+      throw new IllegalStateException("Bogus!");
+    }
+  }
+
+  private class DummySubscriber {
+    @Subscribe public void subscribeToString(String value) {
+    }
+  }
+
+  private class ExceptionThrowingHandler {
+    @Subscribe public void subscribeToString(String value) {
+      throw new IllegalStateException("Dude where's my car?");
+    }
+  }
+
   private <T> void assertContains(T element, Collection<T> collection) {
     assertTrue("Collection must contain " + element,
         collection.contains(element));
