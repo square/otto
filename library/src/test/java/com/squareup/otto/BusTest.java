@@ -146,6 +146,22 @@ public class BusTest {
     assertEquals(Arrays.asList(StringProducer.VALUE), catcher.getEvents());
   }
 
+  @Test public void producingNullIsNoOp() {
+    LazyStringProducer producer = new LazyStringProducer();
+    StringCatcher catcher = new StringCatcher();
+
+    bus.register(catcher);
+    bus.register(producer);
+
+    assertTrue(catcher.getEvents().isEmpty());
+
+    bus.unregister(producer);
+    producer.value = "Foo";
+    bus.register(producer);
+
+    assertEquals(Arrays.asList("Foo"), catcher.getEvents());
+  }
+
   @Test public void producerUnregisterAllowsReregistering() {
     StringProducer producer1 = new StringProducer();
     StringProducer producer2 = new StringProducer();

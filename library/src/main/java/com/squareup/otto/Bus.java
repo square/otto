@@ -208,7 +208,7 @@ public class Bus {
     try {
       event = producer.produceEvent();
       if (event == null) {
-        throw new IllegalStateException("Producer " + producer + " must return a non-null value.");
+        return;
       }
       handler.handleEvent(event);
     } catch (InvocationTargetException e) {
