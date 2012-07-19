@@ -162,6 +162,52 @@ public class BusTest {
     assertEquals(Arrays.asList("Foo"), catcher.getEvents());
   }
 
+  @Test public void subscribingOrProducingOnlyAllowedOnPublicMethods() {
+    try {
+      bus.register(new Object() {
+        @Subscribe protected void method(Object o) {}
+      });
+      fail();
+    } catch (IllegalArgumentException expected) {
+      // Expected.
+    }
+    try {
+      bus.register(new Object() {
+        @Subscribe void method(Object o) {}
+      });
+      fail();
+    } catch (IllegalArgumentException expected) {
+    }
+    try {
+      bus.register(new Object() {
+        @Subscribe private void method(Object o) {}
+      });
+      fail();
+    } catch (IllegalArgumentException expected) {
+    }
+    try {
+      bus.register(new Object() {
+        @Produce protected Object method() { return null; }
+      });
+      fail();
+    } catch (IllegalArgumentException expected) {
+    }
+    try {
+      bus.register(new Object() {
+        @Produce Object method() { return null; }
+      });
+      fail();
+    } catch (IllegalArgumentException expected) {
+    }
+    try {
+      bus.register(new Object() {
+        @Produce private Object method() { return null; }
+      });
+      fail();
+    } catch (IllegalArgumentException expected) {
+    }
+  }
+
   @Test public void producerUnregisterAllowsReregistering() {
     StringProducer producer1 = new StringProducer();
     StringProducer producer2 = new StringProducer();

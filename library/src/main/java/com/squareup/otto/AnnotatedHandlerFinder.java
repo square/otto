@@ -18,6 +18,7 @@
 package com.squareup.otto;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -48,7 +49,7 @@ final class AnnotatedHandlerFinder {
     Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
     Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
 
-    for (Method method : listenerClass.getMethods()) {
+    for (Method method : listenerClass.getDeclaredMethods()) {
       if (method.isAnnotationPresent(Subscribe.class)) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length != 1) {
@@ -61,6 +62,12 @@ final class AnnotatedHandlerFinder {
           throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
               + " which is an interface.  Subscription must be on a concrete class type.");
         }
+
+        if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
+          throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
+              + " but is not 'public'.");
+        }
+
         Set<Method> methods = subscriberMethods.get(eventType);
         if (methods == null) {
           methods = new HashSet<Method>();
@@ -83,6 +90,12 @@ final class AnnotatedHandlerFinder {
           throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
               + " which is an interface.  Producers must return a concrete class type.");
         }
+
+        if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
+          throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
+              + " but is not 'public'.");
+        }
+
         if (producerMethods.containsKey(eventType)) {
           throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
         }

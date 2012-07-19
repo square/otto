@@ -7,6 +7,8 @@ Version 1.3.0 *(In Development)*
  * Exceptions in handlers and producers are no longer caught and logged.
  * Producer methods can return `null` to indicate that there is no initial value
    to dispatch. No subscriber methods will be called if `null` is returned.
+ * An exception is now thrown if a class attempts to subscribe or produce on
+   a non-public method.
 
 
 Version 1.2.1 *(2012-07-01)*
