@@ -51,8 +51,8 @@
             <pre class="prettyprint">@Subscribe public void answerAvailable(AnswerAvailableEvent event) {
     // TODO: React to the event somehow!
 }</pre>
-            <p>The name of the method can be anything you like. The annotation and single parameter are all that is
-            required.</p>
+            <p>The name of the method can be anything you like. The annotation, single argument, and public accessor
+            are all that is required.</p>
             <p>In order to receive events, a class instance needs to register with the bus. If <code>this</code> refers
             to an instance of the class in which the previous method was present, we can register using the
             following:</p>
