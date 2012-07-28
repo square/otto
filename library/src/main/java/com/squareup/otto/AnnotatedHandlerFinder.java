@@ -49,7 +49,10 @@ final class AnnotatedHandlerFinder {
     Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
     Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
 
-    for (Method method : listenerClass.getDeclaredMethods()) {
+    Class<?> superClass = listenerClass.getSuperclass(), targetClass = listenerClass;
+    if (superClass != null && listenerClass.getSimpleName().equals(superClass.getSimpleName() + "_"))
+    	targetClass = superClass;
+    for (Method method : targetClass.getDeclaredMethods()) {
       if (method.isAnnotationPresent(Subscribe.class)) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length != 1) {
