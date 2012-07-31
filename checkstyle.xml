@@ -71,7 +71,7 @@
 
         <!-- Modifier Checks                                    -->
         <!-- See http://checkstyle.sf.net/config_modifiers.html -->
-        <!--module name="ModifierOrder"/-->
+        <module name="ModifierOrder"/>
         <module name="RedundantModifier"/>
 
 
@@ -95,7 +95,7 @@
         <!--module name="HiddenField"/-->
         <module name="IllegalInstantiation"/>
         <module name="InnerAssignment"/>
-        <!--module name="MagicNumber"/-->
+        <module name="MagicNumber"/>
         <module name="MissingSwitchDefault"/>
         <module name="RedundantThrows"/>
         <module name="SimplifyBooleanExpression"/>
@@ -107,7 +107,7 @@
         <module name="FinalClass"/>
         <module name="HideUtilityClassConstructor"/>
         <module name="InterfaceIsType"/>
-        <!--s/module name="VisibilityModifier"/-->
+        <!--module name="VisibilityModifier"/-->
 
 
         <!-- Miscellaneous other checks.                   -->
