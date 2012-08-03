@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.squareup.otto.AnnotatedHandlerFinder.findAllProducers;
@@ -90,11 +91,11 @@ public class Bus {
   public static final String DEFAULT_IDENTIFIER = "default";
 
   /** All registered event handlers, indexed by event type. */
-  private final ConcurrentHashMap<Class<?>, Set<EventHandler>> handlersByType =
+  private final ConcurrentMap<Class<?>, Set<EventHandler>> handlersByType =
           new ConcurrentHashMap<Class<?>, Set<EventHandler>>();
 
   /** All registered event producers, index by event type. */
-  private final ConcurrentHashMap<Class<?>, EventProducer> producersByType =
+  private final ConcurrentMap<Class<?>, EventProducer> producersByType =
           new ConcurrentHashMap<Class<?>, EventProducer>();
 
   /** Identifier used to differentiate the event bus instance. */
