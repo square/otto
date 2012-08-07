@@ -207,12 +207,16 @@ public class Bus {
     Object event = null;
     try {
       event = producer.produceEvent();
-      if (event == null) {
-        return;
-      }
+    } catch (InvocationTargetException e) {
+      throw new RuntimeException("Producer " + producer + " threw an exception.", e);
+    }
+    if (event == null) {
+      return;
+    }
+    try {
       handler.handleEvent(event);
     } catch (InvocationTargetException e) {
-      String type = event == null ? "[null]" : event.getClass().toString();
+      String type = event.getClass().toString();
       throw new RuntimeException(
           "Could not dispatch event " + type + " from " + producer + " to handler " + handler, e);
     }
