@@ -27,19 +27,19 @@ import static junit.framework.Assert.assertEquals;
 public class UnregisteringHandlerTest {
 
   private static final String EVENT = "Hello";
-  private static final String BUS_IDENTIFIER = "test-bus";
 
   private Bus bus;
 
-
-  @Before
-  public void setUp() throws Exception {
-    bus = new Bus(ThreadEnforcer.NONE, BUS_IDENTIFIER, new SortedHandlerFinder());
+  @Before public void setUp() throws Exception {
+    final Finder finder = new SortedHandlerFinder();
+    bus = new Bus(ThreadEnforcer.NONE) {
+      @Override Finder obtainFinder(Class<?> type) {
+        return finder;
+      }
+    };
   }
 
-
-  @Test
-  public void unregisterInHandler() {
+  @Test public void unregisterInHandler() {
     UnregisteringStringCatcher catcher = new UnregisteringStringCatcher(bus);
     bus.register(catcher);
     bus.post(EVENT);
@@ -68,30 +68,30 @@ public class UnregisteringHandlerTest {
   }
 
   /** Delegates to {@code HandlerFinder.ANNOTATED}, then sorts results by {@code EventHandler#toString} */
-  static class SortedHandlerFinder implements HandlerFinder {
+  static class SortedHandlerFinder extends ReflectionFinder {
 
-    static Comparator<EventHandler> handlerComparator = new Comparator<EventHandler>() {
+    static final Comparator<Subscriber> SUBSCRIBER_COMPARATOR = new Comparator<Subscriber>() {
       @Override
-      public int compare(EventHandler eventHandler, EventHandler eventHandler1) {
+      public int compare(Subscriber eventHandler, Subscriber eventHandler1) {
         return eventHandler.toString().compareTo(eventHandler1.toString());
       }
     };
 
-    @Override
-    public Map<Class<?>, EventProducer> findAllProducers(Object listener) {
-      return HandlerFinder.ANNOTATED.findAllProducers(listener);
-    }
-
-    @Override
-    public Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener) {
-      Map<Class<?>, Set<EventHandler>> found = HandlerFinder.ANNOTATED.findAllSubscribers(listener);
-      Map<Class<?>, Set<EventHandler>> sorted = new HashMap<Class<?>, Set<EventHandler>>();
-      for (Map.Entry<Class<?>, Set<EventHandler>> entry : found.entrySet()) {
-        SortedSet<EventHandler> handlers = new TreeSet<EventHandler>(handlerComparator);
-        handlers.addAll(entry.getValue());
-        sorted.put(entry.getKey(), handlers);
+    @Override public void install(Object instance, Bus bus) {
+      Map<Class<?>, Producer> foundProducers = findAllProducers(instance);
+      for (Map.Entry<Class<?>, Producer> entry : foundProducers.entrySet()) {
+        bus.installProducer(entry.getKey(), entry.getValue());
       }
-      return sorted;
+
+      Map<Class<?>, Set<Subscriber>> foundHandlersMap = findAllSubscribers(instance);
+      for (Map.Entry<Class<?>, Set<Subscriber>> entry : foundHandlersMap.entrySet()) {
+        SortedSet<Subscriber> sorted = new TreeSet<Subscriber>(SUBSCRIBER_COMPARATOR);
+        sorted.addAll(entry.getValue());
+        Class<?> type = entry.getKey();
+        for (Subscriber foundSubscriber : sorted) {
+          bus.installSubscriber(type, foundSubscriber);
+        }
+      }
     }
   }
 }

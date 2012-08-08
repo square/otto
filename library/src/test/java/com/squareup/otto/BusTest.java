@@ -37,19 +37,18 @@ import static junit.framework.Assert.fail;
  */
 public class BusTest {
   private static final String EVENT = "Hello";
-  private static final String BUS_IDENTIFIER = "test-bus";
 
   private Bus bus;
 
   @Before public void setUp() throws Exception {
-    bus = new Bus(ThreadEnforcer.NONE, BUS_IDENTIFIER);
+    bus = new Bus(ThreadEnforcer.NONE);
   }
 
   @Test public void basicCatcherDistribution() {
     StringCatcher catcher = new StringCatcher();
     bus.register(catcher);
 
-    Set<EventHandler> wrappers = bus.getHandlersForEventType(String.class);
+    Set<Subscriber> wrappers = bus.getHandlersForEventType(String.class);
     assertNotNull("Should have at least one method registered.", wrappers);
     assertEquals("One method should be registered.", 1, wrappers.size());
 
@@ -94,20 +93,14 @@ public class BusTest {
 
     // Check the StringCatcher...
     List<String> stringEvents = stringCatcher.getEvents();
-    assertEquals("Only one String should be delivered.",
-        1, stringEvents.size());
-    assertEquals("Correct string should be delivered.",
-        EVENT, stringEvents.get(0));
+    assertEquals("Only one String should be delivered.", 1, stringEvents.size());
+    assertEquals("Correct string should be delivered.", EVENT, stringEvents.get(0));
 
     // Check the Catcher<Object>...
-    assertEquals("Three Objects should be delivered.",
-        3, objectEvents.size());
-    assertEquals("String fixture must be first object delivered.",
-        EVENT, objectEvents.get(0));
-    assertEquals("Object fixture must be second object delivered.",
-        OBJ_EVENT, objectEvents.get(1));
-    assertEquals("Comparable fixture must be thirdobject delivered.",
-        COMP_EVENT, objectEvents.get(2));
+    assertEquals("Three Objects should be delivered.", 3, objectEvents.size());
+    assertEquals("String fixture must be first object delivered.", EVENT, objectEvents.get(0));
+    assertEquals("Object fixture must be second object delivered.", OBJ_EVENT, objectEvents.get(1));
+    assertEquals("Comparable fixture must be thirdobject delivered.", COMP_EVENT, objectEvents.get(2));
   }
 
   @Test public void deadEventForwarding() {
@@ -119,8 +112,7 @@ public class BusTest {
 
     List<DeadEvent> events = catcher.getEvents();
     assertEquals("One dead event should be delivered.", 1, events.size());
-    assertEquals("The dead event should wrap the original event.",
-        EVENT, events.get(0).event);
+    assertEquals("The dead event should wrap the original event.", EVENT, events.get(0).event);
   }
 
   @Test public void deadEventPosting() {
@@ -130,10 +122,8 @@ public class BusTest {
     bus.post(new DeadEvent(this, EVENT));
 
     List<DeadEvent> events = catcher.getEvents();
-    assertEquals("The explicit DeadEvent should be delivered.",
-        1, events.size());
-    assertEquals("The dead event must not be re-wrapped.",
-        EVENT, events.get(0).event);
+    assertEquals("The explicit DeadEvent should be delivered.", 1, events.size());
+    assertEquals("The dead event must not be re-wrapped.", EVENT, events.get(0).event);
   }
 
   @Test public void producerCalledForExistingSubscribers() {
@@ -160,60 +150,6 @@ public class BusTest {
     bus.register(producer);
 
     assertEquals(Arrays.asList("Foo"), catcher.getEvents());
-  }
-
-  @Test public void subscribingOrProducingOnlyAllowedOnPublicMethods() {
-    try {
-      bus.register(new Object() {
-        @Subscribe protected void method(Object o) {}
-      });
-      fail();
-    } catch (IllegalArgumentException expected) {
-      // Expected.
-    }
-    try {
-      bus.register(new Object() {
-        @Subscribe void method(Object o) {}
-      });
-      fail();
-    } catch (IllegalArgumentException expected) {
-    }
-    try {
-      bus.register(new Object() {
-        @Subscribe private void method(Object o) {}
-      });
-      fail();
-    } catch (IllegalArgumentException expected) {
-    }
-    try {
-      bus.register(new Object() {
-        @Produce protected Object method() { return null; }
-      });
-      fail();
-    } catch (IllegalArgumentException expected) {
-    }
-    try {
-      bus.register(new Object() {
-        @Produce Object method() { return null; }
-      });
-      fail();
-    } catch (IllegalArgumentException expected) {
-    }
-    try {
-      bus.register(new Object() {
-        @Produce private Object method() { return null; }
-      });
-      fail();
-    } catch (IllegalArgumentException expected) {
-    }
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void voidProducerThrowsException() throws Exception {
-    class VoidProducer {
-      @Produce public void things() {}
-    }
-    bus.register(new VoidProducer());
   }
 
   @Test public void producerUnregisterAllowsReregistering() {
@@ -309,24 +245,24 @@ public class BusTest {
     bus.register(new ExceptionThrowingHandler());
     try {
       bus.post("I love tacos");
-      fail("Should have failed due to exception-throwing handler.");
+      fail("Should have failed due to exception-throwing subscriber.");
     } catch (RuntimeException e) {
       // Expected
     }
   }
 
-  private class ExceptionThrowingProducer {
+  static class ExceptionThrowingProducer {
     @Produce public String produceThingsExceptionally() {
       throw new IllegalStateException("Bogus!");
     }
   }
 
-  private class DummySubscriber {
+  static class DummySubscriber {
     @Subscribe public void subscribeToString(String value) {
     }
   }
 
-  private class ExceptionThrowingHandler {
+  static class ExceptionThrowingHandler {
     @Subscribe public void subscribeToString(String value) {
       throw new IllegalStateException("Dude where's my car?");
     }

@@ -27,7 +27,7 @@ import java.lang.reflect.Method;
  *
  * @author Jake Wharton
  */
-class EventProducer {
+final class ReflectionProducer implements Producer {
 
   /** Object sporting the producer method. */
   private final Object target;
@@ -36,12 +36,12 @@ class EventProducer {
   /** Object hash code. */
   private final int hashCode;
 
-  EventProducer(Object target, Method method) {
+  ReflectionProducer(Object target, Method method) {
     if (target == null) {
-      throw new NullPointerException("EventProducer target cannot be null.");
+      throw new NullPointerException("Producer target cannot be null.");
     }
     if (method == null) {
-      throw new NullPointerException("EventProducer method cannot be null.");
+      throw new NullPointerException("Producer method cannot be null.");
     }
 
     this.target = target;
@@ -60,7 +60,7 @@ class EventProducer {
    * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
    *     an {@link Error} ({@code Error}s are propagated as-is).
    */
-  public Object produceEvent() throws InvocationTargetException {
+  @Override public Object produce() throws InvocationTargetException {
     try {
       return method.invoke(target);
     } catch (IllegalAccessException e) {
@@ -74,7 +74,7 @@ class EventProducer {
   }
 
   @Override public String toString() {
-    return "[EventProducer " + method + "]";
+    return "[Producer " + method + "]";
   }
 
   @Override public int hashCode() {
@@ -94,7 +94,7 @@ class EventProducer {
       return false;
     }
 
-    final EventProducer other = (EventProducer) obj;
+    final ReflectionProducer other = (ReflectionProducer) obj;
 
     return method.equals(other.method) && target == other.target;
   }

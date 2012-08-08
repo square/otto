@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 2.0.0 *(In Development)*
+--------------------------------
+
+ * Introduce code generation to avoid runtime reflection where possible.
+
+
 Version 1.4.0 *(In Development)*
 --------------------------------
 
@@ -25,7 +31,7 @@ Version 1.3.1 *(2012-09-17)*
 Version 1.3.0 *(2012-08-08)*
 ----------------------------
 
- * Exceptions in handlers and producers are no longer caught and logged.
+ * Exceptions in subscribers and producers are no longer caught and logged.
  * Producer methods can return `null` to indicate that there is no initial value
    to dispatch. No subscriber methods will be called if `null` is returned.
  * An exception is now thrown if a class attempts to subscribe or produce on

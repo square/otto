@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 The Guava Authors
+ * Copyright (C) 2012 Square, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,16 +26,16 @@ import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
-public class EventHandlerTest {
+public class ProducerTest {
 
-  private static final Object FIXTURE_ARGUMENT = new Object();
+  private static final Object FIXTURE_RETURN_VALUE = new Object();
 
   private boolean methodCalled;
-  private Object methodArgument;
+  private Object methodReturnValue;
 
   @Before public void setUp() throws Exception {
     methodCalled = false;
-    methodArgument = null;
+    methodReturnValue = FIXTURE_RETURN_VALUE;
   }
 
   /**
@@ -45,44 +45,41 @@ public class EventHandlerTest {
    */
   @Test public void basicMethodCall() throws Exception {
     Method method = getRecordingMethod();
+    Producer producer = new ReflectionProducer(this, method);
+    Object methodResult = producer.produce();
 
-    EventHandler handler = new EventHandler(this, method);
-
-    handler.handleEvent(FIXTURE_ARGUMENT);
-
-    assertTrue("Handler must call provided method.", methodCalled);
-    assertSame("Handler argument must be *exactly* the provided object.",
-        methodArgument, FIXTURE_ARGUMENT);
+    assertTrue("Producer must call provided method.", methodCalled);
+    assertSame("Producer result must be *exactly* the specified return value.", methodResult, FIXTURE_RETURN_VALUE);
   }
 
-  /** Checks that EventHandler's constructor disallows null methods. */
+  /** Checks that Producer's constructor disallows null methods. */
   @Test public void rejectionOfNullMethods() {
     try {
-      new EventHandler(this, null);
-      fail("EventHandler must immediately reject null methods.");
+      new ReflectionProducer(this, null);
+      fail("Producer must immediately reject null methods.");
     } catch (NullPointerException expected) {
       // Hooray!
     }
   }
 
-  /** Checks that EventHandler's constructor disallows null targets. */
+  /** Checks that Producer's constructor disallows null targets. */
   @Test public void rejectionOfNullTargets() throws NoSuchMethodException {
     Method method = getRecordingMethod();
     try {
-      new EventHandler(null, method);
-      fail("EventHandler must immediately reject null targets.");
+      new ReflectionProducer(null, method);
+      fail("Producer must immediately reject null targets.");
     } catch (NullPointerException expected) {
       // Huzzah!
     }
   }
 
-  @Test public void exceptionWrapping() throws NoSuchMethodException {
+  @Test public void testExceptionWrapping() throws NoSuchMethodException {
     Method method = getExceptionThrowingMethod();
-    EventHandler handler = new EventHandler(this, method);
+    Producer producer = new ReflectionProducer(this, method);
 
     try {
-      handler.handleEvent(new Object());
-      fail("Handlers whose methods throw must throw InvocationTargetException");
+      producer.produce();
+      fail("Producers whose methods throw must throw InvocationTargetException");
     } catch (InvocationTargetException e) {
       assertTrue("Expected exception must be wrapped.",
           e.getCause() instanceof IntentionalException);
@@ -91,43 +88,54 @@ public class EventHandlerTest {
 
   @Test public void errorPassthrough() throws InvocationTargetException, NoSuchMethodException {
     Method method = getErrorThrowingMethod();
-    EventHandler handler = new EventHandler(this, method);
+    Producer producer = new ReflectionProducer(this, method);
 
     try {
-      handler.handleEvent(new Object());
-      fail("Handlers whose methods throw Errors must rethrow them");
+      producer.produce();
+      fail("Producers whose methods throw Errors must rethrow them");
     } catch (JudgmentError expected) {
       // Expected.
     }
   }
 
+  @Test public void returnValueNotCached() throws Exception {
+    Method method = getRecordingMethod();
+    Producer producer = new ReflectionProducer(this, method);
+    producer.produce();
+    methodReturnValue = new Object();
+    methodCalled = false;
+    Object secondReturnValue = producer.produce();
+
+    assertTrue("Producer must call provided method twice.", methodCalled);
+    assertSame("Producer result must be *exactly* the specified return value on each invocation.",
+        secondReturnValue, methodReturnValue);
+  }
+
   private Method getRecordingMethod() throws NoSuchMethodException {
-    return getClass().getMethod("recordingMethod", Object.class);
+    return getClass().getMethod("recordingMethod");
   }
 
   private Method getExceptionThrowingMethod() throws NoSuchMethodException {
-    return getClass().getMethod("exceptionThrowingMethod", Object.class);
+    return getClass().getMethod("exceptionThrowingMethod");
   }
 
   private Method getErrorThrowingMethod() throws NoSuchMethodException {
-    return getClass().getMethod("errorThrowingMethod", Object.class);
+    return getClass().getMethod("errorThrowingMethod");
   }
 
   /**
-   * Records the provided object in {@link #methodArgument} and sets
-   * {@link #methodCalled}.
-   *
-   * @param arg  argument to record.
+   * Records the invocation in {@link #methodCalled} and returns the value in
+   * {@link #FIXTURE_RETURN_VALUE}.
    */
-  public void recordingMethod(Object arg) {
+  public Object recordingMethod() {
     if (methodCalled) {
       throw new IllegalStateException("Method called more than once.");
     }
     methodCalled = true;
-    methodArgument = arg;
+    return methodReturnValue;
   }
 
-  public void exceptionThrowingMethod(Object arg) throws Exception {
+  public Object exceptionThrowingMethod() throws Exception {
     throw new IntentionalException();
   }
 
@@ -136,7 +144,7 @@ public class EventHandlerTest {
     private static final long serialVersionUID = -2500191180248181379L;
   }
 
-  public void errorThrowingMethod(Object arg) {
+  public Object errorThrowingMethod() {
     throw new JudgmentError();
   }
 

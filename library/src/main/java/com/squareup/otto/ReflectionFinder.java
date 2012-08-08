@@ -31,7 +31,7 @@ import java.util.Set;
  * @author Louis Wasserman
  * @author Jake Wharton
  */
-final class AnnotatedHandlerFinder {
+class ReflectionFinder implements Finder {
 
   /** Cache event bus producer methods for each class. */
   private static final Map<Class<?>, Map<Class<?>, Method>> PRODUCERS_CACHE =
@@ -45,7 +45,7 @@ final class AnnotatedHandlerFinder {
    * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective caches for the
    * specified class.
    */
-  private static void loadAnnotatedMethods(Class<?> listenerClass) {
+  static void loadAnnotatedMethods(Class<?> listenerClass) {
     Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
     Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
 
@@ -80,10 +80,6 @@ final class AnnotatedHandlerFinder {
           throw new IllegalArgumentException("Method " + method + "has @Produce annotation but requires "
               + parameterTypes.length + " arguments.  Methods must require zero arguments.");
         }
-        if (method.getReturnType() == Void.class) {
-          throw new IllegalArgumentException("Method " + method
-              + " has a return type of void.  Must declare a non-void type.");
-        }
 
         Class<?> eventType = method.getReturnType();
         if (eventType.isInterface()) {
@@ -111,9 +107,9 @@ final class AnnotatedHandlerFinder {
   }
 
   /** This implementation finds all methods marked with a {@link Produce} annotation. */
-  static Map<Class<?>, EventProducer> findAllProducers(Object listener) {
+  static Map<Class<?>, Producer> findAllProducers(Object listener) {
     final Class<?> listenerClass = listener.getClass();
-    Map<Class<?>, EventProducer> handlersInMethod = new HashMap<Class<?>, EventProducer>();
+    Map<Class<?>, Producer> handlersInMethod = new HashMap<Class<?>, Producer>();
 
     if (!PRODUCERS_CACHE.containsKey(listenerClass)) {
       loadAnnotatedMethods(listenerClass);
@@ -121,7 +117,7 @@ final class AnnotatedHandlerFinder {
     Map<Class<?>, Method> methods = PRODUCERS_CACHE.get(listenerClass);
     if (!methods.isEmpty()) {
       for (Map.Entry<Class<?>, Method> e : methods.entrySet()) {
-        EventProducer producer = new EventProducer(listener, e.getValue());
+        Producer producer = new ReflectionProducer(listener, e.getValue());
         handlersInMethod.put(e.getKey(), producer);
       }
     }
@@ -130,9 +126,9 @@ final class AnnotatedHandlerFinder {
   }
 
   /** This implementation finds all methods marked with a {@link Subscribe} annotation. */
-  static Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener) {
+  static Map<Class<?>, Set<Subscriber>> findAllSubscribers(Object listener) {
     Class<?> listenerClass = listener.getClass();
-    Map<Class<?>, Set<EventHandler>> handlersInMethod = new HashMap<Class<?>, Set<EventHandler>>();
+    Map<Class<?>, Set<Subscriber>> handlersInMethod = new HashMap<Class<?>, Set<Subscriber>>();
 
     if (!SUBSCRIBERS_CACHE.containsKey(listenerClass)) {
       loadAnnotatedMethods(listenerClass);
@@ -140,19 +136,48 @@ final class AnnotatedHandlerFinder {
     Map<Class<?>, Set<Method>> methods = SUBSCRIBERS_CACHE.get(listenerClass);
     if (!methods.isEmpty()) {
       for (Map.Entry<Class<?>, Set<Method>> e : methods.entrySet()) {
-        Set<EventHandler> handlers = new HashSet<EventHandler>();
+        Set<Subscriber> subscribers = new HashSet<Subscriber>();
         for (Method m : e.getValue()) {
-          handlers.add(new EventHandler(listener, m));
+          subscribers.add(new ReflectionSubscriber(listener, m));
         }
-        handlersInMethod.put(e.getKey(), handlers);
+        handlersInMethod.put(e.getKey(), subscribers);
       }
     }
 
     return handlersInMethod;
   }
 
-  private AnnotatedHandlerFinder() {
+  ReflectionFinder() {
     // No instances.
   }
 
+  @Override public void install(Object instance, Bus bus) {
+    Map<Class<?>, Producer> foundProducers = findAllProducers(instance);
+    for (Map.Entry<Class<?>, Producer> entry : foundProducers.entrySet()) {
+      bus.installProducer(entry.getKey(), entry.getValue());
+    }
+
+    Map<Class<?>, Set<Subscriber>> foundHandlersMap = findAllSubscribers(instance);
+    for (Map.Entry<Class<?>, Set<Subscriber>> entry : foundHandlersMap.entrySet()) {
+      Class<?> type = entry.getKey();
+      for (Subscriber foundSubscriber : entry.getValue()) {
+        bus.installSubscriber(type, foundSubscriber);
+      }
+    }
+  }
+
+  @Override public void uninstall(Object instance, Bus bus) {
+    Map<Class<?>, Producer> foundProducers = findAllProducers(instance);
+    for (Class<?> key : foundProducers.keySet()) {
+      bus.uninstallProducer(key);
+    }
+
+    Map<Class<?>, Set<Subscriber>> handlersInListener = findAllSubscribers(instance);
+    for (Map.Entry<Class<?>, Set<Subscriber>> entry : handlersInListener.entrySet()) {
+      Class<?> type = entry.getKey();
+      for (Subscriber subscriber : entry.getValue()) {
+        bus.uninstallSubscriber(type, subscriber);
+      }
+    }
+  }
 }

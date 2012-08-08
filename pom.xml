@@ -25,7 +25,7 @@
 
     <groupId>com.squareup</groupId>
     <artifactId>otto-parent</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Otto (Parent)</name>
@@ -41,6 +41,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <binary.prefix>square</binary.prefix>
+        <java.version>1.6</java.version>
 
         <!-- Dependencies -->
         <android.version>4.1.1.4</android.version>
@@ -49,7 +50,7 @@
 
         <!-- Test Dependencies -->
         <junit.version>4.10</junit.version>
-        <fest.version>2.0M7</fest.version>
+        <fest.version>2.0M8</fest.version>
     </properties>
 
     <scm>
@@ -93,13 +94,11 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.easytesting</groupId>
                 <artifactId>fest-assert-core</artifactId>
                 <version>${fest.version}</version>
-                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -123,8 +122,9 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>2.5</version>
                     <configuration>
-                        <source>1.6</source>
-                        <target>1.6</target>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <fork>true</fork>
                     </configuration>
                 </plugin>
 

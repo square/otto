@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.squareup.otto;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Marks a method as an instance producer, as used by {@link ReflectionFinder} and {@link Bus}.
- * <p>
- * Otto infers the instance type from the annotated method's return type. Producer methods may return null when there is
- * no appropriate value to share. The calling {@link Bus} ignores such returns and posts nothing.
+ * An object which manages the installation and uninstallation of {@link Subscriber Subscribers} and
+ * {@link Producer Producers} for another type.
  *
  * @author Jake Wharton
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface Produce {
+interface Finder<T> {
+  void install(T instance, Bus bus);
+  void uninstall(T instance, Bus bus);
 }
