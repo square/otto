@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Version 1.3.0 *(In Development)*
---------------------------------
+Version 1.3.0 *(2012-08-08)*
+----------------------------
 
  * Exceptions in handlers and producers are no longer caught and logged.
  * Producer methods can return `null` to indicate that there is no initial value
