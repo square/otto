@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.squareup.otto.AnnotatedHandlerFinder.findAllProducers;
@@ -90,10 +91,12 @@ public class Bus {
   public static final String DEFAULT_IDENTIFIER = "default";
 
   /** All registered event handlers, indexed by event type. */
-  private final Map<Class<?>, Set<EventHandler>> handlersByType = new ConcurrentHashMap<Class<?>, Set<EventHandler>>();
+  private final ConcurrentMap<Class<?>, Set<EventHandler>> handlersByType =
+          new ConcurrentHashMap<Class<?>, Set<EventHandler>>();
 
   /** All registered event producers, index by event type. */
-  private final Map<Class<?>, EventProducer> producersByType = new ConcurrentHashMap<Class<?>, EventProducer>();
+  private final ConcurrentMap<Class<?>, EventProducer> producersByType =
+          new ConcurrentHashMap<Class<?>, EventProducer>();
 
   /** Identifier used to differentiate the event bus instance. */
   private final String identifier;
@@ -170,12 +173,13 @@ public class Bus {
 
     Map<Class<?>, EventProducer> foundProducers = findAllProducers(object);
     for (Class<?> type : foundProducers.keySet()) {
-      if (producersByType.containsKey(type)) {
+
+      final EventProducer producer = foundProducers.get(type);
+      EventProducer previousProducer = producersByType.putIfAbsent(type, producer);
+      //checking if the previous producer existed
+      if (previousProducer != null) {
         throw new IllegalArgumentException("Producer method for type " + type + " already registered.");
       }
-      final EventProducer producer = foundProducers.get(type);
-      producersByType.put(type, producer);
-
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers != null && !handlers.isEmpty()) {
         for (EventHandler handler : handlers) {
@@ -188,8 +192,12 @@ public class Bus {
     for (Class<?> type : foundHandlersMap.keySet()) {
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers == null) {
-        handlers = new CopyOnWriteArraySet<EventHandler>();
-        handlersByType.put(type, handlers);
+        //concurrent put if absent
+        Set<EventHandler> handlersCreation = new CopyOnWriteArraySet<EventHandler>();
+        handlers = handlersByType.putIfAbsent(type, handlersCreation);
+        if (handlers == null) {
+            handlers = handlersCreation;
+        }
       }
       final Set<EventHandler> foundHandlers = foundHandlersMap.get(type);
       handlers.addAll(foundHandlers);
