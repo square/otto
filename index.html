@@ -108,7 +108,7 @@ Bus bus2 = new Bus(ThreadEnforcer.MAIN);</pre>
             <p>Once you've installed Otto, add the following lines to your proguard-project.txt file:</p>
             <pre class="prettyprint">-keepclassmembers class ** {
     @com.squareup.otto.Subscribe public *;
-    @com.squareup.otto.Provide public *;
+    @com.squareup.otto.Produce public *;
 }</pre>
             <p>This ensures your annotated methods aren't removed by ProGuard.</p>
 
