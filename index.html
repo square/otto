@@ -18,7 +18,7 @@
             <h1>Otto</h1>
             <h3>An enhanced Guava-based event bus with emphasis on Android support.</h3>
             <ul class="unstyled">
-                <li><a href="http://github.com/square/otto" class="btn btn-large btn-inverse">Download v1.3.0</a></li>
+                <li><a href="http://github.com/square/otto" class="btn btn-large btn-inverse" id="download">Download</a></li>
             </ul>
             <img src="square.png" alt="by Square, Inc.">
       </div>
@@ -145,5 +145,19 @@ limitations under the License.</pre>
 </div>
 <script src="prettify.js"></script>
 <script> prettyPrint(); </script>
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+<script>
+    $.getJSON('https://api.github.com/repos/square/otto/tags?callback=?', function(response) {
+        var meta = response.meta
+          , data = response.data
+          ;
+
+        data.sort(function(o1, o2) {
+            return (o1.name > o2.name) ? -1 : 1;
+        });
+
+        $('#download').text('Download v' + data[0].name);
+    });
+</script>
 </body>
 </html>
