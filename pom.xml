@@ -42,10 +42,6 @@
 
         <binary.prefix>square</binary.prefix>
 
-        <!-- Compilation -->
-        <android-maven.version>3.3.0</android-maven.version>
-        <java.version>1.6</java.version>
-
         <!-- Dependencies -->
         <android.version>4.1.1.4</android.version>
         <android.platform>16</android.platform>
@@ -114,7 +110,7 @@
                 <plugin>
                     <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                     <artifactId>android-maven-plugin</artifactId>
-                    <version>${android-maven.version}</version>
+                    <version>3.3.2</version>
                     <configuration>
                         <sdk>
                             <platform>${android.platform}</platform>
@@ -127,8 +123,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>2.5</version>
                     <configuration>
-                        <source>${java.version}</source>
-                        <target>${java.version}</target>
+                        <source>1.6</source>
+                        <target>1.6</target>
                     </configuration>
                 </plugin>
 
