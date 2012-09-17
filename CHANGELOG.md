@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 1.3.1 *(2012-09-17)*
+----------------------------
+
+ * Ensure concurrency internally when calling `register`.
+
+
 Version 1.3.0 *(2012-08-08)*
 ----------------------------
 
