@@ -24,9 +24,8 @@ import java.lang.annotation.Target;
 /**
  * Marks a method as an instance producer, as used by {@link AnnotatedHandlerFinder} and {@link Bus}.
  * <p>
- * The type of instance will be indicated by the method's return type parameter. Producer methods
- * may return null when there is no appropriate value to share. The calling {@link Bus} will ignore
- * such returns and post nothing.
+ * Otto infers the instance type from the annotated method's return type. Producer methods may return null when there is
+ * no appropriate value to share. The calling {@link Bus} ignores such returns and posts nothing.
  *
  * @author Jake Wharton
  */
