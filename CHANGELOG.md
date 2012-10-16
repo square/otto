@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 1.3.2 *(2012-10-16)*
+----------------------------
+
+ * Avoid potential `IllegalArgumentException` when unregistering in a
+   subscriber callback.
+
+
 Version 1.3.1 *(2012-09-17)*
 ----------------------------
 
