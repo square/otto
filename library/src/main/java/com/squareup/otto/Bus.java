@@ -30,8 +30,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static com.squareup.otto.AnnotatedHandlerFinder.findAllProducers;
-import static com.squareup.otto.AnnotatedHandlerFinder.findAllSubscribers;
 
 /**
  * Dispatches events to listeners, and provides ways for listeners to register themselves.
@@ -104,6 +102,9 @@ public class Bus {
   /** Thread enforcer for register, unregister, and posting events. */
   private final ThreadEnforcer enforcer;
 
+  /** Used to find handler methods in register and unregister. */
+  private final HandlerFinder handlerFinder;
+
   /** Queues of events for the current thread to dispatch. */
   private final ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>> eventsToDispatch =
       new ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>>() {
@@ -149,8 +150,20 @@ public class Bus {
    * @param identifier A brief name for this bus, for debugging purposes.  Should be a valid Java identifier.
    */
   public Bus(ThreadEnforcer enforcer, String identifier) {
-    this.enforcer = enforcer;
+    this(enforcer, identifier, HandlerFinder.ANNOTATED);
+  }
+
+  /**
+   * Test constructor which allows replacing the default {@code HandlerFinder}.
+   *
+   * @param enforcer Thread enforcer for register, unregister, and post actions.
+   * @param identifier A brief name for this bus, for debugging purposes.  Should be a valid Java identifier.
+   * @param handlerFinder Used to discover event handlers and producers when registering/unregistering an object.
+   */
+  Bus(ThreadEnforcer enforcer, String identifier, HandlerFinder handlerFinder) {
+    this.enforcer =  enforcer;
     this.identifier = identifier;
+    this.handlerFinder = handlerFinder;
   }
 
   @Override public String toString() {
@@ -171,7 +184,7 @@ public class Bus {
   public void register(Object object) {
     enforcer.enforce(this);
 
-    Map<Class<?>, EventProducer> foundProducers = findAllProducers(object);
+    Map<Class<?>, EventProducer> foundProducers = handlerFinder.findAllProducers(object);
     for (Class<?> type : foundProducers.keySet()) {
 
       final EventProducer producer = foundProducers.get(type);
@@ -188,7 +201,7 @@ public class Bus {
       }
     }
 
-    Map<Class<?>, Set<EventHandler>> foundHandlersMap = findAllSubscribers(object);
+    Map<Class<?>, Set<EventHandler>> foundHandlersMap = handlerFinder.findAllSubscribers(object);
     for (Class<?> type : foundHandlersMap.keySet()) {
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers == null) {
@@ -201,11 +214,21 @@ public class Bus {
       }
       final Set<EventHandler> foundHandlers = foundHandlersMap.get(type);
       handlers.addAll(foundHandlers);
+    }
 
+
+    for (Map.Entry<Class<?>, Set<EventHandler>> entry : foundHandlersMap.entrySet()) {
+      Class<?> type = entry.getKey();
       EventProducer producer = producersByType.get(type);
       if (producer != null) {
-        for (EventHandler foundHandler : foundHandlers) {
-          dispatchProducerResultToHandler(foundHandler, producer);
+        Set<EventHandler> currentHandlers = getHandlersForEventType(type);
+        if (currentHandlers != null) {
+          Set<EventHandler> foundHandlers = entry.getValue();
+          for (EventHandler foundHandler : foundHandlers) {
+            if (currentHandlers.contains(foundHandler)) {
+              dispatchProducerResultToHandler(foundHandler, producer);
+            }
+          }
         }
       }
     }
@@ -239,7 +262,7 @@ public class Bus {
   public void unregister(Object object) {
     enforcer.enforce(this);
 
-    Map<Class<?>, EventProducer> producersInListener = findAllProducers(object);
+    Map<Class<?>, EventProducer> producersInListener = handlerFinder.findAllProducers(object);
     for (Map.Entry<Class<?>, EventProducer> entry : producersInListener.entrySet()) {
       final Class<?> key = entry.getKey();
       EventProducer producer = getProducerForEventType(key);
@@ -253,7 +276,7 @@ public class Bus {
       producersByType.remove(key);
     }
 
-    Map<Class<?>, Set<EventHandler>> handlersInListener = findAllSubscribers(object);
+    Map<Class<?>, Set<EventHandler>> handlersInListener = handlerFinder.findAllSubscribers(object);
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : handlersInListener.entrySet()) {
       Set<EventHandler> currentHandlers = getHandlersForEventType(entry.getKey());
       Collection<EventHandler> eventMethodsInListener = entry.getValue();
