@@ -44,14 +44,11 @@ public class UnregisteringHandlerTest {
     bus.register(catcher);
     bus.post(EVENT);
 
-    List<String> expectedEvents = new ArrayList<String>();
-    expectedEvents.add(EVENT);
-
     assertEquals("One correct event should be delivered.", Arrays.asList(EVENT), catcher.getEvents());
 
     bus.post(EVENT);
     bus.post(EVENT);
-    assertEquals("Shouldn't catch any more events when unregistered.", expectedEvents, catcher.getEvents());
+    assertEquals("Shouldn't catch any more events when unregistered.", Arrays.asList(EVENT), catcher.getEvents());
   }
 
   @Test public void unregisterInHandlerWhenEventProduced() throws Exception {

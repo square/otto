@@ -34,6 +34,10 @@ public class UnregisteringStringCatcher {
     events.add(event);
   }
 
+  @Subscribe public void zzzSleepinOnStrings(String event) {
+    events.add(event);
+  }
+
   @Subscribe public void haveAnInteger(Integer event) {}
 
   @Subscribe public void enjoyThisLong(Long event) {}

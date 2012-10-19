@@ -216,18 +216,14 @@ public class Bus {
       handlers.addAll(foundHandlers);
     }
 
-
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : foundHandlersMap.entrySet()) {
       Class<?> type = entry.getKey();
       EventProducer producer = producersByType.get(type);
-      if (producer != null) {
-        Set<EventHandler> currentHandlers = getHandlersForEventType(type);
-        if (currentHandlers != null) {
-          Set<EventHandler> foundHandlers = entry.getValue();
-          for (EventHandler foundHandler : foundHandlers) {
-            if (currentHandlers.contains(foundHandler)) {
-              dispatchProducerResultToHandler(foundHandler, producer);
-            }
+      if (producer != null && producer.isValid()) {
+        Set<EventHandler> foundHandlers = entry.getValue();
+        for (EventHandler foundHandler : foundHandlers) {
+          if (foundHandler.isValid()) {
+            dispatchProducerResultToHandler(foundHandler, producer);
           }
         }
       }
@@ -244,13 +240,7 @@ public class Bus {
     if (event == null) {
       return;
     }
-    try {
-      handler.handleEvent(event);
-    } catch (InvocationTargetException e) {
-      String type = event.getClass().toString();
-      throw new RuntimeException(
-          "Could not dispatch event " + type + " from " + producer + " to handler " + handler, e);
-    }
+    dispatch(event, handler);
   }
 
   /**
@@ -281,11 +271,18 @@ public class Bus {
       Set<EventHandler> currentHandlers = getHandlersForEventType(entry.getKey());
       Collection<EventHandler> eventMethodsInListener = entry.getValue();
 
-      if (currentHandlers == null || !currentHandlers.removeAll(eventMethodsInListener)) {
+      if (currentHandlers == null || !currentHandlers.containsAll(eventMethodsInListener)) {
         throw new IllegalArgumentException(
             "Missing event handler for an annotated method. Is " + object.getClass()
                 + " registered?");
       }
+
+      for (EventHandler handler : currentHandlers) {
+        if (eventMethodsInListener.contains(handler)) {
+          handler.invalidate();
+        }
+      }
+      currentHandlers.removeAll(eventMethodsInListener);
     }
   }
 
@@ -349,7 +346,9 @@ public class Bus {
           break;
         }
 
-        dispatch(eventWithHandler.event, eventWithHandler.handler);
+        if (eventWithHandler.handler.isValid()) {
+          dispatch(eventWithHandler.event, eventWithHandler.handler);
+        }
       }
     } finally {
       isDispatching.set(false);
