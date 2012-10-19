@@ -69,7 +69,7 @@ class EventHandler {
    *
    * Should be called when the wrapped object is unregistered from the Bus.
    */
-  public void invalidate() {
+  public synchronized void invalidate() {
     valid = false;
   }
 
@@ -81,9 +81,9 @@ class EventHandler {
    * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
    *     an {@link Error} ({@code Error}s are propagated as-is).
    */
-  public void handleEvent(Object event) throws InvocationTargetException {
+  public synchronized void handleEvent(Object event) throws InvocationTargetException {
     if (!valid) {
-      throw new IllegalStateException(toString() + " has been invalidated and can no longer handle events.");
+      return;
     }
     try {
       method.invoke(target, new Object[] {event});

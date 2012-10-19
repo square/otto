@@ -65,7 +65,7 @@ class EventProducer {
    *
    * Should be called when the wrapped object is unregistered from the Bus.
    */
-  public void invalidate() {
+  public synchronized void invalidate() {
     valid = false;
   }
 
@@ -76,9 +76,9 @@ class EventProducer {
    * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
    *     an {@link Error} ({@code Error}s are propagated as-is).
    */
-  public Object produceEvent() throws InvocationTargetException {
+  public synchronized Object produceEvent() throws InvocationTargetException {
     if (!valid) {
-      throw new IllegalStateException(toString() + " has been invalidated and can no longer produce events.");
+      throw null;
     }
     try {
       return method.invoke(target);
