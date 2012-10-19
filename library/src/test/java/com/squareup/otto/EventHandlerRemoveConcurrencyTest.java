@@ -16,17 +16,15 @@ import static junit.framework.Assert.assertFalse;
  *
  * @author John Ericksen
  */
-public class EventHandlerRemoveConcurrency {
+public class EventHandlerRemoveConcurrencyTest {
 
   private static final String EVENT = "event";
   private static final String BUS_IDENTIFIER = "test-bus";
 
   private Bus bus;
 
-  public class Provider{
-
-    @Produce
-    public String produceEvent(){
+  public class Provider {
+    @Produce public String produceEvent() {
       return EVENT;
     }
   }
@@ -36,10 +34,9 @@ public class EventHandlerRemoveConcurrency {
     private boolean unregistered = false;
     private boolean calledAfterUnregister = false;
 
-    @Subscribe
-    public void event(String event){
+    @Subscribe public void event(String event) {
       try {
-        //adding some time to allow unregisters to happen often
+        // Adding some time to allow unregisters to happen often.
         Thread.sleep(1);
       } catch (InterruptedException e) {
         e.printStackTrace();
@@ -47,13 +44,13 @@ public class EventHandlerRemoveConcurrency {
       calledAfterUnregister = unregistered;
     }
 
-    public synchronized void register(){
+    public synchronized void register() {
         registered = true;
         bus.register(this);
     }
 
-    public synchronized void unregisterMe(){
-      if(registered){
+    public synchronized void unregister() {
+      if(registered) {
         bus.unregister(this);
         unregistered = true;
       }
@@ -64,48 +61,43 @@ public class EventHandlerRemoveConcurrency {
     }
   }
 
-  public class EventRegistration implements Runnable{
+  public class EventRegistration implements Runnable {
 
     private EventWatcher watcher;
 
-    public EventRegistration(EventWatcher watcher){
+    public EventRegistration(EventWatcher watcher) {
       this.watcher = watcher;
     }
 
-    @Override
-    public void run() {
+    @Override public void run() {
       watcher.register();
     }
   }
 
-  public class EventUnregistration implements Runnable{
+  public class EventUnregistration implements Runnable {
 
     private EventWatcher watcher;
 
-    public EventUnregistration(EventWatcher watcher){
+    public EventUnregistration(EventWatcher watcher) {
       this.watcher = watcher;
     }
 
-    @Override
-    public void run() {
-      watcher.unregisterMe();
+    @Override public void run() {
+      watcher.unregister();
     }
   }
 
   public class EventTrigger implements Runnable {
-    @Override
-    public void run() {
+    @Override public void run() {
       bus.post(EVENT);
     }
   }
 
-  @Before
-  public void setup(){
+  @Before public void setup() {
     bus = new Bus(ThreadEnforcer.ANY, BUS_IDENTIFIER);
   }
 
-  @Test
-  public void hammerLifecycleTest() throws InterruptedException {
+  @Test public void hammerLifecycleTest() throws InterruptedException {
 
     bus.register(new Provider());
 
@@ -113,7 +105,7 @@ public class EventHandlerRemoveConcurrency {
 
     List<EventWatcher> registrations = new ArrayList<EventWatcher>();
 
-    for(int i = 0; i < 100; i++){
+    for(int i = 0; i < 100; i++) {
       EventWatcher eventWatcher = new EventWatcher();
       registrations.add(eventWatcher);
       executorService.execute(new EventRegistration(eventWatcher));
