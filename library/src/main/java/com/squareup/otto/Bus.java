@@ -196,7 +196,7 @@ public class Bus {
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers != null && !handlers.isEmpty()) {
         for (EventHandler handler : handlers) {
-          dispatchProducerResultToHandler(handler, producer);
+          enqueueEvent(producer, handler);
         }
       }
     }
@@ -222,16 +222,19 @@ public class Bus {
       if (producer != null && producer.isValid()) {
         Set<EventHandler> foundHandlers = entry.getValue();
         for (EventHandler foundHandler : foundHandlers) {
-          if (foundHandler.isValid()) {
-            dispatchProducerResultToHandler(foundHandler, producer);
-          }
+          enqueueEvent(producer, foundHandler);
         }
       }
     }
+
+    dispatchQueuedEvents();
   }
 
-  private void dispatchProducerResultToHandler(EventHandler handler, EventProducer producer) {
-    Object event = null;
+  private void enqueueEvent(EventProducer producer, EventHandler handler) {
+    if(!handler.isValid()){
+      return;
+    }
+    Object event;
     try {
       event = producer.produceEvent();
     } catch (InvocationTargetException e) {
@@ -240,7 +243,7 @@ public class Bus {
     if (event == null) {
       return;
     }
-    dispatch(event, handler);
+    enqueueEvent(event, handler);
   }
 
   /**
@@ -264,6 +267,8 @@ public class Bus {
                 + " registered?");
       }
       producersByType.remove(key);
+
+      producer.invalidate();
     }
 
     Map<Class<?>, Set<EventHandler>> handlersInListener = handlerFinder.findAllSubscribers(object);
