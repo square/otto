@@ -225,11 +225,11 @@ public class Bus {
       Class<?> type = entry.getKey();
       EventProducer producer = producersByType.get(type);
       if (producer != null) {
-    	Set<EventHandler> currentHandlers = getHandlersForEventType(type);
+        Set<EventHandler> currentHandlers = getHandlersForEventType(type);
         if (currentHandlers != null) {
           Set<EventHandler> foundHandlers = entry.getValue();
           for (EventHandler foundHandler : foundHandlers) {
-            // Only include handlers which are still subscribed 
+            // Only include handlers which are still subscribed
             if (currentHandlers.contains(foundHandler)) {
               Set<EventHandler> handlers = dispatchMap.get(producer);
               if (handlers == null) {
@@ -242,7 +242,7 @@ public class Bus {
         }
       }
     }
-    
+
     // In priority order, produce the events and send them to each of the subscribers
     for (Map.Entry<EventProducer, Set<EventHandler>> entry : dispatchMap.entrySet()) {
       EventProducer producer = entry.getKey();
