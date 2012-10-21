@@ -39,6 +39,8 @@ class EventHandler {
   private final Method method;
   /** Object hash code. */
   private final int hashCode;
+  /** Should this handler receive events? */
+  private boolean valid = true;
 
   EventHandler(Object target, Method method) {
     if (target == null) {
@@ -58,14 +60,31 @@ class EventHandler {
     hashCode = (prime + method.hashCode()) * prime + target.hashCode();
   }
 
+  public boolean isValid() {
+    return valid;
+  }
+
+  /**
+   * If invalidated, will subsequently refuse to handle events.
+   *
+   * Should be called when the wrapped object is unregistered from the Bus.
+   */
+  public synchronized void invalidate() {
+    valid = false;
+  }
+
   /**
    * Invokes the wrapped handler method to handle {@code event}.
    *
    * @param event  event to handle
+   * @Throws java.lang.IllegalStateException  if previously invalidated.
    * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
    *     an {@link Error} ({@code Error}s are propagated as-is).
    */
-  public void handleEvent(Object event) throws InvocationTargetException {
+  public synchronized void handleEvent(Object event) throws InvocationTargetException {
+    if (!valid) {
+      return;
+    }
     try {
       method.invoke(target, new Object[] {event});
     } catch (IllegalAccessException e) {

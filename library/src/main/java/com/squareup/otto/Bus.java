@@ -196,7 +196,7 @@ public class Bus {
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers != null && !handlers.isEmpty()) {
         for (EventHandler handler : handlers) {
-          dispatchProducerResultToHandler(handler, producer);
+          enqueueEvent(producer, handler);
         }
       }
     }
@@ -216,26 +216,25 @@ public class Bus {
       handlers.addAll(foundHandlers);
     }
 
-
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : foundHandlersMap.entrySet()) {
       Class<?> type = entry.getKey();
       EventProducer producer = producersByType.get(type);
-      if (producer != null) {
-        Set<EventHandler> currentHandlers = getHandlersForEventType(type);
-        if (currentHandlers != null) {
-          Set<EventHandler> foundHandlers = entry.getValue();
-          for (EventHandler foundHandler : foundHandlers) {
-            if (currentHandlers.contains(foundHandler)) {
-              dispatchProducerResultToHandler(foundHandler, producer);
-            }
-          }
+      if (producer != null && producer.isValid()) {
+        Set<EventHandler> foundHandlers = entry.getValue();
+        for (EventHandler foundHandler : foundHandlers) {
+          enqueueEvent(producer, foundHandler);
         }
       }
     }
+
+    dispatchQueuedEvents();
   }
 
-  private void dispatchProducerResultToHandler(EventHandler handler, EventProducer producer) {
-    Object event = null;
+  private void enqueueEvent(EventProducer producer, EventHandler handler) {
+    if(!handler.isValid()){
+      return;
+    }
+    Object event;
     try {
       event = producer.produceEvent();
     } catch (InvocationTargetException e) {
@@ -244,13 +243,7 @@ public class Bus {
     if (event == null) {
       return;
     }
-    try {
-      handler.handleEvent(event);
-    } catch (InvocationTargetException e) {
-      String type = event.getClass().toString();
-      throw new RuntimeException(
-          "Could not dispatch event " + type + " from " + producer + " to handler " + handler, e);
-    }
+    enqueueEvent(event, handler);
   }
 
   /**
@@ -274,6 +267,8 @@ public class Bus {
                 + " registered?");
       }
       producersByType.remove(key);
+
+      producer.invalidate();
     }
 
     Map<Class<?>, Set<EventHandler>> handlersInListener = handlerFinder.findAllSubscribers(object);
@@ -281,11 +276,18 @@ public class Bus {
       Set<EventHandler> currentHandlers = getHandlersForEventType(entry.getKey());
       Collection<EventHandler> eventMethodsInListener = entry.getValue();
 
-      if (currentHandlers == null || !currentHandlers.removeAll(eventMethodsInListener)) {
+      if (currentHandlers == null || !currentHandlers.containsAll(eventMethodsInListener)) {
         throw new IllegalArgumentException(
             "Missing event handler for an annotated method. Is " + object.getClass()
                 + " registered?");
       }
+
+      for (EventHandler handler : currentHandlers) {
+        if (eventMethodsInListener.contains(handler)) {
+          handler.invalidate();
+        }
+      }
+      currentHandlers.removeAll(eventMethodsInListener);
     }
   }
 
@@ -349,7 +351,9 @@ public class Bus {
           break;
         }
 
-        dispatch(eventWithHandler.event, eventWithHandler.handler);
+        if (eventWithHandler.handler.isValid()) {
+          dispatch(eventWithHandler.event, eventWithHandler.handler);
+        }
       }
     } finally {
       isDispatching.set(false);
