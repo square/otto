@@ -220,21 +220,30 @@ public class Bus {
     SortedMap<EventProducer, Set<EventHandler>> dispatchMap =
         new TreeMap<EventProducer, Set<EventHandler>>();
 
-    // Build a map of producers to the subscribers
+    // Build a map of producers to the subscribers, sorted by Producer
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : foundHandlersMap.entrySet()) {
       Class<?> type = entry.getKey();
       EventProducer producer = producersByType.get(type);
       if (producer != null) {
-        Set<EventHandler> handlers = dispatchMap.get(producer);
-        if (handlers == null) {
-          handlers = new HashSet<EventHandler>();
-          dispatchMap.put(producer, handlers);
+    	Set<EventHandler> currentHandlers = getHandlersForEventType(type);
+        if (currentHandlers != null) {
+          Set<EventHandler> foundHandlers = entry.getValue();
+          for (EventHandler foundHandler : foundHandlers) {
+            // Only include handlers which are still subscribed 
+            if (currentHandlers.contains(foundHandler)) {
+              Set<EventHandler> handlers = dispatchMap.get(producer);
+              if (handlers == null) {
+                handlers = new HashSet<EventHandler>();
+                dispatchMap.put(producer, handlers);
+              }
+              handlers.add(foundHandler);
+            }
+          }
         }
-        handlers.addAll(entry.getValue());
       }
     }
-
-    // In sorted order, produce the events and send them to each of the subscribers
+    
+    // In priority order, produce the events and send them to each of the subscribers
     for (Map.Entry<EventProducer, Set<EventHandler>> entry : dispatchMap.entrySet()) {
       EventProducer producer = entry.getKey();
       for (EventHandler handler : entry.getValue()) {
