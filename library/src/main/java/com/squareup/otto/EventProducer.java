@@ -33,7 +33,7 @@ class EventProducer implements Comparable<EventProducer> {
   private final Object target;
   /** Producer method. */
   private final Method method;
-  /** Event priority */
+  /** Event priority. */
   private final int priority;
   /** Object hash code. */
   private final int hashCode;
@@ -107,10 +107,9 @@ class EventProducer implements Comparable<EventProducer> {
    */
   @Override
   public int compareTo(EventProducer o) {
-	if (priority == o.priority) {
+    if (priority == o.priority) {
       return hashCode > o.hashCode ? 1 : hashCode < o.hashCode ? -1 : 0;
     }
-	return priority < o.priority ? -1 : priority > o.priority ? 1 : 0;
+    return priority < o.priority ? -1 : priority > o.priority ? 1 : 0;
   }
-
 }
