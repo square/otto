@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Helper methods for finding methods annotated with {@link Produce} and {@link Subscribe}.
@@ -34,8 +36,8 @@ import java.util.Set;
 final class AnnotatedHandlerFinder {
 
   /** Cache event bus producer methods for each class. */
-  private static final Map<Class<?>, Map<Class<?>, Method>> PRODUCERS_CACHE =
-      new HashMap<Class<?>, Map<Class<?>, Method>>();
+  private static final Map<Class<?>, Map<Class<?>, ProducerMethod>> PRODUCERS_CACHE =
+      new HashMap<Class<?>, Map<Class<?>, ProducerMethod>>();
 
   /** Cache event bus subscriber methods for each class. */
   private static final Map<Class<?>, Map<Class<?>, Set<Method>>> SUBSCRIBERS_CACHE =
@@ -47,7 +49,7 @@ final class AnnotatedHandlerFinder {
    */
   private static void loadAnnotatedMethods(Class<?> listenerClass) {
     Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
-    Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
+    Map<Class<?>, ProducerMethod> producerMethods = new HashMap<Class<?>, ProducerMethod>();
 
     for (Method method : listenerClass.getDeclaredMethods()) {
       if (method.isAnnotationPresent(Subscribe.class)) {
@@ -75,6 +77,7 @@ final class AnnotatedHandlerFinder {
         }
         methods.add(method);
       } else if (method.isAnnotationPresent(Produce.class)) {
+        Produce produceAnnotation = method.getAnnotation(Produce.class);
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length != 0) {
           throw new IllegalArgumentException("Method " + method + "has @Produce annotation but requires "
@@ -90,7 +93,6 @@ final class AnnotatedHandlerFinder {
           throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
               + " which is an interface.  Producers must return a concrete class type.");
         }
-
         if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
           throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
               + " but is not 'public'.");
@@ -99,31 +101,31 @@ final class AnnotatedHandlerFinder {
         if (producerMethods.containsKey(eventType)) {
           throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
         }
-        producerMethods.put(eventType, method);
+        producerMethods.put(eventType, new ProducerMethod(method, produceAnnotation.priority()));
       }
     }
-
     PRODUCERS_CACHE.put(listenerClass, producerMethods);
     SUBSCRIBERS_CACHE.put(listenerClass, subscriberMethods);
   }
 
   /** This implementation finds all methods marked with a {@link Produce} annotation. */
-  static Map<Class<?>, EventProducer> findAllProducers(Object listener) {
+  static Map<EventProducer, Class<?>> findAllProducers(Object listener) {
     final Class<?> listenerClass = listener.getClass();
-    Map<Class<?>, EventProducer> handlersInMethod = new HashMap<Class<?>, EventProducer>();
+    SortedMap<EventProducer, Class<?>> producersInClass = new TreeMap<EventProducer, Class<?>>();
 
     if (!PRODUCERS_CACHE.containsKey(listenerClass)) {
       loadAnnotatedMethods(listenerClass);
     }
-    Map<Class<?>, Method> methods = PRODUCERS_CACHE.get(listenerClass);
+    Map<Class<?>, ProducerMethod> methods = PRODUCERS_CACHE.get(listenerClass);
     if (!methods.isEmpty()) {
-      for (Map.Entry<Class<?>, Method> e : methods.entrySet()) {
-        EventProducer producer = new EventProducer(listener, e.getValue());
-        handlersInMethod.put(e.getKey(), producer);
+      for (Map.Entry<Class<?>, ProducerMethod> e : methods.entrySet()) {
+        ProducerMethod m = e.getValue();
+        EventProducer producer = new EventProducer(listener, m.method, m.priority);
+        producersInClass.put(producer, e.getKey());
       }
     }
 
-    return handlersInMethod;
+    return producersInClass;
   }
 
   /** This implementation finds all methods marked with a {@link Subscribe} annotation. */

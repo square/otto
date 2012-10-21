@@ -25,6 +25,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -184,10 +186,9 @@ public class Bus {
   public void register(Object object) {
     enforcer.enforce(this);
 
-    Map<Class<?>, EventProducer> foundProducers = handlerFinder.findAllProducers(object);
-    for (Class<?> type : foundProducers.keySet()) {
-
-      final EventProducer producer = foundProducers.get(type);
+    Map<EventProducer, Class<?>> foundProducers = handlerFinder.findAllProducers(object);
+    for (EventProducer producer : foundProducers.keySet()) {
+      final Class<?> type = foundProducers.get(producer);
       EventProducer previousProducer = producersByType.putIfAbsent(type, producer);
       //checking if the previous producer existed
       if (previousProducer != null) {
@@ -216,20 +217,28 @@ public class Bus {
       handlers.addAll(foundHandlers);
     }
 
+    SortedMap<EventProducer, Set<EventHandler>> dispatchMap =
+        new TreeMap<EventProducer, Set<EventHandler>>();
 
+    // Build a map of producers to the subscribers
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : foundHandlersMap.entrySet()) {
       Class<?> type = entry.getKey();
       EventProducer producer = producersByType.get(type);
       if (producer != null) {
-        Set<EventHandler> currentHandlers = getHandlersForEventType(type);
-        if (currentHandlers != null) {
-          Set<EventHandler> foundHandlers = entry.getValue();
-          for (EventHandler foundHandler : foundHandlers) {
-            if (currentHandlers.contains(foundHandler)) {
-              dispatchProducerResultToHandler(foundHandler, producer);
-            }
-          }
+        Set<EventHandler> handlers = dispatchMap.get(producer);
+        if (handlers == null) {
+          handlers = new HashSet<EventHandler>();
+          dispatchMap.put(producer, handlers);
         }
+        handlers.addAll(entry.getValue());
+      }
+    }
+
+    // In sorted order, produce the events and send them to each of the subscribers
+    for (Map.Entry<EventProducer, Set<EventHandler>> entry : dispatchMap.entrySet()) {
+      EventProducer producer = entry.getKey();
+      for (EventHandler handler : entry.getValue()) {
+        dispatchProducerResultToHandler(handler, producer);
       }
     }
   }
@@ -262,11 +271,11 @@ public class Bus {
   public void unregister(Object object) {
     enforcer.enforce(this);
 
-    Map<Class<?>, EventProducer> producersInListener = handlerFinder.findAllProducers(object);
-    for (Map.Entry<Class<?>, EventProducer> entry : producersInListener.entrySet()) {
-      final Class<?> key = entry.getKey();
+    Map<EventProducer, Class<?>> producersInListener = handlerFinder.findAllProducers(object);
+    for (Map.Entry<EventProducer, Class<?>> entry : producersInListener.entrySet()) {
+      final Class<?> key = entry.getValue();
       EventProducer producer = getProducerForEventType(key);
-      EventProducer value = entry.getValue();
+      EventProducer value = entry.getKey();
 
       if (value == null || !value.equals(producer)) {
         throw new IllegalArgumentException(

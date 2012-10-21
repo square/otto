@@ -45,7 +45,7 @@ public class EventProducerTest {
    */
   @Test public void basicMethodCall() throws Exception {
     Method method = getRecordingMethod();
-    EventProducer producer = new EventProducer(this, method);
+    EventProducer producer = new EventProducer(this, method, 0);
     Object methodResult = producer.produceEvent();
 
     assertTrue("Producer must call provided method.", methodCalled);
@@ -55,7 +55,7 @@ public class EventProducerTest {
   /** Checks that EventProducer's constructor disallows null methods. */
   @Test public void rejectionOfNullMethods() {
     try {
-      new EventProducer(this, null);
+      new EventProducer(this, null, 0);
       fail("EventProducer must immediately reject null methods.");
     } catch (NullPointerException expected) {
       // Hooray!
@@ -66,7 +66,7 @@ public class EventProducerTest {
   @Test public void rejectionOfNullTargets() throws NoSuchMethodException {
     Method method = getRecordingMethod();
     try {
-      new EventProducer(null, method);
+      new EventProducer(null, method, 0);
       fail("EventProducer must immediately reject null targets.");
     } catch (NullPointerException expected) {
       // Huzzah!
@@ -75,7 +75,7 @@ public class EventProducerTest {
 
   @Test public void testExceptionWrapping() throws NoSuchMethodException {
     Method method = getExceptionThrowingMethod();
-    EventProducer producer = new EventProducer(this, method);
+    EventProducer producer = new EventProducer(this, method, 0);
 
     try {
       producer.produceEvent();
@@ -88,7 +88,7 @@ public class EventProducerTest {
 
   @Test public void errorPassthrough() throws InvocationTargetException, NoSuchMethodException {
     Method method = getErrorThrowingMethod();
-    EventProducer producer = new EventProducer(this, method);
+    EventProducer producer = new EventProducer(this, method, 0);
 
     try {
       producer.produceEvent();
@@ -100,7 +100,7 @@ public class EventProducerTest {
 
   @Test public void returnValueNotCached() throws Exception {
     Method method = getRecordingMethod();
-    EventProducer producer = new EventProducer(this, method);
+    EventProducer producer = new EventProducer(this, method, 0);
     producer.produceEvent();
     methodReturnValue = new Object();
     methodCalled = false;
