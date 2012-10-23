@@ -33,12 +33,15 @@ public interface ThreadEnforcer {
   void enforce(Bus bus);
 
 
-  /** A {@link ThreadEnforcer} that does no verification. */
-  ThreadEnforcer ANY = new ThreadEnforcer() {
+  /** A {@link ThreadEnforcer} that does no verification or enforcement for any action. */
+  ThreadEnforcer NONE = new ThreadEnforcer() {
     @Override public void enforce(Bus bus) {
       // Allow any thread.
     }
   };
+
+  /** @deprecated Use {@link #NONE}. */
+  @Deprecated ThreadEnforcer ANY = NONE;
 
   /** A {@link ThreadEnforcer} that confines {@link Bus} methods to the main thread. */
   ThreadEnforcer MAIN = new ThreadEnforcer() {

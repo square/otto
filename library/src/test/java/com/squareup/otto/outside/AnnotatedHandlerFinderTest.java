@@ -58,7 +58,7 @@ public class AnnotatedHandlerFinderTest {
     @Before
     public void setUp() throws Exception {
       handler = createHandler();
-      Bus bus = new Bus(ThreadEnforcer.ANY);
+      Bus bus = new Bus(ThreadEnforcer.NONE);
       bus.register(handler);
       bus.post(EVENT);
     }
@@ -196,7 +196,7 @@ public class AnnotatedHandlerFinderTest {
 
     @Test public void subscribingToInterfacesFails() {
       try {
-        new Bus(ThreadEnforcer.ANY).register(new InterfaceSubscriber());
+        new Bus(ThreadEnforcer.NONE).register(new InterfaceSubscriber());
         fail("Annotation finder allowed subscription to illegal interface type.");
       } catch (IllegalArgumentException expected) {
         // Do nothing.
