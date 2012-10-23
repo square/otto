@@ -41,7 +41,7 @@ public class OutsideEventBusTest {
   @Test public void anonymous() {
     final AtomicReference<String> holder = new AtomicReference<String>();
     final AtomicInteger deliveries = new AtomicInteger();
-    Bus bus = new Bus(ThreadEnforcer.ANY);
+    Bus bus = new Bus(ThreadEnforcer.NONE);
     bus.register(new Object() {
       @Subscribe
       public void accept(String str) {
