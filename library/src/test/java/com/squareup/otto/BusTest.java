@@ -42,7 +42,7 @@ public class BusTest {
   private Bus bus;
 
   @Before public void setUp() throws Exception {
-    bus = new Bus(ThreadEnforcer.ANY, BUS_IDENTIFIER);
+    bus = new Bus(ThreadEnforcer.NONE, BUS_IDENTIFIER);
   }
 
   @Test public void basicCatcherDistribution() {
