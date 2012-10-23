@@ -40,9 +40,6 @@ public interface ThreadEnforcer {
     }
   };
 
-  /** @deprecated Use {@link #NONE}. */
-  @Deprecated ThreadEnforcer ANY = NONE;
-
   /** A {@link ThreadEnforcer} that confines {@link Bus} methods to the main thread. */
   ThreadEnforcer MAIN = new ThreadEnforcer() {
     @Override public void enforce(Bus bus) {
