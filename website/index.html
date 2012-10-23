@@ -89,9 +89,9 @@
             with an instance is confined to the main thread.</p>
             <pre class="prettyprint">// Both of these are functionally equivalent.
 Bus bus1 = new Bus();
-Bus bus2 = new Bus(ThreadEnforcer.MAIN);</pre>
+Bus bus2 = new Bus(ThreadEnforcers.MAIN);</pre>
             <p>If you are not concerned on which thread interaction is occurring, instantiate a bus instance with
-            <code>ThreadEnforcer.ANY</code>. You can also provide your own implementation of the
+            <code>ThreadEnforcers.NONE</code>. You can also provide your own implementation of the
             <code>ThreadEnforcer</code> interface if you need additional functionality or validation.</p>
 
             <h4>Including In Your Application</h4>

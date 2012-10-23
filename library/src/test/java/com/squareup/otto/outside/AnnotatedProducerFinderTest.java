@@ -19,7 +19,7 @@ package com.squareup.otto.outside;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
-import com.squareup.otto.ThreadEnforcer;
+import com.squareup.otto.ThreadEnforcers;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -59,7 +59,7 @@ public class AnnotatedProducerFinderTest {
   }
 
   @Test public void simpleProducer() {
-    Bus bus = new Bus(ThreadEnforcer.NONE);
+    Bus bus = new Bus(ThreadEnforcers.NONE);
     Subscriber subscriber = new Subscriber();
     SimpleProducer producer = new SimpleProducer();
 
@@ -71,7 +71,7 @@ public class AnnotatedProducerFinderTest {
   }
 
   @Test public void multipleSubscriptionsCallsProviderEachTime() {
-    Bus bus = new Bus(ThreadEnforcer.NONE);
+    Bus bus = new Bus(ThreadEnforcers.NONE);
     SimpleProducer producer = new SimpleProducer();
 
     bus.register(producer);
