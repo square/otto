@@ -18,7 +18,7 @@ package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
-import com.squareup.otto.ThreadEnforcer;
+import com.squareup.otto.ThreadEnforcers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -58,7 +58,7 @@ public class AnnotatedHandlerFinderTest {
     @Before
     public void setUp() throws Exception {
       handler = createHandler();
-      Bus bus = new Bus(ThreadEnforcer.NONE);
+      Bus bus = new Bus(ThreadEnforcers.NONE);
       bus.register(handler);
       bus.post(EVENT);
     }
@@ -196,7 +196,7 @@ public class AnnotatedHandlerFinderTest {
 
     @Test public void subscribingToInterfacesFails() {
       try {
-        new Bus(ThreadEnforcer.NONE).register(new InterfaceSubscriber());
+        new Bus(ThreadEnforcers.NONE).register(new InterfaceSubscriber());
         fail("Annotation finder allowed subscription to illegal interface type.");
       } catch (IllegalArgumentException expected) {
         // Do nothing.

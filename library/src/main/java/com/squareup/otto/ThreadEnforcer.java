@@ -33,17 +33,10 @@ public interface ThreadEnforcer {
   void enforce(Bus bus);
 
 
-  /** A {@link ThreadEnforcer} that does no verification or enforcement for any action. */
-  ThreadEnforcer NONE = new ThreadEnforcer() {
-    @Override public void enforce(Bus bus) {
-      // Allow any thread.
-    }
-  };
+  /** @deprecated Use {@link ThreadEnforcers#NONE}. */
+  @Deprecated ThreadEnforcer ANY = ThreadEnforcers.NONE;
 
-  /** @deprecated Use {@link #NONE}. */
-  @Deprecated ThreadEnforcer ANY = NONE;
-
-  /** A {@link ThreadEnforcer} that confines {@link Bus} methods to the main thread. */
+  /** @deprecated Use {@link ThreadEnforcers#MAIN}. */
   ThreadEnforcer MAIN = new ThreadEnforcer() {
     @Override public void enforce(Bus bus) {
       if (Looper.myLooper() != Looper.getMainLooper()) {

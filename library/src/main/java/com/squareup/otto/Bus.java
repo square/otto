@@ -131,7 +131,7 @@ public class Bus {
    * @param identifier a brief name for this bus, for debugging purposes.  Should be a valid Java identifier.
    */
   public Bus(String identifier) {
-    this(ThreadEnforcer.MAIN, identifier);
+    this(ThreadEnforcers.MAIN, identifier);
   }
 
   /**

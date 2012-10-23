@@ -25,7 +25,7 @@ public class EventBusInnerClassStressTest {
   Sub sub = new Sub();
 
   @Test public void eventBusOkayWithNonStaticInnerClass() {
-    Bus eb = new Bus(ThreadEnforcer.NONE);
+    Bus eb = new Bus(ThreadEnforcers.NONE);
     eb.register(sub);
     int i = 0;
     while (i < REPS) {
@@ -37,7 +37,7 @@ public class EventBusInnerClassStressTest {
   }
 
   @Test public void eventBusFailWithAnonInnerClass() {
-    Bus eb = new Bus(ThreadEnforcer.NONE);
+    Bus eb = new Bus(ThreadEnforcers.NONE);
     eb.register(new Object() {
       @Subscribe
       public void in(String o) {
@@ -54,7 +54,7 @@ public class EventBusInnerClassStressTest {
   }
 
   @Test public void eventBusNpeWithAnonInnerClassWaitingForObject() {
-    Bus eb = new Bus(ThreadEnforcer.NONE);
+    Bus eb = new Bus(ThreadEnforcers.NONE);
     eb.register(new Object() {
       @Subscribe
       public void in(Object o) {

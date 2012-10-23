@@ -4,10 +4,11 @@ Change Log
 Version 1.4.0 *(In Development)*
 --------------------------------
 
- * Introduce `ThreadEnforcer.NONE` which does no validation. Deprecate
-   `ThreadEnforcer.ANY` which will be removed in the next minor version.
-
-
+ * Introduce `ThreadEnforcers.NONE` which does no validation. Move
+   `ThreadEnforcer.MAIN to `ThreadEnforcers.MAIN`. Deprecate
+   `ThreadEnforcer.ANY` and `ThreadEnforcer.MAIN`, which will be removed in
+   the next minor version.
+ 
 Version 1.3.2 *(2012-10-16)*
 ----------------------------
 
