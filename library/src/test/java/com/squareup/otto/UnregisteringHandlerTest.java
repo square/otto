@@ -78,7 +78,7 @@ public class UnregisteringHandlerTest {
     };
 
     @Override
-    public Map<Class<?>, EventProducer> findAllProducers(Object listener) {
+    public Map<EventProducer, Class<?>> findAllProducers(Object listener) {
       return HandlerFinder.ANNOTATED.findAllProducers(listener);
     }
 

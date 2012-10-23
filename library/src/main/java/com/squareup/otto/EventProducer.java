@@ -27,16 +27,18 @@ import java.lang.reflect.Method;
  *
  * @author Jake Wharton
  */
-class EventProducer {
+class EventProducer implements Comparable<EventProducer> {
 
   /** Object sporting the producer method. */
   private final Object target;
   /** Producer method. */
   private final Method method;
+  /** Event priority. */
+  private final int priority;
   /** Object hash code. */
   private final int hashCode;
 
-  EventProducer(Object target, Method method) {
+  EventProducer(Object target, Method method, int priority) {
     if (target == null) {
       throw new NullPointerException("EventProducer target cannot be null.");
     }
@@ -46,6 +48,7 @@ class EventProducer {
 
     this.target = target;
     this.method = method;
+    this.priority = priority;
     method.setAccessible(true);
 
     // Compute hash code eagerly since we know it will be used frequently and we cannot estimate the runtime of the
@@ -99,4 +102,14 @@ class EventProducer {
     return method.equals(other.method) && target == other.target;
   }
 
+  /**
+   * Natural ordering by priority, ascending, then by hashCode.
+   */
+  @Override
+  public int compareTo(EventProducer o) {
+    if (priority == o.priority) {
+      return hashCode > o.hashCode ? 1 : hashCode < o.hashCode ? -1 : 0;
+    }
+    return priority < o.priority ? -1 : priority > o.priority ? 1 : 0;
+  }
 }
