@@ -62,7 +62,7 @@ public class LocationActivity extends FragmentActivity {
   @Override protected void onResume() {
     super.onResume();
 
-    // Register outselves so that we can provide the initial value.
+    // Register ourselves so that we can provide the initial value.
     BusProvider.getInstance().register(this);
   }
 
