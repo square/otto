@@ -90,6 +90,9 @@ final class AnnotatedHandlerFinder {
           throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
               + " which is an interface.  Producers must return a concrete class type.");
         }
+        if (Void.class.isAssignableFrom(eventType)) {
+          throw new IllegalArgumentException("Method " + method + " has @Produce annotation but has no return type.");
+        }
 
         if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
           throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
