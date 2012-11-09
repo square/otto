@@ -6,6 +6,7 @@ Version 1.4.0 *(In Development)*
 
  * Rename `ThreadEnforcer.ANY` to `ThreadEnforcer.NONE` which better reflects
    its behavior.
+ * Explicitly disallow `void` return type on `@Produce` methods.
 
 
 Version 1.3.2 *(2012-10-16)*
