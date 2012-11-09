@@ -208,6 +208,14 @@ public class BusTest {
     }
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void voidProducerThrowsException() throws Exception {
+    class VoidProducer {
+      @Produce public void things() {}
+    }
+    bus.register(new VoidProducer());
+  }
+
   @Test public void producerUnregisterAllowsReregistering() {
     StringProducer producer1 = new StringProducer();
     StringProducer producer2 = new StringProducer();
