@@ -35,6 +35,8 @@ class EventProducer {
   private final Method method;
   /** Object hash code. */
   private final int hashCode;
+  /** Should this producer produce events? */
+  private boolean valid = true;
 
   EventProducer(Object target, Method method) {
     if (target == null) {
@@ -54,13 +56,30 @@ class EventProducer {
     hashCode = (prime + method.hashCode()) * prime + target.hashCode();
   }
 
+  public boolean isValid() {
+    return valid;
+  }
+
+  /**
+   * If invalidated, will subsequently refuse to produce events.
+   *
+   * Should be called when the wrapped object is unregistered from the Bus.
+   */
+  public void invalidate() {
+    valid = false;
+  }
+
   /**
    * Invokes the wrapped producer method.
    *
+   * @throws java.lang.IllegalStateException  if previously invalidated.
    * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
    *     an {@link Error} ({@code Error}s are propagated as-is).
    */
   public Object produceEvent() throws InvocationTargetException {
+    if (!valid) {
+      throw new IllegalStateException(toString() + " has been invalidated and can no longer produce events.");
+    }
     try {
       return method.invoke(target);
     } catch (IllegalAccessException e) {
