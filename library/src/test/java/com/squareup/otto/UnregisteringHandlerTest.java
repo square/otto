@@ -22,6 +22,7 @@ import org.junit.Test;
 import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.fail;
 
 /** Test case for subscribers which unregister while handling an event. */
 public class UnregisteringHandlerTest {
@@ -44,14 +45,11 @@ public class UnregisteringHandlerTest {
     bus.register(catcher);
     bus.post(EVENT);
 
-    List<String> expectedEvents = new ArrayList<String>();
-    expectedEvents.add(EVENT);
-
     assertEquals("One correct event should be delivered.", Arrays.asList(EVENT), catcher.getEvents());
 
     bus.post(EVENT);
     bus.post(EVENT);
-    assertEquals("Shouldn't catch any more events when unregistered.", expectedEvents, catcher.getEvents());
+    assertEquals("Shouldn't catch any more events when unregistered.", Arrays.asList(EVENT), catcher.getEvents());
   }
 
   @Test public void unregisterInHandlerWhenEventProduced() throws Exception {
@@ -65,6 +63,28 @@ public class UnregisteringHandlerTest {
     bus.post(EVENT);
     assertEquals("Shouldn't catch any more events when unregistered.",
         Arrays.asList(StringProducer.VALUE), catcher.getEvents());
+  }
+
+  @Test public void unregisterProducerInHandler() throws Exception {
+    final Object producer = new Object() {
+      private int calls = 0;
+      @Produce public String produceString() {
+        calls++;
+        if (calls > 1) {
+          fail("Should only have been called once, then unregistered and never called again.");
+        }
+        return "Please enjoy this hand-crafted String.";
+      }
+    };
+    bus.register(producer);
+    bus.register(new Object() {
+      @Subscribe public void firstUnsubscribeTheProducer(String produced) {
+        bus.unregister(producer);
+      }
+      @Subscribe public void shouldNeverBeCalled(String uhoh) {
+        fail("Shouldn't receive events from an unregistered producer.");
+      }
+    });
   }
 
   /** Delegates to {@code HandlerFinder.ANNOTATED}, then sorts results by {@code EventHandler#toString} */
