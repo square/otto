@@ -264,13 +264,14 @@ public class Bus {
   <T> void uninstallSubscriber(Class<T> type, Subscriber<T> subscriber) {
     Set<Subscriber> subscribers = handlersByType.get(type);
     if (subscribers == null || !subscribers.remove(subscriber)) {
-      throw new IllegalArgumentException("Missing producer for an annotated method. Is " + subscriber + " registered?");
+      throw new IllegalArgumentException("Missing subscriber for an annotated method. Is "
+              + subscriber + " registered?");
     }
   }
 
   <T> void uninstallProducer(Class<T> type) {
-    if (producersByType.remove(type) != null) {
-      throw new IllegalArgumentException("Missing subscriber for an annotated method. Is " + type + " registered?");
+    if (producersByType.remove(type) == null) {
+      throw new IllegalArgumentException("Missing producer for an annotated method. Is " + type + " registered?");
     }
   }
 
