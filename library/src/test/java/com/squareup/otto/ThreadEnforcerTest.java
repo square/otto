@@ -26,7 +26,7 @@ public class ThreadEnforcerTest {
   private static class RecordingThreadEnforcer implements ThreadEnforcer {
     boolean called = false;
 
-    @Override public void enforce(Bus bus) {
+    @Override public void enforce(OttoBus bus) {
       called = true;
     }
   }

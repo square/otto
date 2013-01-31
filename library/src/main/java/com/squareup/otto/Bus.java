@@ -85,7 +85,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @author Cliff Biffle
  * @author Jake Wharton
  */
-public class Bus {
+public class Bus implements OttoBus {
   public static final String DEFAULT_IDENTIFIER = "default";
 
   /** All registered event handlers, indexed by event type. */
@@ -181,6 +181,7 @@ public class Bus {
    *
    * @param object object whose handler methods should be registered.
    */
+  @Override
   public void register(Object object) {
     enforcer.enforce(this);
 
@@ -252,6 +253,7 @@ public class Bus {
    * @param object object whose producer and handler methods should be unregistered.
    * @throws IllegalArgumentException if the object was not previously registered.
    */
+  @Override
   public void unregister(Object object) {
     enforcer.enforce(this);
 
@@ -298,6 +300,7 @@ public class Bus {
    *
    * @param event event to post.
    */
+  @Override
   public void post(Object event) {
     enforcer.enforce(this);
 
