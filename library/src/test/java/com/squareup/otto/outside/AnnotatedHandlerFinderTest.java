@@ -19,6 +19,7 @@ package com.squareup.otto.outside;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.squareup.otto.ThreadEnforcer;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -26,6 +27,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -189,7 +191,7 @@ public class AnnotatedHandlerFinderTest {
   public static class FailsOnInterfaceSubscription {
 
     static class InterfaceSubscriber {
-      @Subscribe public void whatever(Comparable thingy) {
+      @Subscribe public void whatever(Serializable thingy) {
         // Do nothing.
       }
     }
