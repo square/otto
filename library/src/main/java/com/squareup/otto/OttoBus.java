@@ -1,13 +1,10 @@
 /*
  * Copyright (C) 2012 Square, Inc.
  * Copyright (C) 2007 The Guava Authors
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
  * http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -91,13 +88,13 @@ public interface OttoBus {
   void unregister(Object object);
 
   /**
-  * Posts an event to all registered handlers.  This method will return successfully after the event has been posted to
-  * all handlers, and regardless of any exceptions thrown by handlers.
-  *
-  * <p>If no handlers have been subscribed for {@code event}'s class, and {@code event} is not already a
-  * {@link DeadEvent}, it will be wrapped in a DeadEvent and reposted.
-  *
-  * @param event event to post.
-  */
+   * Posts an event to all registered handlers.  This method will return successfully after the event has been posted to
+   * all handlers, and regardless of any exceptions thrown by handlers.
+   *
+   * <p>If no handlers have been subscribed for {@code event}'s class, and {@code event} is not already a
+   * {@link DeadEvent}, it will be wrapped in a DeadEvent and reposted.
+   *
+   * @param event event to post.
+   */
   void post(Object event);
 }
