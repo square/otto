@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Helper methods for finding methods annotated with {@link Produce} and {@link Subscribe}.
+ * Helper methods for finding methods annotated with {@link Publish} and {@link Subscribe}.
  *
  * @author Cliff Biffle
  * @author Louis Wasserman
@@ -33,8 +33,8 @@ import java.util.Set;
  */
 final class AnnotatedHandlerFinder {
 
-  /** Cache event bus producer methods for each class. */
-  private static final Map<Class<?>, Map<Class<?>, Method>> PRODUCERS_CACHE =
+  /** Cache event bus publisher methods for each class. */
+  private static final Map<Class<?>, Map<Class<?>, Method>> PUBLISHERS_CACHE =
       new HashMap<Class<?>, Map<Class<?>, Method>>();
 
   /** Cache event bus subscriber methods for each class. */
@@ -42,12 +42,12 @@ final class AnnotatedHandlerFinder {
       new HashMap<Class<?>, Map<Class<?>, Set<Method>>>();
 
   /**
-   * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective caches for the
+   * Load all methods annotated with {@link Publish} or {@link Subscribe} into their respective caches for the
    * specified class.
    */
   private static void loadAnnotatedMethods(Class<?> listenerClass) {
     Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
-    Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
+    Map<Class<?>, Method> publisherMethods = new HashMap<Class<?>, Method>();
 
     for (Method method : listenerClass.getDeclaredMethods()) {
       if (method.isAnnotationPresent(Subscribe.class)) {
@@ -74,10 +74,10 @@ final class AnnotatedHandlerFinder {
           subscriberMethods.put(eventType, methods);
         }
         methods.add(method);
-      } else if (method.isAnnotationPresent(Produce.class)) {
+      } else if (method.isAnnotationPresent(Publish.class)) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length != 0) {
-          throw new IllegalArgumentException("Method " + method + "has @Produce annotation but requires "
+          throw new IllegalArgumentException("Method " + method + "has @Publish annotation but requires "
               + parameterTypes.length + " arguments.  Methods must require zero arguments.");
         }
         if (method.getReturnType() == Void.class) {
@@ -87,42 +87,42 @@ final class AnnotatedHandlerFinder {
 
         Class<?> eventType = method.getReturnType();
         if (eventType.isInterface()) {
-          throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
-              + " which is an interface.  Producers must return a concrete class type.");
+          throw new IllegalArgumentException("Method " + method + " has @Publish annotation on " + eventType
+              + " which is an interface.  Publishers must return a concrete class type.");
         }
         if (eventType.equals(Void.TYPE)) {
-          throw new IllegalArgumentException("Method " + method + " has @Produce annotation but has no return type.");
+          throw new IllegalArgumentException("Method " + method + " has @Publish annotation but has no return type.");
         }
 
         if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
-          throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
+          throw new IllegalArgumentException("Method " + method + " has @Publish annotation on " + eventType
               + " but is not 'public'.");
         }
 
-        if (producerMethods.containsKey(eventType)) {
-          throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
+        if (publisherMethods.containsKey(eventType)) {
+          throw new IllegalArgumentException("Publisher for type " + eventType + " has already been registered.");
         }
-        producerMethods.put(eventType, method);
+        publisherMethods.put(eventType, method);
       }
     }
 
-    PRODUCERS_CACHE.put(listenerClass, producerMethods);
+    PUBLISHERS_CACHE.put(listenerClass, publisherMethods);
     SUBSCRIBERS_CACHE.put(listenerClass, subscriberMethods);
   }
 
-  /** This implementation finds all methods marked with a {@link Produce} annotation. */
-  static Map<Class<?>, EventProducer> findAllProducers(Object listener) {
+  /** This implementation finds all methods marked with a {@link Publish} annotation. */
+  static Map<Class<?>, EventPublisher> findAllPublishers(Object listener) {
     final Class<?> listenerClass = listener.getClass();
-    Map<Class<?>, EventProducer> handlersInMethod = new HashMap<Class<?>, EventProducer>();
+    Map<Class<?>, EventPublisher> handlersInMethod = new HashMap<Class<?>, EventPublisher>();
 
-    if (!PRODUCERS_CACHE.containsKey(listenerClass)) {
+    if (!PUBLISHERS_CACHE.containsKey(listenerClass)) {
       loadAnnotatedMethods(listenerClass);
     }
-    Map<Class<?>, Method> methods = PRODUCERS_CACHE.get(listenerClass);
+    Map<Class<?>, Method> methods = PUBLISHERS_CACHE.get(listenerClass);
     if (!methods.isEmpty()) {
       for (Map.Entry<Class<?>, Method> e : methods.entrySet()) {
-        EventProducer producer = new EventProducer(listener, e.getValue());
-        handlersInMethod.put(e.getKey(), producer);
+        EventPublisher publisher = new EventPublisher(listener, e.getValue());
+        handlersInMethod.put(e.getKey(), publisher);
       }
     }
 

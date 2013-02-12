@@ -136,33 +136,33 @@ public class BusTest {
         EVENT, events.get(0).event);
   }
 
-  @Test public void producerCalledForExistingSubscribers() {
+  @Test public void publisherCalledForExistingSubscribers() {
     StringCatcher catcher = new StringCatcher();
-    StringProducer producer = new StringProducer();
+    StringPublisher publisher = new StringPublisher();
 
     bus.register(catcher);
-    bus.register(producer);
+    bus.register(publisher);
 
-    assertEquals(Arrays.asList(StringProducer.VALUE), catcher.getEvents());
+    assertEquals(Arrays.asList(StringPublisher.VALUE), catcher.getEvents());
   }
 
-  @Test public void producingNullIsNoOp() {
-    LazyStringProducer producer = new LazyStringProducer();
+  @Test public void publishingNullIsNoOp() {
+    LazyStringPublisher publisher = new LazyStringPublisher();
     StringCatcher catcher = new StringCatcher();
 
     bus.register(catcher);
-    bus.register(producer);
+    bus.register(publisher);
 
     assertTrue(catcher.getEvents().isEmpty());
 
-    bus.unregister(producer);
-    producer.value = "Foo";
-    bus.register(producer);
+    bus.unregister(publisher);
+    publisher.value = "Foo";
+    bus.register(publisher);
 
     assertEquals(Arrays.asList("Foo"), catcher.getEvents());
   }
 
-  @Test public void subscribingOrProducingOnlyAllowedOnPublicMethods() {
+  @Test public void subscribingOrPublishingOnlyAllowedOnPublicMethods() {
     try {
       bus.register(new Object() {
         @Subscribe protected void method(Object o) {}
@@ -187,21 +187,21 @@ public class BusTest {
     }
     try {
       bus.register(new Object() {
-        @Produce protected Object method() { return null; }
+        @Publish protected Object method() { return null; }
       });
       fail();
     } catch (IllegalArgumentException expected) {
     }
     try {
       bus.register(new Object() {
-        @Produce Object method() { return null; }
+        @Publish Object method() { return null; }
       });
       fail();
     } catch (IllegalArgumentException expected) {
     }
     try {
       bus.register(new Object() {
-        @Produce private Object method() { return null; }
+        @Publish private Object method() { return null; }
       });
       fail();
     } catch (IllegalArgumentException expected) {
@@ -209,20 +209,20 @@ public class BusTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void voidProducerThrowsException() throws Exception {
-    class VoidProducer {
-      @Produce public void things() {}
+  public void voidPublisherThrowsException() throws Exception {
+    class VoidPublisher {
+      @Publish public void things() {}
     }
-    bus.register(new VoidProducer());
+    bus.register(new VoidPublisher());
   }
 
-  @Test public void producerUnregisterAllowsReregistering() {
-    StringProducer producer1 = new StringProducer();
-    StringProducer producer2 = new StringProducer();
+  @Test public void publisherUnregisterAllowsReregistering() {
+    StringPublisher publisher1 = new StringPublisher();
+    StringPublisher publisher2 = new StringPublisher();
 
-    bus.register(producer1);
-    bus.unregister(producer1);
-    bus.register(producer2);
+    bus.register(publisher1);
+    bus.unregister(publisher1);
+    bus.register(publisher2);
   }
 
   @Test public void flattenHierarchy() {
@@ -289,17 +289,17 @@ public class BusTest {
 
   @Test public void producingNullIsInvalid() {
     try {
-      bus.register(new NullProducer());
+      bus.register(new NullPublisher());
     } catch (IllegalStateException expected) {
       // Expected.
     }
   }
 
-  @Test public void testExceptionThrowingProducer() throws Exception {
-    bus.register(new ExceptionThrowingProducer());
+  @Test public void testExceptionThrowingPublisher() throws Exception {
+    bus.register(new ExceptionThrowingPublisher());
     try {
       bus.register(new DummySubscriber());
-      fail("Should have failed due to exception-throwing producer.");
+      fail("Should have failed due to exception-throwing publisher.");
     } catch (RuntimeException e) {
       // Expected.
     }
@@ -315,8 +315,8 @@ public class BusTest {
     }
   }
 
-  private class ExceptionThrowingProducer {
-    @Produce public String produceThingsExceptionally() {
+  private class ExceptionThrowingPublisher {
+    @Publish public String publishThingsExceptionally() {
       throw new IllegalStateException("Bogus!");
     }
   }
@@ -356,8 +356,8 @@ public class BusTest {
     }
   }
 
-  public static class NullProducer {
-    @Produce public Object produceNull() {
+  public static class NullPublisher {
+    @Publish public Object publishNull() {
       return null;
     }
 

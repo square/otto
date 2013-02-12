@@ -70,10 +70,10 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * <p>The Bus by default enforces that all interactions occur on the main thread.  You can provide an alternate
  * enforcement by passing a {@link ThreadEnforcer} to the constructor.
  *
- * <h2>Producer Methods</h2>
- * Producer methods should accept no arguments and return their event type. When a subscriber is registered for a type
- * that a producer is also already registered for, the subscriber will be called with the return value from the
- * producer.
+ * <h2>Publisher Methods</h2>
+ * Publisher methods should accept no arguments and return their event type. When a subscriber is registered for a type
+ * that a publisher is also already registered for, the subscriber will be called with the return value from the
+ * publisher.
  *
  * <h2>Dead Events</h2>
  * If an event is posted, but no registered handlers can accept it, it is considered "dead."  To give the system a
@@ -92,9 +92,9 @@ public class Bus {
   private final ConcurrentMap<Class<?>, Set<EventHandler>> handlersByType =
           new ConcurrentHashMap<Class<?>, Set<EventHandler>>();
 
-  /** All registered event producers, index by event type. */
-  private final ConcurrentMap<Class<?>, EventProducer> producersByType =
-          new ConcurrentHashMap<Class<?>, EventProducer>();
+  /** All registered event publishers, index by event type. */
+  private final ConcurrentMap<Class<?>, EventPublisher> publishersByType =
+          new ConcurrentHashMap<Class<?>, EventPublisher>();
 
   /** Identifier used to differentiate the event bus instance. */
   private final String identifier;
@@ -158,7 +158,7 @@ public class Bus {
    *
    * @param enforcer Thread enforcer for register, unregister, and post actions.
    * @param identifier A brief name for this bus, for debugging purposes.  Should be a valid Java identifier.
-   * @param handlerFinder Used to discover event handlers and producers when registering/unregistering an object.
+   * @param handlerFinder Used to discover event handlers and publishers when registering/unregistering an object.
    */
   Bus(ThreadEnforcer enforcer, String identifier, HandlerFinder handlerFinder) {
     this.enforcer =  enforcer;
@@ -171,32 +171,32 @@ public class Bus {
   }
 
   /**
-   * Registers all handler methods on {@code object} to receive events and producer methods to provide events.
+   * Registers all handler methods on {@code object} to receive events and publisher methods to provide events.
    * <p>
-   * If any subscribers are registering for types which already have a producer they will be called immediately
-   * with the result of calling that producer.
+   * If any subscribers are registering for types which already have a publisher they will be called immediately
+   * with the result of calling that publisher.
    * <p>
-   * If any producers are registering for types which already have subscribers, each subscriber will be called with
-   * the value from the result of calling the producer.
+   * If any publishers are registering for types which already have subscribers, each subscriber will be called with
+   * the value from the result of calling the publisher.
    *
    * @param object object whose handler methods should be registered.
    */
   public void register(Object object) {
     enforcer.enforce(this);
 
-    Map<Class<?>, EventProducer> foundProducers = handlerFinder.findAllProducers(object);
-    for (Class<?> type : foundProducers.keySet()) {
+    Map<Class<?>, EventPublisher> foundPublishers = handlerFinder.findAllPublishers(object);
+    for (Class<?> type : foundPublishers.keySet()) {
 
-      final EventProducer producer = foundProducers.get(type);
-      EventProducer previousProducer = producersByType.putIfAbsent(type, producer);
-      //checking if the previous producer existed
-      if (previousProducer != null) {
-        throw new IllegalArgumentException("Producer method for type " + type + " already registered.");
+      final EventPublisher publisher = foundPublishers.get(type);
+      EventPublisher previousPublisher = publishersByType.putIfAbsent(type, publisher);
+      //checking if the previous publisher existed
+      if (previousPublisher != null) {
+        throw new IllegalArgumentException("Publisher method for type " + type + " already registered.");
       }
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers != null && !handlers.isEmpty()) {
         for (EventHandler handler : handlers) {
-          dispatchProducerResultToHandler(handler, producer);
+          dispatchPublisherResultToHandler(handler, publisher);
         }
       }
     }
@@ -218,27 +218,27 @@ public class Bus {
 
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : foundHandlersMap.entrySet()) {
       Class<?> type = entry.getKey();
-      EventProducer producer = producersByType.get(type);
-      if (producer != null && producer.isValid()) {
+      EventPublisher publisher = publishersByType.get(type);
+      if (publisher != null && publisher.isValid()) {
         Set<EventHandler> foundHandlers = entry.getValue();
         for (EventHandler foundHandler : foundHandlers) {
-          if (!producer.isValid()) {
+          if (!publisher.isValid()) {
             break;
           }
           if (foundHandler.isValid()) {
-            dispatchProducerResultToHandler(foundHandler, producer);
+            dispatchPublisherResultToHandler(foundHandler, publisher);
           }
         }
       }
     }
   }
 
-  private void dispatchProducerResultToHandler(EventHandler handler, EventProducer producer) {
+  private void dispatchPublisherResultToHandler(EventHandler handler, EventPublisher publisher) {
     Object event = null;
     try {
-      event = producer.produceEvent();
+      event = publisher.publishEvent();
     } catch (InvocationTargetException e) {
-      throw new RuntimeException("Producer " + producer + " threw an exception.", e);
+      throw new RuntimeException("Publisher " + publisher + " threw an exception.", e);
     }
     if (event == null) {
       return;
@@ -247,26 +247,26 @@ public class Bus {
   }
 
   /**
-   * Unregisters all producer and handler methods on a registered {@code object}.
+   * Unregisters all publisher and handler methods on a registered {@code object}.
    *
-   * @param object object whose producer and handler methods should be unregistered.
+   * @param object object whose publisher and handler methods should be unregistered.
    * @throws IllegalArgumentException if the object was not previously registered.
    */
   public void unregister(Object object) {
     enforcer.enforce(this);
 
-    Map<Class<?>, EventProducer> producersInListener = handlerFinder.findAllProducers(object);
-    for (Map.Entry<Class<?>, EventProducer> entry : producersInListener.entrySet()) {
+    Map<Class<?>, EventPublisher> publishersInListener = handlerFinder.findAllPublishers(object);
+    for (Map.Entry<Class<?>, EventPublisher> entry : publishersInListener.entrySet()) {
       final Class<?> key = entry.getKey();
-      EventProducer producer = getProducerForEventType(key);
-      EventProducer value = entry.getValue();
+      EventPublisher publisher = getPublisherForEventType(key);
+      EventPublisher value = entry.getValue();
 
-      if (value == null || !value.equals(producer)) {
+      if (value == null || !value.equals(publisher)) {
         throw new IllegalArgumentException(
-            "Missing event producer for an annotated method. Is " + object.getClass()
+            "Missing event publisher for an annotated method. Is " + object.getClass()
                 + " registered?");
       }
-      producersByType.remove(key).invalidate();
+      publishersByType.remove(key).invalidate();
     }
 
     Map<Class<?>, Set<EventHandler>> handlersInListener = handlerFinder.findAllSubscribers(object);
@@ -375,14 +375,14 @@ public class Bus {
   }
 
   /**
-   * Retrieves a mutable set of the currently registered producers for {@code type}.  If no producers are currently
+   * Retrieves a mutable set of the currently registered publishers for {@code type}.  If no publishers are currently
    * registered for {@code type}, this method will return {@code null}.
    *
-   * @param type type of producers to retrieve.
-   * @return currently registered producer, or {@code null}.
+   * @param type type of publishers to retrieve.
+   * @return currently registered publisher, or {@code null}.
    */
-  EventProducer getProducerForEventType(Class<?> type) {
-    return producersByType.get(type);
+  EventPublisher getPublisherForEventType(Class<?> type) {
+    return publishersByType.get(type);
   }
 
   /**
