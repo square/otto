@@ -55,20 +55,20 @@ public class UnregisteringHandlerTest {
   @Test public void unregisterInHandlerWhenEventProduced() throws Exception {
     UnregisteringStringCatcher catcher = new UnregisteringStringCatcher(bus);
 
-    bus.register(new StringProducer());
+    bus.register(new StringPublisher());
     bus.register(catcher);
-    assertEquals(Arrays.asList(StringProducer.VALUE), catcher.getEvents());
+    assertEquals(Arrays.asList(StringPublisher.VALUE), catcher.getEvents());
 
     bus.post(EVENT);
     bus.post(EVENT);
     assertEquals("Shouldn't catch any more events when unregistered.",
-        Arrays.asList(StringProducer.VALUE), catcher.getEvents());
+        Arrays.asList(StringPublisher.VALUE), catcher.getEvents());
   }
 
   @Test public void unregisterProducerInHandler() throws Exception {
     final Object producer = new Object() {
       private int calls = 0;
-      @Produce public String produceString() {
+      @Publish public String produceString() {
         calls++;
         if (calls > 1) {
           fail("Should only have been called once, then unregistered and never called again.");
@@ -98,8 +98,8 @@ public class UnregisteringHandlerTest {
     };
 
     @Override
-    public Map<Class<?>, EventProducer> findAllProducers(Object listener) {
-      return HandlerFinder.ANNOTATED.findAllProducers(listener);
+    public Map<Class<?>, EventPublisher> findAllPublishers(Object listener) {
+      return HandlerFinder.ANNOTATED.findAllPublishers(listener);
     }
 
     @Override

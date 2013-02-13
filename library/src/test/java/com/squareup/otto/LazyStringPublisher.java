@@ -1,9 +1,9 @@
 package com.squareup.otto;
 
-public class LazyStringProducer {
+public class LazyStringPublisher {
   public String value = null;
 
-  @Produce public String gimme() {
+  @Publish public String gimme() {
     return value;
   }
 }

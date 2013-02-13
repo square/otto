@@ -19,18 +19,18 @@ package com.squareup.otto;
 import java.util.Map;
 import java.util.Set;
 
-/** Finds producer and subscriber methods. */
+/** Finds publisher and subscriber methods. */
 interface HandlerFinder {
 
-  Map<Class<?>, EventProducer> findAllProducers(Object listener);
+  Map<Class<?>, EventPublisher> findAllPublishers(Object listener);
 
   Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener);
 
 
   HandlerFinder ANNOTATED = new HandlerFinder() {
     @Override
-    public Map<Class<?>, EventProducer> findAllProducers(Object listener) {
-      return AnnotatedHandlerFinder.findAllProducers(listener);
+    public Map<Class<?>, EventPublisher> findAllPublishers(Object listener) {
+      return AnnotatedHandlerFinder.findAllPublishers(listener);
     }
 
     @Override
