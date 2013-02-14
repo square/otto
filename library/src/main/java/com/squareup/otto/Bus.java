@@ -379,7 +379,6 @@ public class Bus implements OttoBus {
     }
   }
 
-
   private final Map<Class<?>, Set<Class<?>>> flattenHierarchyCache =
       new HashMap<Class<?>, Set<Class<?>>>();
 
