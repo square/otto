@@ -365,11 +365,10 @@ public class Bus implements OttoBus {
     return classes;
   }
 
-
   /**
-   * Throw a RuntimeException with given message and cause lifted from an InvocationTargetException.
-   *
-   * If the InvocationTargetException does not have a cause, neither will the RuntimeException.
+   * Throw a {@link RuntimeException} with given message and cause lifted from an {@link
+   * InvocationTargetException}. If the specified {@link InvocationTargetException} does not have a
+   * cause, neither will the {@link RuntimeException}.
    */
   private static void throwRuntimeException(String msg, InvocationTargetException e) {
     Throwable cause = e.getCause();
