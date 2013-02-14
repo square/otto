@@ -4,6 +4,8 @@ Change Log
 Version 1.4.0 *(In Development)*
 --------------------------------
 
+ * New: `OttoBus` interface which defines the methods an event bus should
+   implement.
  * Rename `ThreadEnforcer.ANY` to `ThreadEnforcer.NONE` which better reflects
    its behavior.
  * Explicitly disallow `void` return type on `@Produce` methods.
