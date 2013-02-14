@@ -30,7 +30,7 @@ import java.lang.reflect.Method;
 class EventProducer {
 
   /** Object sporting the producer method. */
-  private final Object target;
+  final Object target;
   /** Producer method. */
   private final Method method;
   /** Object hash code. */
@@ -117,10 +117,4 @@ class EventProducer {
 
     return method.equals(other.method) && target == other.target;
   }
-
-  /* useful for debugging and exceptions (package-private)*/
-  Object getTarget() {
-      return target;
-  }
-
 }
