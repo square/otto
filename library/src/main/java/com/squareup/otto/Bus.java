@@ -187,7 +187,7 @@ public class Bus implements OttoBus {
     try {
       event = producer.produceEvent();
     } catch (InvocationTargetException e) {
-      throw new RuntimeException("Producer " + producer + " threw an exception.", e);
+      throwRuntimeException("Producer " + producer + " threw an exception.", e);
     }
     if (event == null) {
       return;
@@ -303,7 +303,7 @@ public class Bus implements OttoBus {
     try {
       wrapper.handleEvent(event);
     } catch (InvocationTargetException e) {
-      throw new RuntimeException(
+      throwRuntimeException(
           "Could not dispatch event: " + event.getClass() + " to handler " + wrapper, e);
     }
   }
@@ -364,6 +364,22 @@ public class Bus implements OttoBus {
     }
     return classes;
   }
+
+
+  /**
+   * Throw a RuntimeException with given message and cause lifted from an InvocationTargetException.
+   *
+   * If the InvocationTargetException does not have a cause, neither will the RuntimeException.
+   */
+  private static void throwRuntimeException(String msg, InvocationTargetException e) {
+    Throwable cause = e.getCause();
+    if (cause != null) {
+      throw new RuntimeException(msg, cause);
+    } else {
+      throw new RuntimeException(msg);
+    }
+  }
+
 
   private final Map<Class<?>, Set<Class<?>>> flattenHierarchyCache =
       new HashMap<Class<?>, Set<Class<?>>>();
