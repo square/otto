@@ -52,23 +52,23 @@ public class UnregisteringHandlerTest {
     assertEquals("Shouldn't catch any more events when unregistered.", Arrays.asList(EVENT), catcher.getEvents());
   }
 
-  @Test public void unregisterInHandlerWhenEventProduced() throws Exception {
+  @Test public void unregisterInHandlerWhenEventPublished() throws Exception {
     UnregisteringStringCatcher catcher = new UnregisteringStringCatcher(bus);
 
-    bus.register(new StringProducer());
+    bus.register(new StringPublisher());
     bus.register(catcher);
-    assertEquals(Arrays.asList(StringProducer.VALUE), catcher.getEvents());
+    assertEquals(Arrays.asList(StringPublisher.VALUE), catcher.getEvents());
 
     bus.post(EVENT);
     bus.post(EVENT);
     assertEquals("Shouldn't catch any more events when unregistered.",
-        Arrays.asList(StringProducer.VALUE), catcher.getEvents());
+        Arrays.asList(StringPublisher.VALUE), catcher.getEvents());
   }
 
-  @Test public void unregisterProducerInHandler() throws Exception {
-    final Object producer = new Object() {
+  @Test public void unregisterPublisherInHandler() throws Exception {
+    final Object publisher = new Object() {
       private int calls = 0;
-      @Produce public String produceString() {
+      @Publish public String publishString() {
         calls++;
         if (calls > 1) {
           fail("Should only have been called once, then unregistered and never called again.");
@@ -76,13 +76,13 @@ public class UnregisteringHandlerTest {
         return "Please enjoy this hand-crafted String.";
       }
     };
-    bus.register(producer);
+    bus.register(publisher);
     bus.register(new Object() {
-      @Subscribe public void firstUnsubscribeTheProducer(String produced) {
-        bus.unregister(producer);
+      @Subscribe public void firstUnsubscribeThePublisher(String published) {
+        bus.unregister(publisher);
       }
       @Subscribe public void shouldNeverBeCalled(String uhoh) {
-        fail("Shouldn't receive events from an unregistered producer.");
+        fail("Shouldn't receive events from an unregistered publisher.");
       }
     });
   }
@@ -98,8 +98,8 @@ public class UnregisteringHandlerTest {
     };
 
     @Override
-    public Map<Class<?>, EventProducer> findAllProducers(Object listener) {
-      return HandlerFinder.ANNOTATED.findAllProducers(listener);
+    public Map<Class<?>, EventPublisher> findAllPublishers(Object listener) {
+      return HandlerFinder.ANNOTATED.findAllPublishers(listener);
     }
 
     @Override

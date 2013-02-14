@@ -20,30 +20,30 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Wraps a 'producer' method on a specific object.
+ * Wraps a 'publisher' method on a specific object.
  *
  * <p> This class only verifies the suitability of the method and event type if something fails.  Callers are expected
  * to verify their uses of this class.
  *
  * @author Jake Wharton
  */
-class EventProducer {
+class EventPublisher {
 
-  /** Object sporting the producer method. */
+  /** Object sporting the publisher method. */
   final Object target;
-  /** Producer method. */
+  /** Publisher method. */
   private final Method method;
   /** Object hash code. */
   private final int hashCode;
-  /** Should this producer produce events? */
+  /** Should this publisher publish events? */
   private boolean valid = true;
 
-  EventProducer(Object target, Method method) {
+  EventPublisher(Object target, Method method) {
     if (target == null) {
-      throw new NullPointerException("EventProducer target cannot be null.");
+      throw new NullPointerException("EventPublisher target cannot be null.");
     }
     if (method == null) {
-      throw new NullPointerException("EventProducer method cannot be null.");
+      throw new NullPointerException("EventPublisher method cannot be null.");
     }
 
     this.target = target;
@@ -61,7 +61,7 @@ class EventProducer {
   }
 
   /**
-   * If invalidated, will subsequently refuse to produce events.
+   * If invalidated, will subsequently refuse to publish events.
    *
    * Should be called when the wrapped object is unregistered from the Bus.
    */
@@ -70,15 +70,15 @@ class EventProducer {
   }
 
   /**
-   * Invokes the wrapped producer method.
+   * Invokes the wrapped publisher method.
    *
    * @throws java.lang.IllegalStateException  if previously invalidated.
    * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
    *     an {@link Error} ({@code Error}s are propagated as-is).
    */
-  public Object produceEvent() throws InvocationTargetException {
+  public Object publishEvent() throws InvocationTargetException {
     if (!valid) {
-      throw new IllegalStateException(toString() + " has been invalidated and can no longer produce events.");
+      throw new IllegalStateException(toString() + " has been invalidated and can no longer publish events.");
     }
     try {
       return method.invoke(target);
@@ -93,7 +93,7 @@ class EventProducer {
   }
 
   @Override public String toString() {
-    return "[EventProducer " + method + "]";
+    return "[EventPublisher " + method + "]";
   }
 
   @Override public int hashCode() {
@@ -113,7 +113,7 @@ class EventProducer {
       return false;
     }
 
-    final EventProducer other = (EventProducer) obj;
+    final EventPublisher other = (EventPublisher) obj;
 
     return method.equals(other.method) && target == other.target;
   }
