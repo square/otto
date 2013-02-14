@@ -34,20 +34,20 @@
              (though that is not required). These examples assume you have an
             instance in the variable <code>bus</code> obtained through injection or another appropriate mechanism.</p>
 
-            <h5>Publishing</h5>
-            <p>Event publishing is the most important part of the bus as it allows you to tell subscribers that an
-            action has occurred. An instance of any class may be published on the bus and it will only be dispatched to
+            <h5>Posting</h5>
+            <p>Event posting is the most important part of the bus as it allows you to tell subscribers that an
+            action has occurred. An instance of any class may be posted to the bus and it will only be dispatched to
             subscribers for that type.</p>
-            <p>To publish a new event, call the <code>post</code> method:</p>
+            <p>To post a new event, call the <code>post</code> method:</p>
             <pre class="prettyprint">bus.post(new AnswerAvailableEvent(42));</pre>
             <p>Posting to the bus is a synchronous action so when program execution continues it is guaranteed that all
             subscribers have been called.</p>
 
             <h5>Subscribing</h5>
-            <p>Subscription is the complement to event publishing&mdash;it lets you receive notification that an event
+            <p>Subscription is the complement to event posting&mdash;it lets you receive notification that an event
             has occurred. To subscribe to an event, annotate a method with <code>@Subscribe</code>. The method should
             take only a single parameter, the type of which will be the event you wish to subscribe to.</p>
-            <p>To listen for the event published in the previous section we would need the following:</p>
+            <p>To listen for the event posted in the previous section we would need the following:</p>
             <pre class="prettyprint">@Subscribe public void answerAvailable(AnswerAvailableEvent event) {
     // TODO: React to the event somehow!
 }</pre>
@@ -64,24 +64,24 @@
             <p>Remember to also call the <code>unregister</code> method when appropriate. See the sample application
             included in the download for a complete example.</p>
 
-            <h5>Producing</h5>
+            <h5>Publishing</h5>
             <p>When subscribing to events it is often desired to also fetch the current known value for specific events
             (e.g., current location, active user, etc.). To address this common paradigm, Otto adds the concept of
-            'Producers' which provide an immediate callback to any subscribers upon their registration.</p>
-            <p>To create a producer, annotate a method with <code>@Produce</code>. The method should take no parameters
-            and its return type will be used as the type of event for which it can produce initial values. If we are
-            keeping track of the last answer event somewhere from above we can register to produce its initial
+            'Publishers' which provide an immediate callback to any subscribers upon their registration.</p>
+            <p>To create a publisher, annotate a method with <code>@Publish</code>. The method should take no parameters
+            and its return type will be used as the type of event for which it can publish initial values. If we are
+            keeping track of the last answer event somewhere from above we can register to publish its initial
             value:</p>
-            <pre class="prettyprint">@Produce public AnswerAvailableEvent produceAnswer() {
+            <pre class="prettyprint">@Publish public AnswerAvailableEvent publishAnswer() {
     // Assuming 'lastAnswer' exists.
     return new AnswerAvailableEvent(this.lastAnswer);
 }</pre>
-            <p>Producers, like subscribers, must also be registered:</p>
+            <p>Publishers, like subscribers, must also be registered:</p>
             <pre class="prettyprint">bus.register(this);</pre>
-            <p>When registering, the producer method will be called once for each subscriber previously registered for
-            the same type. The producer method will also be called once for each new method that subscribes to an event
+            <p>When registering, the publisher method will be called once for each subscriber previously registered for
+            the same type. The publisher method will also be called once for each new method that subscribes to an event
             of the same type.</p>
-            <p>You may only have one producer per event type registered at a time on a bus.</p>
+            <p>You may only have one publisher per event type registered at a time on a bus.</p>
 
             <h5>Thread Enforcement</h5>
             <p>Since at times it may be ambiguous on which thread you are receiving callbacks, Otto provides an
@@ -108,7 +108,7 @@ Bus bus2 = new Bus(ThreadEnforcer.MAIN);</pre>
             <p>Once you've installed Otto, add the following lines to your proguard-project.txt file:</p>
             <pre class="prettyprint">-keepclassmembers class ** {
     @com.squareup.otto.Subscribe public *;
-    @com.squareup.otto.Produce public *;
+    @com.squareup.otto.Publish public *;
 }</pre>
             <p>This ensures your annotated methods aren't removed by ProGuard.</p>
 
