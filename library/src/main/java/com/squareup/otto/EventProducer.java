@@ -118,4 +118,9 @@ class EventProducer {
     return method.equals(other.method) && target == other.target;
   }
 
+  /* useful for debugging and exceptions (package-private)*/
+  Object getTarget() {
+      return target;
+  }
+
 }
