@@ -5,6 +5,8 @@ Version 1.3.3 *(In Development)*
 --------------------------------
 
  * Explicitly disallow `void` return type on `@Produce` methods.
+ * Avoid producers and subscribers being called after unregistering from
+   inside a subscribe method.
 
 
 Version 1.3.2 *(2012-10-16)*
