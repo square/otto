@@ -59,7 +59,7 @@ public class AnnotatedProducerFinderTest {
   }
 
   @Test public void simpleProducer() {
-    Bus bus = new Bus(ThreadEnforcer.NONE);
+    Bus bus = new Bus(ThreadEnforcer.ANY);
     Subscriber subscriber = new Subscriber();
     SimpleProducer producer = new SimpleProducer();
 
@@ -71,7 +71,7 @@ public class AnnotatedProducerFinderTest {
   }
 
   @Test public void multipleSubscriptionsCallsProviderEachTime() {
-    Bus bus = new Bus(ThreadEnforcer.NONE);
+    Bus bus = new Bus(ThreadEnforcer.ANY);
     SimpleProducer producer = new SimpleProducer();
 
     bus.register(producer);
