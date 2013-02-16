@@ -377,10 +377,10 @@ public class Bus {
   }
 
   /**
-   * Retrieves a mutable set of the currently registered producers for {@code type}.  If no producers are currently
-   * registered for {@code type}, this method will return {@code null}.
+   * Retrieves the currently registered producer for {@code type}.  If no producer is currently registered for
+   * {@code type}, this method will return {@code null}.
    *
-   * @param type type of producers to retrieve.
+   * @param type type of producer to retrieve.
    * @return currently registered producer, or {@code null}.
    */
   EventProducer getProducerForEventType(Class<?> type) {
@@ -403,7 +403,7 @@ public class Bus {
    * (transitively), and all interfaces implemented by these superclasses.
    *
    * @param concreteClass class whose type hierarchy will be retrieved.
-   * @return {@code clazz}'s complete type hierarchy, flattened and uniqued.
+   * @return {@code concreteClass}'s complete type hierarchy, flattened and uniqued.
    */
   Set<Class<?>> flattenHierarchy(Class<?> concreteClass) {
     Set<Class<?>> classes = flattenHierarchyCache.get(concreteClass);
