@@ -145,18 +145,11 @@ limitations under the License.</pre>
 </div>
 <script src="prettify.js"></script>
 <script> prettyPrint(); </script>
-<script src="http://code.jquery.com/jquery-latest.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="jquery-maven-artifact.min.js"></script>
 <script>
-    $.getJSON('https://api.github.com/repos/square/otto/tags?callback=?', function(response) {
-        var meta = response.meta
-          , data = response.data
-          ;
-
-        data.sort(function(o1, o2) {
-            return (o1.name > o2.name) ? -1 : 1;
-        });
-
-        $('#download').text('Download v' + data[0].name);
+    $.fn.artifactVersion('com.squareup', 'otto', function(version, url) {
+        $('#download').attr('href', url).text('Download v' + version);
     });
 </script>
 </body>
