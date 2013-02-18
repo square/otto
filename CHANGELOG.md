@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Version 1.3.3 *(In Development)*
---------------------------------
+Version 1.3.3 *(2013-02-18)*
+----------------------------
 
  * Explicitly disallow `void` return type on `@Produce` methods.
  * Avoid producers and subscribers being called after unregistering from
