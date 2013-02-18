@@ -77,7 +77,7 @@ class EventHandler {
    * Invokes the wrapped handler method to handle {@code event}.
    *
    * @param event  event to handle
-   * @Throws java.lang.IllegalStateException  if previously invalidated.
+   * @throws java.lang.IllegalStateException  if previously invalidated.
    * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
    *     an {@link Error} ({@code Error}s are propagated as-is).
    */
@@ -86,7 +86,7 @@ class EventHandler {
       throw new IllegalStateException(toString() + " has been invalidated and can no longer handle events.");
     }
     try {
-      method.invoke(target, new Object[] {event});
+      method.invoke(target, event);
     } catch (IllegalAccessException e) {
       throw new AssertionError(e);
     } catch (InvocationTargetException e) {
