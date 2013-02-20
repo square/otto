@@ -17,7 +17,7 @@
 package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
-import com.squareup.otto.Produce;
+import com.squareup.otto.Publish;
 import com.squareup.otto.Subscribe;
 import com.squareup.otto.ThreadEnforcer;
 import org.junit.Test;
@@ -30,14 +30,14 @@ import static junit.framework.Assert.assertEquals;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
- * Test that Bus finds the correct producers.
+ * Test that Bus finds the correct publishers.
  *
  * This test must be outside the c.g.c.eventbus package to test correctly.
  *
  * @author Jake Wharton
  */
 @SuppressWarnings("UnusedDeclaration")
-public class AnnotatedProducerFinderTest {
+public class AnnotatedPublisherFinderTest {
 
   static class Subscriber {
     final List<Object> events = new ArrayList<Object>();
@@ -47,37 +47,37 @@ public class AnnotatedProducerFinderTest {
     }
   }
 
-  static class SimpleProducer {
+  static class SimplePublisher {
     static final Object VALUE = new Object();
 
-    int produceCalled = 0;
+    int publishCalled = 0;
 
-    @Produce public Object produceIt() {
-      produceCalled += 1;
+    @Publish public Object publishIt() {
+      publishCalled += 1;
       return VALUE;
     }
   }
 
-  @Test public void simpleProducer() {
+  @Test public void simplePublisher() {
     Bus bus = new Bus(ThreadEnforcer.ANY);
     Subscriber subscriber = new Subscriber();
-    SimpleProducer producer = new SimpleProducer();
+    SimplePublisher publisher = new SimplePublisher();
 
-    bus.register(producer);
-    assertThat(producer.produceCalled).isEqualTo(0);
+    bus.register(publisher);
+    assertThat(publisher.publishCalled).isEqualTo(0);
     bus.register(subscriber);
-    assertThat(producer.produceCalled).isEqualTo(1);
-    assertEquals(Arrays.asList(SimpleProducer.VALUE), subscriber.events);
+    assertThat(publisher.publishCalled).isEqualTo(1);
+    assertEquals(Arrays.asList(SimplePublisher.VALUE), subscriber.events);
   }
 
   @Test public void multipleSubscriptionsCallsProviderEachTime() {
     Bus bus = new Bus(ThreadEnforcer.ANY);
-    SimpleProducer producer = new SimpleProducer();
+    SimplePublisher publisher = new SimplePublisher();
 
-    bus.register(producer);
+    bus.register(publisher);
     bus.register(new Subscriber());
-    assertThat(producer.produceCalled).isEqualTo(1);
+    assertThat(publisher.publishCalled).isEqualTo(1);
     bus.register(new Subscriber());
-    assertThat(producer.produceCalled).isEqualTo(2);
+    assertThat(publisher.publishCalled).isEqualTo(2);
   }
 }

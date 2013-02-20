@@ -26,7 +26,7 @@ import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
-public class EventProducerTest {
+public class EventPublisherTest {
 
   private static final Object FIXTURE_RETURN_VALUE = new Object();
 
@@ -45,29 +45,29 @@ public class EventProducerTest {
    */
   @Test public void basicMethodCall() throws Exception {
     Method method = getRecordingMethod();
-    EventProducer producer = new EventProducer(this, method);
-    Object methodResult = producer.produceEvent();
+    EventPublisher publisher = new EventPublisher(this, method);
+    Object methodResult = publisher.publishEvent();
 
-    assertTrue("Producer must call provided method.", methodCalled);
-    assertSame("Producer result must be *exactly* the specified return value.", methodResult, FIXTURE_RETURN_VALUE);
+    assertTrue("Publisher must call provided method.", methodCalled);
+    assertSame("Publisher result must be *exactly* the specified return value.", methodResult, FIXTURE_RETURN_VALUE);
   }
 
-  /** Checks that EventProducer's constructor disallows null methods. */
+  /** Checks that EventPublisher's constructor disallows null methods. */
   @Test public void rejectionOfNullMethods() {
     try {
-      new EventProducer(this, null);
-      fail("EventProducer must immediately reject null methods.");
+      new EventPublisher(this, null);
+      fail("EventPublisher must immediately reject null methods.");
     } catch (NullPointerException expected) {
       // Hooray!
     }
   }
 
-  /** Checks that EventProducer's constructor disallows null targets. */
+  /** Checks that EventPublisher's constructor disallows null targets. */
   @Test public void rejectionOfNullTargets() throws NoSuchMethodException {
     Method method = getRecordingMethod();
     try {
-      new EventProducer(null, method);
-      fail("EventProducer must immediately reject null targets.");
+      new EventPublisher(null, method);
+      fail("EventPublisher must immediately reject null targets.");
     } catch (NullPointerException expected) {
       // Huzzah!
     }
@@ -75,11 +75,11 @@ public class EventProducerTest {
 
   @Test public void testExceptionWrapping() throws NoSuchMethodException {
     Method method = getExceptionThrowingMethod();
-    EventProducer producer = new EventProducer(this, method);
+    EventPublisher publisher = new EventPublisher(this, method);
 
     try {
-      producer.produceEvent();
-      fail("Producers whose methods throw must throw InvocationTargetException");
+      publisher.publishEvent();
+      fail("Publishers whose methods throw must throw InvocationTargetException");
     } catch (InvocationTargetException e) {
       assertTrue("Expected exception must be wrapped.",
           e.getCause() instanceof IntentionalException);
@@ -88,11 +88,11 @@ public class EventProducerTest {
 
   @Test public void errorPassthrough() throws InvocationTargetException, NoSuchMethodException {
     Method method = getErrorThrowingMethod();
-    EventProducer producer = new EventProducer(this, method);
+    EventPublisher publisher = new EventPublisher(this, method);
 
     try {
-      producer.produceEvent();
-      fail("Producers whose methods throw Errors must rethrow them");
+      publisher.publishEvent();
+      fail("Publishers whose methods throw Errors must rethrow them");
     } catch (JudgmentError expected) {
       // Expected.
     }
@@ -100,14 +100,14 @@ public class EventProducerTest {
 
   @Test public void returnValueNotCached() throws Exception {
     Method method = getRecordingMethod();
-    EventProducer producer = new EventProducer(this, method);
-    producer.produceEvent();
+    EventPublisher publisher = new EventPublisher(this, method);
+    publisher.publishEvent();
     methodReturnValue = new Object();
     methodCalled = false;
-    Object secondReturnValue = producer.produceEvent();
+    Object secondReturnValue = publisher.publishEvent();
 
-    assertTrue("Producer must call provided method twice.", methodCalled);
-    assertSame("Producer result must be *exactly* the specified return value on each invocation.",
+    assertTrue("Publisher must call provided method twice.", methodCalled);
+    assertSame("Publisher result must be *exactly* the specified return value on each invocation.",
         secondReturnValue, methodReturnValue);
   }
 
