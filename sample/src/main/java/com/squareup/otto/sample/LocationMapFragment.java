@@ -35,7 +35,7 @@ import static android.widget.ImageView.ScaleType.CENTER_INSIDE;
 /** Display a map centered on the last known location. */
 public class LocationMapFragment extends Fragment {
   private static final String URL =
-      "https://maps.googleapis.com/maps/api/staticmap?sensor=false&size=400x400&zoom=13&center=%s,%s";
+      "https://maps.googleapis.com/maps/api/staticmap?sensor=false&size=400x400&zoom=13&center=";
   private static DownloadTask downloadTask;
 
   private ImageView imageView;
@@ -56,7 +56,8 @@ public class LocationMapFragment extends Fragment {
     }
   }
 
-  @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      Bundle savedInstanceState) {
     imageView = new ImageView(getActivity());
     imageView.setScaleType(CENTER_INSIDE);
     return imageView;
@@ -70,7 +71,7 @@ public class LocationMapFragment extends Fragment {
 
     // Trigger a background download of an image for the new location.
     downloadTask = new DownloadTask();
-    downloadTask.execute(String.format(URL, event.lat, event.lon));
+    downloadTask.execute(URL + String.format("%s,%s", event.lat, event.lon));
   }
 
   @Subscribe public void onImageAvailable(ImageAvailableEvent event) {

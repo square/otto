@@ -26,8 +26,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 
 /**
- * Validate that {@link Bus} behaves carefully when listeners publish
- * their own events.
+ * Validate that {@link BasicBus} behaves carefully when listeners publish their own events.
  *
  * @author Jesse Wilson
  */
@@ -36,7 +35,7 @@ public class ReentrantEventsTest {
   static final String FIRST = "one";
   static final Double SECOND = 2.0d;
 
-  final Bus bus = new Bus(ThreadEnforcer.ANY);
+  final BasicBus bus = new BasicBus(ThreadEnforcer.NONE);
 
   @Test public void noReentrantEvents() {
     ReentrantEventsHater hater = new ReentrantEventsHater();
@@ -44,16 +43,15 @@ public class ReentrantEventsTest {
 
     bus.post(FIRST);
 
-    assertEquals("ReentrantEventHater expected 2 events",
-        Arrays.<Object>asList(FIRST, SECOND), hater.eventsReceived);
+    assertEquals("ReentrantEventHater expected 2 events", Arrays.<Object>asList(FIRST, SECOND),
+        hater.eventsReceived);
   }
 
   public class ReentrantEventsHater {
     boolean ready = true;
     List<Object> eventsReceived = new ArrayList<Object>();
 
-    @Subscribe
-    public void listenForStrings(String event) {
+    @Subscribe public void listenForStrings(String event) {
       eventsReceived.add(event);
       ready = false;
       try {
@@ -63,8 +61,7 @@ public class ReentrantEventsTest {
       }
     }
 
-    @Subscribe
-    public void listenForDoubles(Double event) {
+    @Subscribe public void listenForDoubles(Double event) {
       assertTrue("I received an event when I wasn't ready!", ready);
       eventsReceived.add(event);
     }
@@ -79,8 +76,8 @@ public class ReentrantEventsTest {
 
     bus.post(FIRST);
 
-    assertEquals("EventRecorder expected events in order",
-        Arrays.<Object>asList(FIRST, SECOND), recorder.eventsReceived);
+    assertEquals("EventRecorder expected events in order", Arrays.<Object>asList(FIRST, SECOND),
+        recorder.eventsReceived);
   }
 
   public class EventProcessor {
@@ -91,6 +88,7 @@ public class ReentrantEventsTest {
 
   public class EventRecorder {
     List<Object> eventsReceived = new ArrayList<Object>();
+
     @Subscribe public void listenForEverything(Object event) {
       eventsReceived.add(event);
     }

@@ -42,8 +42,8 @@ final class AnnotatedHandlerFinder {
       new HashMap<Class<?>, Map<Class<?>, Set<Method>>>();
 
   /**
-   * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective caches for the
-   * specified class.
+   * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective
+   * caches for the specified class.
    */
   private static void loadAnnotatedMethods(Class<?> listenerClass) {
     Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
@@ -53,18 +53,27 @@ final class AnnotatedHandlerFinder {
       if (method.isAnnotationPresent(Subscribe.class)) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length != 1) {
-          throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation but requires "
-              + parameterTypes.length + " arguments.  Methods must require a single argument.");
+          throw new IllegalArgumentException("Method "
+              + method
+              + " has @Subscribe annotation but requires "
+              + parameterTypes.length
+              + " arguments.  Methods must require a single argument.");
         }
 
         Class<?> eventType = parameterTypes[0];
         if (eventType.isInterface()) {
-          throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
+          throw new IllegalArgumentException("Method "
+              + method
+              + " has @Subscribe annotation on "
+              + eventType
               + " which is an interface.  Subscription must be on a concrete class type.");
         }
 
         if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
-          throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
+          throw new IllegalArgumentException("Method "
+              + method
+              + " has @Subscribe annotation on "
+              + eventType
               + " but is not 'public'.");
         }
 
@@ -77,30 +86,41 @@ final class AnnotatedHandlerFinder {
       } else if (method.isAnnotationPresent(Produce.class)) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length != 0) {
-          throw new IllegalArgumentException("Method " + method + "has @Produce annotation but requires "
-              + parameterTypes.length + " arguments.  Methods must require zero arguments.");
+          throw new IllegalArgumentException("Method "
+              + method
+              + "has @Produce annotation but requires "
+              + parameterTypes.length
+              + " arguments.  Methods must require zero arguments.");
         }
         if (method.getReturnType() == Void.class) {
-          throw new IllegalArgumentException("Method " + method
-              + " has a return type of void.  Must declare a non-void type.");
+          throw new IllegalArgumentException(
+              "Method " + method + " has a return type of void.  Must declare a non-void type.");
         }
 
         Class<?> eventType = method.getReturnType();
         if (eventType.isInterface()) {
-          throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
+          throw new IllegalArgumentException("Method "
+              + method
+              + " has @Produce annotation on "
+              + eventType
               + " which is an interface.  Producers must return a concrete class type.");
         }
         if (eventType.equals(Void.TYPE)) {
-          throw new IllegalArgumentException("Method " + method + " has @Produce annotation but has no return type.");
+          throw new IllegalArgumentException(
+              "Method " + method + " has @Produce annotation but has no return type.");
         }
 
         if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
-          throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
+          throw new IllegalArgumentException("Method "
+              + method
+              + " has @Produce annotation on "
+              + eventType
               + " but is not 'public'.");
         }
 
         if (producerMethods.containsKey(eventType)) {
-          throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
+          throw new IllegalArgumentException(
+              "Producer for type " + eventType + " has already been registered.");
         }
         producerMethods.put(eventType, method);
       }
@@ -154,5 +174,4 @@ final class AnnotatedHandlerFinder {
   private AnnotatedHandlerFinder() {
     // No instances.
   }
-
 }

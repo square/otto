@@ -22,17 +22,16 @@ import junit.framework.Assert;
 
 /**
  * A simple EventHandler mock that records Strings.
- *
- * For testing fun, also includes a landmine method that Bus tests are
- * required <em>not</em> to call ({@link #methodWithoutAnnotation(String)}).
+ * <p>
+ * For testing fun, also includes a landmine method that BasicBus tests are required <em>not</em>
+ * to call ({@link #methodWithoutAnnotation(String)}).
  *
  * @author Cliff Biffle
  */
 public class StringCatcher {
   private List<String> events = new ArrayList<String>();
 
-  @Subscribe
-  public void hereHaveAString(String string) {
+  @Subscribe public void hereHaveAString(String string) {
     events.add(string);
   }
 

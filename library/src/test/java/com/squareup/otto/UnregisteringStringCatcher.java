@@ -21,11 +21,11 @@ import java.util.List;
 
 /** An EventHandler mock that records a String and unregisters itself in the handler. */
 public class UnregisteringStringCatcher {
-  private final Bus bus;
+  private final BasicBus bus;
 
   private List<String> events = new ArrayList<String>();
 
-  public UnregisteringStringCatcher(Bus bus) {
+  public UnregisteringStringCatcher(BasicBus bus) {
     this.bus = bus;
   }
 
@@ -38,11 +38,14 @@ public class UnregisteringStringCatcher {
     events.add(event);
   }
 
-  @Subscribe public void haveAnInteger(Integer event) {}
+  @Subscribe public void haveAnInteger(Integer event) {
+  }
 
-  @Subscribe public void enjoyThisLong(Long event) {}
+  @Subscribe public void enjoyThisLong(Long event) {
+  }
 
-  @Subscribe public void perhapsATastyDouble(Double event) {}
+  @Subscribe public void perhapsATastyDouble(Double event) {
+  }
 
   public List<String> getEvents() {
     return events;
