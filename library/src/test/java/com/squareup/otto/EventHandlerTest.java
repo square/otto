@@ -41,7 +41,7 @@ public class EventHandlerTest {
   /**
    * Checks that a no-frills, no-issues method call is properly executed.
    *
-   * @throws Exception  if the aforementioned proper execution is not to be had.
+   * @throws Exception if the aforementioned proper execution is not to be had.
    */
   @Test public void basicMethodCall() throws Exception {
     Method method = getRecordingMethod();
@@ -51,8 +51,8 @@ public class EventHandlerTest {
     handler.handleEvent(FIXTURE_ARGUMENT);
 
     assertTrue("Handler must call provided method.", methodCalled);
-    assertSame("Handler argument must be *exactly* the provided object.",
-        methodArgument, FIXTURE_ARGUMENT);
+    assertSame("Handler argument must be *exactly* the provided object.", methodArgument,
+        FIXTURE_ARGUMENT);
   }
 
   /** Checks that EventHandler's constructor disallows null methods. */
@@ -114,10 +114,9 @@ public class EventHandlerTest {
   }
 
   /**
-   * Records the provided object in {@link #methodArgument} and sets
-   * {@link #methodCalled}.
+   * Records the provided object in {@link #methodArgument} and sets {@link #methodCalled}.
    *
-   * @param arg  argument to record.
+   * @param arg argument to record.
    */
   public void recordingMethod(Object arg) {
     if (methodCalled) {

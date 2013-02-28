@@ -31,18 +31,18 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 /**
- * Test case for {@link Bus}.
+ * Test case for {@link BasicBus}.
  *
  * @author Cliff Biffle
  */
-public class BusTest {
+public class BasicBusTest {
   private static final String EVENT = "Hello";
   private static final String BUS_IDENTIFIER = "test-bus";
 
-  private Bus bus;
+  private BasicBus bus;
 
   @Before public void setUp() throws Exception {
-    bus = new Bus(ThreadEnforcer.ANY, BUS_IDENTIFIER);
+    bus = new BasicBus(ThreadEnforcer.NONE, BUS_IDENTIFIER);
   }
 
   @Test public void basicCatcherDistribution() {
@@ -61,9 +61,9 @@ public class BusTest {
   }
 
   /**
-   * Tests that events are distributed to any subscribers to their type or any
-   * supertype, including interfaces and superclasses.
-   *
+   * Tests that events are distributed to any subscribers to their type or any supertype, including
+   * interfaces and superclasses.
+   * <p>
    * Also checks delivery ordering in such cases.
    */
   @Test public void polymorphicDistribution() {

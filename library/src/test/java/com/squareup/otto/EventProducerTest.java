@@ -41,7 +41,7 @@ public class EventProducerTest {
   /**
    * Checks that a no-frills, no-issues method call is properly executed.
    *
-   * @throws Exception  if the aforementioned proper execution is not to be had.
+   * @throws Exception if the aforementioned proper execution is not to be had.
    */
   @Test public void basicMethodCall() throws Exception {
     Method method = getRecordingMethod();
@@ -49,7 +49,8 @@ public class EventProducerTest {
     Object methodResult = producer.produceEvent();
 
     assertTrue("Producer must call provided method.", methodCalled);
-    assertSame("Producer result must be *exactly* the specified return value.", methodResult, FIXTURE_RETURN_VALUE);
+    assertSame("Producer result must be *exactly* the specified return value.", methodResult,
+        FIXTURE_RETURN_VALUE);
   }
 
   /** Checks that EventProducer's constructor disallows null methods. */

@@ -33,7 +33,7 @@ public class ThreadEnforcerTest {
 
   @Test public void enforerCalledForRegister() {
     RecordingThreadEnforcer enforcer = new RecordingThreadEnforcer();
-    Bus bus = new Bus(enforcer);
+    BasicBus bus = new BasicBus(enforcer);
 
     assertFalse(enforcer.called);
     bus.register(this);
@@ -42,7 +42,7 @@ public class ThreadEnforcerTest {
 
   @Test public void enforcerCalledForPost() {
     RecordingThreadEnforcer enforcer = new RecordingThreadEnforcer();
-    Bus bus = new Bus(enforcer);
+    BasicBus bus = new BasicBus(enforcer);
 
     assertFalse(enforcer.called);
     bus.post(this);
@@ -51,11 +51,10 @@ public class ThreadEnforcerTest {
 
   @Test public void enforcerCalledForUnregister() {
     RecordingThreadEnforcer enforcer = new RecordingThreadEnforcer();
-    Bus bus = new Bus(enforcer);
+    BasicBus bus = new BasicBus(enforcer);
 
     assertFalse(enforcer.called);
     bus.unregister(this);
     assertTrue(enforcer.called);
   }
-
 }
