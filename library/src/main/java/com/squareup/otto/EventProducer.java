@@ -21,9 +21,9 @@ import java.lang.reflect.Method;
 
 /**
  * Wraps a 'producer' method on a specific object.
- *
- * <p> This class only verifies the suitability of the method and event type if something fails.  Callers are expected
- * to verify their uses of this class.
+ * <p>
+ * This class only verifies the suitability of the method and event type if something fails.
+ * Callers are expected to verify their uses of this class.
  *
  * @author Jake Wharton
  */
@@ -50,8 +50,8 @@ class EventProducer {
     this.method = method;
     method.setAccessible(true);
 
-    // Compute hash code eagerly since we know it will be used frequently and we cannot estimate the runtime of the
-    // target's hashCode call.
+    // Compute hash code eagerly since we know it will be used frequently and we cannot estimate
+    // the runtime of the target's hashCode call.
     final int prime = 31;
     hashCode = (prime + method.hashCode()) * prime + target.hashCode();
   }
@@ -62,8 +62,8 @@ class EventProducer {
 
   /**
    * If invalidated, will subsequently refuse to produce events.
-   *
-   * Should be called when the wrapped object is unregistered from the Bus.
+   * <p>
+   * Should be called when the wrapped object is unregistered from the BasicBus.
    */
   public void invalidate() {
     valid = false;
@@ -72,13 +72,14 @@ class EventProducer {
   /**
    * Invokes the wrapped producer method.
    *
-   * @throws java.lang.IllegalStateException  if previously invalidated.
-   * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
-   *     an {@link Error} ({@code Error}s are propagated as-is).
+   * @throws java.lang.IllegalStateException if previously invalidated.
+   * @throws java.lang.reflect.InvocationTargetException if the wrapped method throws any {@link
+   * Throwable} that is not an {@link Error} ({@code Error}s are propagated as-is).
    */
   public Object produceEvent() throws InvocationTargetException {
     if (!valid) {
-      throw new IllegalStateException(toString() + " has been invalidated and can no longer produce events.");
+      throw new IllegalStateException(
+          toString() + " has been invalidated and can no longer produce events.");
     }
     try {
       return method.invoke(target);

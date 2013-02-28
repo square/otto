@@ -30,26 +30,24 @@ public class UnregisteringHandlerTest {
   private static final String EVENT = "Hello";
   private static final String BUS_IDENTIFIER = "test-bus";
 
-  private Bus bus;
+  private BasicBus bus;
 
-
-  @Before
-  public void setUp() throws Exception {
-    bus = new Bus(ThreadEnforcer.ANY, BUS_IDENTIFIER, new SortedHandlerFinder());
+  @Before public void setUp() throws Exception {
+    bus = new BasicBus(ThreadEnforcer.NONE, BUS_IDENTIFIER, new SortedHandlerFinder());
   }
 
-
-  @Test
-  public void unregisterInHandler() {
+  @Test public void unregisterInHandler() {
     UnregisteringStringCatcher catcher = new UnregisteringStringCatcher(bus);
     bus.register(catcher);
     bus.post(EVENT);
 
-    assertEquals("One correct event should be delivered.", Arrays.asList(EVENT), catcher.getEvents());
+    assertEquals("One correct event should be delivered.", Arrays.asList(EVENT),
+        catcher.getEvents());
 
     bus.post(EVENT);
     bus.post(EVENT);
-    assertEquals("Shouldn't catch any more events when unregistered.", Arrays.asList(EVENT), catcher.getEvents());
+    assertEquals("Shouldn't catch any more events when unregistered.", Arrays.asList(EVENT),
+        catcher.getEvents());
   }
 
   @Test public void unregisterInHandlerWhenEventProduced() throws Exception {
@@ -68,6 +66,7 @@ public class UnregisteringHandlerTest {
   @Test public void unregisterProducerInHandler() throws Exception {
     final Object producer = new Object() {
       private int calls = 0;
+
       @Produce public String produceString() {
         calls++;
         if (calls > 1) {
@@ -81,13 +80,17 @@ public class UnregisteringHandlerTest {
       @Subscribe public void firstUnsubscribeTheProducer(String produced) {
         bus.unregister(producer);
       }
+
       @Subscribe public void shouldNeverBeCalled(String uhoh) {
         fail("Shouldn't receive events from an unregistered producer.");
       }
     });
   }
 
-  /** Delegates to {@code HandlerFinder.ANNOTATED}, then sorts results by {@code EventHandler#toString} */
+  /**
+   * Delegates to {@code HandlerFinder.ANNOTATED}, then sorts results by {@code
+   * EventHandler#toString}
+   */
   static class SortedHandlerFinder implements HandlerFinder {
 
     static Comparator<EventHandler> handlerComparator = new Comparator<EventHandler>() {

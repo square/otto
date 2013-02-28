@@ -6,8 +6,8 @@ import org.junit.Test;
 import static junit.framework.Assert.assertTrue;
 
 /**
- * Stress test of {@link Bus} against inner classes. The anon inner class tests
- * were broken when we switched to weak references.
+ * Stress test of {@link BasicBus} against inner classes. The anon inner class tests were broken
+ * when we switched to weak references.
  *
  * @author Ray Ryan (ray@squareup.com)
  */
@@ -25,7 +25,7 @@ public class EventBusInnerClassStressTest {
   Sub sub = new Sub();
 
   @Test public void eventBusOkayWithNonStaticInnerClass() {
-    Bus eb = new Bus(ThreadEnforcer.ANY);
+    BasicBus eb = new BasicBus(ThreadEnforcer.NONE);
     eb.register(sub);
     int i = 0;
     while (i < REPS) {
@@ -37,7 +37,7 @@ public class EventBusInnerClassStressTest {
   }
 
   @Test public void eventBusFailWithAnonInnerClass() {
-    Bus eb = new Bus(ThreadEnforcer.ANY);
+    BasicBus eb = new BasicBus(ThreadEnforcer.NONE);
     eb.register(new Object() {
       @Subscribe
       public void in(String o) {
@@ -54,7 +54,7 @@ public class EventBusInnerClassStressTest {
   }
 
   @Test public void eventBusNpeWithAnonInnerClassWaitingForObject() {
-    Bus eb = new Bus(ThreadEnforcer.ANY);
+    BasicBus eb = new BasicBus(ThreadEnforcer.NONE);
     eb.register(new Object() {
       @Subscribe
       public void in(Object o) {
@@ -71,6 +71,6 @@ public class EventBusInnerClassStressTest {
   }
 
   private static String nextEvent(int i) {
-    return "" + i;
+    return String.valueOf(i);
   }
 }

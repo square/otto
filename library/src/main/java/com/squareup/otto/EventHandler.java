@@ -22,12 +22,12 @@ import java.lang.reflect.Method;
 
 /**
  * Wraps a single-argument 'handler' method on a specific object.
- *
- * <p>This class only verifies the suitability of the method and event type if something fails.  Callers are expected t
- * verify their uses of this class.
- *
- * <p>Two EventHandlers are equivalent when they refer to the same method on the same object (not class).   This
- * property is used to ensure that no handler method is registered more than once.
+ * <p>
+ * This class only verifies the suitability of the method and event type if something fails.
+ * Callers are expected to verify their uses of this class.
+ * <p>
+ * Two EventHandlers are equivalent when they refer to the same method on the same object (not
+ * class).  This property is used to ensure that no handler method is registered more than once.
  *
  * @author Cliff Biffle
  */
@@ -54,8 +54,8 @@ class EventHandler {
     this.method = method;
     method.setAccessible(true);
 
-    // Compute hash code eagerly since we know it will be used frequently and we cannot estimate the runtime of the
-    // target's hashCode call.
+    // Compute hash code eagerly since we know it will be used frequently and we cannot estimate
+    // the runtime of the target's hashCode call.
     final int prime = 31;
     hashCode = (prime + method.hashCode()) * prime + target.hashCode();
   }
@@ -66,8 +66,8 @@ class EventHandler {
 
   /**
    * If invalidated, will subsequently refuse to handle events.
-   *
-   * Should be called when the wrapped object is unregistered from the Bus.
+   * <p>
+   * Should be called when the wrapped object is unregistered from the BasicBus.
    */
   public void invalidate() {
     valid = false;
@@ -76,14 +76,15 @@ class EventHandler {
   /**
    * Invokes the wrapped handler method to handle {@code event}.
    *
-   * @param event  event to handle
-   * @throws java.lang.IllegalStateException  if previously invalidated.
-   * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
-   *     an {@link Error} ({@code Error}s are propagated as-is).
+   * @param event event to handle
+   * @throws java.lang.reflect.InvocationTargetException if the wrapped method throws any {@link
+   * Throwable} that is not an {@link Error} ({@code Error}s are propagated as-is).
+   * @throws java.lang.IllegalStateException if previously invalidated.
    */
   public void handleEvent(Object event) throws InvocationTargetException {
     if (!valid) {
-      throw new IllegalStateException(toString() + " has been invalidated and can no longer handle events.");
+      throw new IllegalStateException(
+          toString() + " has been invalidated and can no longer handle events.");
     }
     try {
       method.invoke(target, event);
@@ -122,5 +123,4 @@ class EventHandler {
 
     return method.equals(other.method) && target == other.target;
   }
-
 }

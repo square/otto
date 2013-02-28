@@ -16,7 +16,7 @@
 
 package com.squareup.otto.outside;
 
-import com.squareup.otto.Bus;
+import com.squareup.otto.BasicBus;
 import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
 import com.squareup.otto.ThreadEnforcer;
@@ -30,9 +30,9 @@ import static junit.framework.Assert.assertEquals;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
- * Test that Bus finds the correct producers.
+ * Test that BasicBus finds the correct producers.
  *
- * This test must be outside the c.g.c.eventbus package to test correctly.
+ * This test must be outside the {@code com.squareup.otto} package to test correctly.
  *
  * @author Jake Wharton
  */
@@ -59,7 +59,7 @@ public class AnnotatedProducerFinderTest {
   }
 
   @Test public void simpleProducer() {
-    Bus bus = new Bus(ThreadEnforcer.ANY);
+    BasicBus bus = new BasicBus(ThreadEnforcer.NONE);
     Subscriber subscriber = new Subscriber();
     SimpleProducer producer = new SimpleProducer();
 
@@ -71,7 +71,7 @@ public class AnnotatedProducerFinderTest {
   }
 
   @Test public void multipleSubscriptionsCallsProviderEachTime() {
-    Bus bus = new Bus(ThreadEnforcer.ANY);
+    BasicBus bus = new BasicBus(ThreadEnforcer.NONE);
     SimpleProducer producer = new SimpleProducer();
 
     bus.register(producer);

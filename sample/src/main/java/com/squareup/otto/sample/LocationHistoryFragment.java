@@ -42,7 +42,8 @@ public class LocationHistoryFragment extends ListFragment {
 
   @Override public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, locationEvents);
+    adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1,
+        locationEvents);
     setListAdapter(adapter);
   }
 

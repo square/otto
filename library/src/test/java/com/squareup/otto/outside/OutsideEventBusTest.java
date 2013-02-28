@@ -16,7 +16,7 @@
 
 package com.squareup.otto.outside;
 
-import com.squareup.otto.Bus;
+import com.squareup.otto.BasicBus;
 import com.squareup.otto.Subscribe;
 import com.squareup.otto.ThreadEnforcer;
 import org.junit.Test;
@@ -27,24 +27,23 @@ import java.util.concurrent.atomic.AtomicReference;
 import static junit.framework.Assert.assertEquals;
 
 /**
- * Test cases for {@code Bus} that must not be in the same package.
+ * Test cases for {@code BasicBus} that must not be in the same package.
  *
  * @author Louis Wasserman
  */
 public class OutsideEventBusTest {
 
   /*
-   * If you do this test from common.eventbus.BusTest, it doesn't actually test the behavior.
-   * That is, even if exactly the same method works from inside the common.eventbus package tests,
-   * it can fail here.
+   * If you do this test from BasicBusTest, it doesn't actually test the behavior. That is, even if
+   * exactly the same method works from inside the com.squareup.otto package tests, it can fail
+   * here.
    */
   @Test public void anonymous() {
     final AtomicReference<String> holder = new AtomicReference<String>();
     final AtomicInteger deliveries = new AtomicInteger();
-    Bus bus = new Bus(ThreadEnforcer.ANY);
+    BasicBus bus = new BasicBus(ThreadEnforcer.NONE);
     bus.register(new Object() {
-      @Subscribe
-      public void accept(String str) {
+      @Subscribe public void accept(String str) {
         holder.set(str);
         deliveries.incrementAndGet();
       }

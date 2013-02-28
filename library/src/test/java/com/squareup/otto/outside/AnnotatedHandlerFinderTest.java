@@ -16,7 +16,7 @@
 
 package com.squareup.otto.outside;
 
-import com.squareup.otto.Bus;
+import com.squareup.otto.BasicBus;
 import com.squareup.otto.Subscribe;
 import com.squareup.otto.ThreadEnforcer;
 
@@ -35,9 +35,9 @@ import static junit.framework.Assert.fail;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
- * Test that Bus finds the correct handlers.
+ * Test that BasicBus finds the correct handlers.
  *
- * This test must be outside the c.g.c.eventbus package to test correctly.
+ * This test must be outside the {@code com.squareup.otto} package to test correctly.
  *
  * @author Louis Wasserman
  */
@@ -60,7 +60,7 @@ public class AnnotatedHandlerFinderTest {
     @Before
     public void setUp() throws Exception {
       handler = createHandler();
-      Bus bus = new Bus(ThreadEnforcer.ANY);
+      BasicBus bus = new BasicBus(ThreadEnforcer.NONE);
       bus.register(handler);
       bus.post(EVENT);
     }
@@ -198,7 +198,7 @@ public class AnnotatedHandlerFinderTest {
 
     @Test public void subscribingToInterfacesFails() {
       try {
-        new Bus(ThreadEnforcer.ANY).register(new InterfaceSubscriber());
+        new BasicBus(ThreadEnforcer.NONE).register(new InterfaceSubscriber());
         fail("Annotation finder allowed subscription to illegal interface type.");
       } catch (IllegalArgumentException expected) {
         // Do nothing.
