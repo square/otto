@@ -54,7 +54,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * determine the type of event and route it to all registered listeners.
  *
  * <p>Events are routed based on their type &mdash; an event will be delivered to any handler for any type to which the
- * event is <em>assignable.</em>  This includes implemented interfaces, all superclasses, and all interfaces implemented
+ * event is <em>assignable.</em> This includes implemented interfaces, all superclasses, and all interfaces implemented
  * by superclasses.
  *
  * <p>When {@code post} is called, all registered handlers for an event are run in sequence, so handlers should be
@@ -172,11 +172,11 @@ public class Bus {
 
   /**
    * Registers all handler methods on {@code object} to receive events and producer methods to provide events.
-   * <p>
-   * If any subscribers are registering for types which already have a producer they will be called immediately
+   *
+   * <p>If any subscribers are registering for types which already have a producer they will be called immediately
    * with the result of calling that producer.
-   * <p>
-   * If any producers are registering for types which already have subscribers, each subscriber will be called with
+   *
+   * <p>If any producers are registering for types which already have subscribers, each subscriber will be called with
    * the value from the result of calling the producer.
    *
    * @param object object whose handler methods should be registered.

@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 /**
  * Wraps a 'producer' method on a specific object.
  *
- * <p> This class only verifies the suitability of the method and event type if something fails.  Callers are expected
+ * <p>This class only verifies the suitability of the method and event type if something fails.  Callers are expected
  * to verify their uses of this class.
  *
  * @author Jake Wharton
@@ -63,7 +63,7 @@ class EventProducer {
   /**
    * If invalidated, will subsequently refuse to produce events.
    *
-   * Should be called when the wrapped object is unregistered from the Bus.
+   * <p>Should be called when the wrapped object is unregistered from the Bus.
    */
   public void invalidate() {
     valid = false;

@@ -67,7 +67,7 @@ class EventHandler {
   /**
    * If invalidated, will subsequently refuse to handle events.
    *
-   * Should be called when the wrapped object is unregistered from the Bus.
+   * <p>Should be called when the wrapped object is unregistered from the Bus.
    */
   public void invalidate() {
     valid = false;
