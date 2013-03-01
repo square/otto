@@ -37,7 +37,7 @@ import static org.fest.assertions.api.Assertions.assertThat;
 /**
  * Test that Bus finds the correct handlers.
  *
- * This test must be outside the c.g.c.eventbus package to test correctly.
+ * <p>This test must be outside the c.g.c.eventbus package to test correctly.
  *
  * @author Louis Wasserman
  */
