@@ -45,6 +45,16 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class BasicBus implements Bus {
   private static final String DEFAULT_IDENTIFIER = "default";
 
+  /** Provide a {@link ThreadEnforcer} appropriate for the current platform. */
+  private static ThreadEnforcer getPlatformDefault() {
+    try {
+      Class.forName("android.os.Build");
+      return ThreadEnforcer.MAIN;
+    } catch (ClassNotFoundException ignored) {
+      return ThreadEnforcer.NONE;
+    }
+  }
+
   /** All registered event handlers, indexed by event type. */
   private final ConcurrentMap<Class<?>, Set<EventHandler>> handlersByType =
       new ConcurrentHashMap<Class<?>, Set<EventHandler>>();
@@ -94,7 +104,7 @@ public class BasicBus implements Bus {
    * identifier.
    */
   public BasicBus(String identifier) {
-    this(ThreadEnforcer.MAIN, identifier);
+    this(getPlatformDefault(), identifier);
   }
 
   /**
