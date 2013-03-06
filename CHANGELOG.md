@@ -1,6 +1,15 @@
 Change Log
 ==========
 
+Version 2.0.0 *(In Development)*
+--------------------------------
+
+ * `Bus` is now an interface. `BasicBus` is the provided implementation.
+ * Thread enforcer `ANY` renamed to `NONE` for clarity.
+ * Introduce code generation to avoid runtime reflection, where possible.
+
+
+
 Version 1.3.3 *(2013-02-18)*
 ----------------------------
 

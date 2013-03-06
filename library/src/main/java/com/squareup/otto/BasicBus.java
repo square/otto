@@ -18,7 +18,6 @@
 package com.squareup.otto;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -28,7 +27,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArraySet;
+
+import static com.squareup.otto.internal.AnnotationProcessor.FINDER_SUFFIX;
+import static com.squareup.otto.internal.AnnotationProcessor.PACKAGE_PREFIX;
 
 /**
  * The reference implementation for the Bus interface.  Dispatches events to listeners, and
@@ -46,16 +47,20 @@ public class BasicBus implements Bus {
   private static final String DEFAULT_IDENTIFIER = "default";
 
   /** All registered event handlers, indexed by event type. */
-  private final ConcurrentMap<Class<?>, Set<EventHandler>> handlersByType =
-      new ConcurrentHashMap<Class<?>, Set<EventHandler>>();
+  private final ConcurrentMap<Class<?>, Map<Subscriber, Subscriber>> subscribersByType =
+      new ConcurrentHashMap<Class<?>, Map<Subscriber, Subscriber>>();
 
   /** All registered event producers, index by event type. */
-  private final ConcurrentMap<Class<?>, EventProducer> producersByType =
-      new ConcurrentHashMap<Class<?>, EventProducer>();
+  private final ConcurrentMap<Class<?>, Producer> producersByType =
+      new ConcurrentHashMap<Class<?>, Producer>();
 
   /** A cache of flattened class hierarchies. */
   private final Map<Class<?>, Set<Class<?>>> flattenedHierarchyCache =
       new LinkedHashMap<Class<?>, Set<Class<?>>>();
+
+  /** All dynamically loaded event finders, indexed by register type. */
+  private final Map<Class<?>, Finder<?>> findersByType =
+      new ConcurrentHashMap<Class<?>, Finder<?>>();
 
   /** Identifier used to differentiate the event bus instance. */
   private final String identifier;
@@ -63,14 +68,17 @@ public class BasicBus implements Bus {
   /** Thread enforcer for register, unregister, and posting events. */
   private final ThreadEnforcer enforcer;
 
-  /** Used to find handler methods in register and unregister. */
-  private final HandlerFinder handlerFinder;
+  /**
+   * Event finder which uses reflection. Used a fallback when a code generated implementation is
+   * not available.
+   */
+  private final ReflectionFinder fallbackFinder = new ReflectionFinder();
 
   /** Queues of events for the current thread to dispatch. */
-  private final ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>> eventsToDispatch =
-      new ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>>() {
-        @Override protected ConcurrentLinkedQueue<EventWithHandler> initialValue() {
-          return new ConcurrentLinkedQueue<EventWithHandler>();
+  private final ThreadLocal<ConcurrentLinkedQueue<EventWithSubscriber>> eventsToDispatch =
+      new ThreadLocal<ConcurrentLinkedQueue<EventWithSubscriber>>() {
+        @Override protected ConcurrentLinkedQueue<EventWithSubscriber> initialValue() {
+          return new ConcurrentLinkedQueue<EventWithSubscriber>();
         }
       };
 
@@ -115,140 +123,121 @@ public class BasicBus implements Bus {
    * identifier.
    */
   public BasicBus(ThreadEnforcer enforcer, String identifier) {
-    this(enforcer, identifier, HandlerFinder.ANNOTATED);
-  }
-
-  /**
-   * Test constructor which allows replacing the default {@code HandlerFinder}.
-   *
-   * @param enforcer Thread enforcer for register, unregister, and post actions.
-   * @param identifier A brief name for this bus, for debugging purposes.  Should be a valid Java
-   * identifier.
-   * @param handlerFinder Used to discover event handlers and producers when
-   * registering/unregistering an object.
-   */
-  BasicBus(ThreadEnforcer enforcer, String identifier, HandlerFinder handlerFinder) {
     if (enforcer == null) {
       throw new NullPointerException("Enforcer may not be null.");
     }
     if (identifier == null) {
       throw new NullPointerException("Identifier may not be null.");
     }
-    if (handlerFinder == null) {
-      throw new NullPointerException("Handler finder may not be null.");
-    }
     this.enforcer = enforcer;
     this.identifier = identifier;
-    this.handlerFinder = handlerFinder;
   }
 
   @Override public String toString() {
     return "[BasicBus \"" + identifier + "\"]";
   }
 
-  @Override public void register(Object object) {
-    enforcer.enforce(this);
-
-    Map<Class<?>, EventProducer> foundProducers = handlerFinder.findAllProducers(object);
-    for (Class<?> type : foundProducers.keySet()) {
-
-      final EventProducer producer = foundProducers.get(type);
-      EventProducer previousProducer = producersByType.putIfAbsent(type, producer);
-      //checking if the previous producer existed
-      if (previousProducer != null) {
-        throw new IllegalArgumentException(String.format(
-            "Producer method for type %s found on type %s but already registered by type %s.", type,
-            producer.target.getClass(), previousProducer.target.getClass()));
+  Finder obtainFinder(Class<?> type) {
+    Finder finder = findersByType.get(type);
+    if (finder == null) {
+      Class<?> typeFinder = null;
+      Class<?> typeToLoad = type;
+      while (typeFinder == null && typeToLoad != Object.class) {
+        try {
+          typeFinder = Class.forName(PACKAGE_PREFIX + typeToLoad.getSimpleName() + FINDER_SUFFIX);
+        } catch (ClassNotFoundException ignored) {
+          typeToLoad = typeToLoad.getSuperclass();
+        }
       }
-      Set<EventHandler> handlers = handlersByType.get(type);
-      if (handlers != null && !handlers.isEmpty()) {
-        for (EventHandler handler : handlers) {
-          dispatchProducerResultToHandler(handler, producer);
+      if (typeFinder != null) {
+        try {
+          finder = (Finder) typeFinder.newInstance();
+          findersByType.put(type, finder);
+          return finder;
+        } catch (InstantiationException e) {
+          throw new RuntimeException("Unable to instantiate generated finder instance.", e);
+        } catch (IllegalAccessException e) {
+          throw new RuntimeException("Unable to instantiate generated finder instance.", e);
         }
       }
     }
-
-    Map<Class<?>, Set<EventHandler>> foundHandlersMap = handlerFinder.findAllSubscribers(object);
-    for (Class<?> type : foundHandlersMap.keySet()) {
-      Set<EventHandler> handlers = handlersByType.get(type);
-      if (handlers == null) {
-        //concurrent put if absent
-        Set<EventHandler> handlersCreation = new CopyOnWriteArraySet<EventHandler>();
-        handlers = handlersByType.putIfAbsent(type, handlersCreation);
-        if (handlers == null) {
-          handlers = handlersCreation;
-        }
-      }
-      final Set<EventHandler> foundHandlers = foundHandlersMap.get(type);
-      handlers.addAll(foundHandlers);
-    }
-
-    for (Map.Entry<Class<?>, Set<EventHandler>> entry : foundHandlersMap.entrySet()) {
-      Class<?> type = entry.getKey();
-      EventProducer producer = producersByType.get(type);
-      if (producer != null && producer.isValid()) {
-        Set<EventHandler> foundHandlers = entry.getValue();
-        for (EventHandler foundHandler : foundHandlers) {
-          //noinspection ConstantConditions
-          if (!producer.isValid()) {
-            break;
-          }
-          if (foundHandler.isValid()) {
-            dispatchProducerResultToHandler(foundHandler, producer);
-          }
-        }
-      }
-    }
+    return fallbackFinder;
   }
 
-  private void dispatchProducerResultToHandler(EventHandler handler, EventProducer producer) {
+  @Override public void register(Object object) {
+    enforcer.enforce(this);
+    obtainFinder(object.getClass()).install(object, this);
+  }
+
+  private void dispatchProducerResultToSubscriber(Subscriber subscriber, Producer producer) {
     Object event = null;
     try {
-      event = producer.produceEvent();
+      event = producer.produce();
     } catch (InvocationTargetException e) {
       throwRuntimeException("Producer " + producer + " threw an exception.", e);
     }
     if (event == null) {
       return;
     }
-    dispatch(event, handler);
+    dispatch(event, subscriber);
   }
 
   @Override public void unregister(Object object) {
     enforcer.enforce(this);
+    obtainFinder(object.getClass()).uninstall(object, this);
+  }
 
-    Map<Class<?>, EventProducer> producersInListener = handlerFinder.findAllProducers(object);
-    for (Map.Entry<Class<?>, EventProducer> entry : producersInListener.entrySet()) {
-      final Class<?> key = entry.getKey();
-      EventProducer producer = getProducerForEventType(key);
-      EventProducer value = entry.getValue();
-
-      if (value == null || !value.equals(producer)) {
-        throw new IllegalArgumentException("Missing event producer for an annotated method. Is "
-            + object.getClass()
-            + " registered?");
+  <T> void installSubscriber(Class<T> type, Subscriber<T> subscriber) {
+    Map<Subscriber, Subscriber> subscribers = subscribersByType.get(type);
+    if (subscribers == null) {
+      Map<Subscriber, Subscriber> newSubscribers = new ConcurrentHashMap<Subscriber, Subscriber>();
+      subscribers = subscribersByType.putIfAbsent(type, newSubscribers);
+      if (subscribers == null) {
+        subscribers = newSubscribers;
       }
-      producersByType.remove(key).invalidate();
     }
+    subscribers.put(subscriber, subscriber);
 
-    Map<Class<?>, Set<EventHandler>> handlersInListener = handlerFinder.findAllSubscribers(object);
-    for (Map.Entry<Class<?>, Set<EventHandler>> entry : handlersInListener.entrySet()) {
-      Set<EventHandler> currentHandlers = getHandlersForEventType(entry.getKey());
-      Collection<EventHandler> eventMethodsInListener = entry.getValue();
-
-      if (currentHandlers == null || !currentHandlers.containsAll(eventMethodsInListener)) {
-        throw new IllegalArgumentException("Missing event handler for an annotated method. Is "
-            + object.getClass()
-            + " registered?");
-      }
-
-      for (EventHandler handler : currentHandlers) {
-        if (eventMethodsInListener.contains(handler)) {
-          handler.invalidate();
-        }
-      }
-      currentHandlers.removeAll(eventMethodsInListener);
+    Producer producer = producersByType.get(type);
+    if (producer != null) {
+      dispatchProducerResultToSubscriber(subscriber, producer);
     }
+  }
+
+  <T> void installProducer(Class<T> type, Producer<T> producer) {
+    if (producersByType.putIfAbsent(type, producer) != null) {
+      throw new IllegalArgumentException(
+          "Producer method for type " + type + " already registered.");
+    }
+    // Trigger producer for each subscriber already registered to its type.
+    Map<Subscriber, Subscriber> subscribers = subscribersByType.get(type);
+    if (subscribers != null && !subscribers.isEmpty()) {
+      for (Subscriber subscriber : subscribers.keySet()) {
+        dispatchProducerResultToSubscriber(subscriber, producer);
+      }
+    }
+  }
+
+  <T> void uninstallSubscriber(Class<T> type, Subscriber<T> subscriber) {
+    Map<Subscriber, Subscriber> subscribers = subscribersByType.get(type);
+    if (subscribers != null) {
+      Subscriber original = subscribers.remove(subscriber);
+      if (original != null) {
+        original.invalidate();
+        return;
+      }
+    }
+    throw new IllegalArgumentException(
+        "Missing subscriber for an annotated method. Is " + type + " registered?");
+  }
+
+  <T> void uninstallProducer(Class<T> type) {
+    Producer producer = producersByType.remove(type);
+    if (producer == null) {
+      throw new IllegalArgumentException(
+          "Missing producer for an annotated method. Is " + type + " registered?");
+    }
+    producer.invalidate();
   }
 
   @Override public void post(Object event) {
@@ -258,11 +247,11 @@ public class BasicBus implements Bus {
 
     boolean dispatched = false;
     for (Class<?> eventType : dispatchTypes) {
-      Set<EventHandler> wrappers = getHandlersForEventType(eventType);
+      Set<Subscriber> wrappers = getSubscribersForEventType(eventType);
 
       if (wrappers != null && !wrappers.isEmpty()) {
         dispatched = true;
-        for (EventHandler wrapper : wrappers) {
+        for (Subscriber wrapper : wrappers) {
           enqueueEvent(event, wrapper);
         }
       }
@@ -279,8 +268,8 @@ public class BasicBus implements Bus {
    * Queue the {@code event} for dispatch during {@link #dispatchQueuedEvents()}. Events are queued
    * in-order of occurrence so they can be dispatched in the same order.
    */
-  protected void enqueueEvent(Object event, EventHandler handler) {
-    eventsToDispatch.get().offer(new EventWithHandler(event, handler));
+  protected void enqueueEvent(Object event, Subscriber subscriber) {
+    eventsToDispatch.get().offer(new EventWithSubscriber(event, subscriber));
   }
 
   /**
@@ -297,14 +286,12 @@ public class BasicBus implements Bus {
     isDispatching.set(true);
     try {
       while (true) {
-        EventWithHandler eventWithHandler = eventsToDispatch.get().poll();
-        if (eventWithHandler == null) {
+        EventWithSubscriber eventWithSubscriber = eventsToDispatch.get().poll();
+        if (eventWithSubscriber == null) {
           break;
         }
 
-        if (eventWithHandler.handler.isValid()) {
-          dispatch(eventWithHandler.event, eventWithHandler.handler);
-        }
+        dispatch(eventWithSubscriber.event, eventWithSubscriber.subscriber);
       }
     } finally {
       isDispatching.set(false);
@@ -312,43 +299,34 @@ public class BasicBus implements Bus {
   }
 
   /**
-   * Dispatches {@code event} to the handler in {@code wrapper}.  This method is an appropriate
+   * Dispatches {@code event} to the subscriber in {@code subscriber}.  This method is an
+   * appropriate
    * override point for subclasses that wish to make event delivery asynchronous.
    *
    * @param event event to dispatch.
-   * @param wrapper wrapper that will call the handler.
+   * @param subscriber subscriber that will call the method.
    */
-  protected void dispatch(Object event, EventHandler wrapper) {
+  protected void dispatch(Object event, Subscriber subscriber) {
     try {
-      wrapper.handleEvent(event);
+      subscriber.handle(event);
     } catch (InvocationTargetException e) {
       throwRuntimeException(
-          String.format("Could not dispatch event %s to handler %s.", event.getClass(), wrapper),
-          e);
+          String.format("Could not dispatch event %s to subscriber %s.", event.getClass(),
+              subscriber), e);
     }
   }
 
   /**
-   * Retrieves a mutable set of the currently registered producers for {@code type}.  If no
-   * producers are currently registered for {@code type}, this method will return {@code null}.
-   *
-   * @param type type of producers to retrieve.
-   * @return currently registered producer, or {@code null}.
-   */
-  EventProducer getProducerForEventType(Class<?> type) {
-    return producersByType.get(type);
-  }
-
-  /**
-   * Retrieves a mutable set of the currently registered handlers for {@code type}.  If no handlers
-   * are currently registered for {@code type}, this method may either return {@code null} or an
-   * empty set.
+   * Retrieves a mutable set of the currently registered subscribers for {@code type}.  If no
+   * subscribers are currently registered for {@code type}, this method may either return
+   * {@code null} or an empty set.
    *
    * @param type type of handlers to retrieve.
    * @return currently registered handlers, or {@code null}.
    */
-  Set<EventHandler> getHandlersForEventType(Class<?> type) {
-    return handlersByType.get(type);
+  Set<Subscriber> getSubscribersForEventType(Class<?> type) {
+    Map<Subscriber, Subscriber> subscribers = subscribersByType.get(type);
+    return subscribers != null ? subscribers.keySet() : null;
   }
 
   /**
@@ -400,14 +378,14 @@ public class BasicBus implements Bus {
     }
   }
 
-  /** Simple struct representing an event and its handler. */
-  static class EventWithHandler {
+  /** Simple struct representing an event and its subscriber. */
+  static class EventWithSubscriber {
     final Object event;
-    final EventHandler handler;
+    final Subscriber subscriber;
 
-    public EventWithHandler(Object event, EventHandler handler) {
+    public EventWithSubscriber(Object event, Subscriber subscriber) {
       this.event = event;
-      this.handler = handler;
+      this.subscriber = subscriber;
     }
   }
 }

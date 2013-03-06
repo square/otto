@@ -31,8 +31,8 @@ package com.squareup.otto;
  * <h2>Receiving Events</h2>
  * To receive events, an object should:
  * <ol>
- * <li>Expose a public method, known as the <i>event handler</i>, which accepts a single argument
- * of the type of event desired;</li>
+ * <li>Expose a public method, known as the <i>event subscriber</i>, which accepts a single
+ * argument of the type of event desired;</li>
  * <li>Mark it with a {@link com.squareup.otto.Subscribe} annotation;</li>
  * <li>Pass itself to the bus' {@link #register(Object)} method.</li>
  * </ol>
@@ -41,16 +41,16 @@ package com.squareup.otto;
  * To post an event, simply provide the event object to the bus' {@link #post(Object)} method.  The
  * bus will determine the type of event and route it to all registered listeners.
  * <p>
- * Events are routed based on their type &mdash; an event will be delivered to any handler for any
- * type to which the event is <em>assignable.</em>  This includes implemented interfaces, all
+ * Events are routed based on their type &mdash; an event will be delivered to any subscriber for
+ * any type to which the event is <em>assignable.</em>  This includes implemented interfaces, all
  * superclasses, and all interfaces implemented by superclasses.
  * <p>
- * When {@code post} is called, all registered handlers for an event are run in sequence, so
- * handlers should be reasonably quick.  If an event may trigger an extended process (such as a
+ * When {@code post} is called, all registered subscribers for an event are run in sequence, so
+ * subscribers should be reasonably quick.  If an event may trigger an extended process (such as a
  * database load), spawn a thread or queue it for later.
  *
  * <h2>Handler Methods</h2>
- * Event handler methods must accept only one argument: the event.
+ * Event subscriber methods must accept only one argument: the event.
  * <p>
  * Handlers should not, in general, throw.  If they do, the bus will wrap the exception and
  * re-throw it.
@@ -58,10 +58,10 @@ package com.squareup.otto;
  * <h2>Producer Methods</h2>
  * Producer methods should accept no arguments and return their event type. When a subscriber is
  * registered for a type that a producer is also already registered for, the subscriber will be
- * called with the return value from the producer, provided it is not null.
+ * called with the return value from the producer, provided it is not {@code null}.
  *
  * <h2>Dead Events</h2>
- * If an event is posted, but no registered handlers can accept it, it is considered "dead."  To
+ * If an event is posted, but no registered subscribers can accept it, it is considered "dead."  To
  * give the system a second chance to handle dead events, they are wrapped in an instance of {@link
  * com.squareup.otto.DeadEvent} and reposted.
  *
@@ -70,7 +70,7 @@ package com.squareup.otto;
  */
 public interface Bus {
   /**
-   * Registers all handler methods on {@code object} to receive events and producer methods to
+   * Registers all subscriber methods on {@code object} to receive events and producer methods to
    * provide events.
    * <p>
    * If any subscribers are registering for types which already have a producer they will be called
@@ -80,23 +80,24 @@ public interface Bus {
    * will be called with the value from the result of calling the producer, unless the result is
    * null.
    *
-   * @param object object whose handler methods should be registered.
+   * @param object object whose subscriber methods should be registered.
    */
   void register(Object object);
 
   /**
-   * Unregisters all producer and handler methods on a registered {@code object}.
+   * Unregisters all producer and subscriber methods on a registered {@code object}.
    *
-   * @param object object whose producer and handler methods should be unregistered.
+   * @param object object whose producer and subscriber methods should be unregistered.
    * @throws IllegalArgumentException if the object was not previously registered.
    */
   void unregister(Object object);
 
   /**
-   * Posts an event to all registered handlers.  This method will return successfully after the
-   * event has been posted to all handlers, and regardless of any exceptions thrown by handlers.
+   * Posts an event to all registered subscribers.  This method will return successfully after the
+   * event has been posted to all subscribers, and regardless of any exceptions thrown by
+   * subscribers.
    * <p>
-   * If no handlers have been subscribed for {@code event}'s class, and {@code event} is not
+   * If no subscribers have been subscribed for {@code event}'s class, and {@code event} is not
    * already a {@link DeadEvent}, it will be wrapped in a DeadEvent and reposted.
    *
    * @param event event to post.

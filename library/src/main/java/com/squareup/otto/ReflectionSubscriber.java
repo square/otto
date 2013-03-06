@@ -21,33 +21,33 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Wraps a single-argument 'handler' method on a specific object.
+ * Wraps a single-argument 'subscriber' method on a specific object.
  * <p>
  * This class only verifies the suitability of the method and event type if something fails.
  * Callers are expected to verify their uses of this class.
  * <p>
  * Two EventHandlers are equivalent when they refer to the same method on the same object (not
- * class).  This property is used to ensure that no handler method is registered more than once.
+ * class).  This property is used to ensure that no subscriber method is registered more than once.
  *
  * @author Cliff Biffle
  */
-class EventHandler {
+class ReflectionSubscriber implements Subscriber {
 
-  /** Object sporting the handler method. */
+  /** Object sporting the subscriber method. */
   private final Object target;
-  /** Handler method. */
+  /** Subscriber method. */
   private final Method method;
   /** Object hash code. */
   private final int hashCode;
-  /** Should this handler receive events? */
+  /** Should this subscriber receive events? */
   private boolean valid = true;
 
-  EventHandler(Object target, Method method) {
+  ReflectionSubscriber(Object target, Method method) {
     if (target == null) {
-      throw new NullPointerException("EventHandler target cannot be null.");
+      throw new NullPointerException("Subscriber target cannot be null.");
     }
     if (method == null) {
-      throw new NullPointerException("EventHandler method cannot be null.");
+      throw new NullPointerException("Subscriber method cannot be null.");
     }
 
     this.target = target;
@@ -74,17 +74,16 @@ class EventHandler {
   }
 
   /**
-   * Invokes the wrapped handler method to handle {@code event}.
+   * Invokes the wrapped subscriber method to handle {@code event}.
    *
    * @param event event to handle
    * @throws java.lang.reflect.InvocationTargetException if the wrapped method throws any {@link
    * Throwable} that is not an {@link Error} ({@code Error}s are propagated as-is).
    * @throws java.lang.IllegalStateException if previously invalidated.
    */
-  public void handleEvent(Object event) throws InvocationTargetException {
+  @Override public void handle(Object event) throws InvocationTargetException {
     if (!valid) {
-      throw new IllegalStateException(
-          toString() + " has been invalidated and can no longer handle events.");
+      return;
     }
     try {
       method.invoke(target, event);
@@ -99,7 +98,7 @@ class EventHandler {
   }
 
   @Override public String toString() {
-    return "[EventHandler " + method + "]";
+    return "[ReflectionSubscriber " + method + "]";
   }
 
   @Override public int hashCode() {
@@ -119,7 +118,7 @@ class EventHandler {
       return false;
     }
 
-    final EventHandler other = (EventHandler) obj;
+    final ReflectionSubscriber other = (ReflectionSubscriber) obj;
 
     return method.equals(other.method) && target == other.target;
   }

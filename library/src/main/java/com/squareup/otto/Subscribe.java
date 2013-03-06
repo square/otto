@@ -16,14 +16,14 @@
 
 package com.squareup.otto;
 
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 /**
- * Marks a method as an event handler, as used by {@link AnnotatedHandlerFinder} and {@link
- * BasicBus}.
+ * Marks a method as an event subscriber to a {@link Bus}.
  * <p>
  * The method's first (and only) parameter defines the event type.
  * <p>
@@ -33,6 +33,6 @@ import java.lang.annotation.Target;
  *
  * @author Cliff Biffle
  */
-@Retention(RetentionPolicy.RUNTIME) @Target(ElementType.METHOD)
+@Retention(RUNTIME) @Target(METHOD)
 public @interface Subscribe {
 }

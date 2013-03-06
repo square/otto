@@ -26,7 +26,7 @@ import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
-public class EventProducerTest {
+public class ReflectionProducerTest {
 
   private static final Object FIXTURE_RETURN_VALUE = new Object();
 
@@ -45,41 +45,39 @@ public class EventProducerTest {
    */
   @Test public void basicMethodCall() throws Exception {
     Method method = getRecordingMethod();
-    EventProducer producer = new EventProducer(this, method);
-    Object methodResult = producer.produceEvent();
+    ReflectionProducer producer = new ReflectionProducer(this, method);
+    Object methodResult = producer.produce();
 
     assertTrue("Producer must call provided method.", methodCalled);
     assertSame("Producer result must be *exactly* the specified return value.", methodResult,
         FIXTURE_RETURN_VALUE);
   }
 
-  /** Checks that EventProducer's constructor disallows null methods. */
+  /** Checks that ReflectionProducer's constructor disallows null methods. */
   @Test public void rejectionOfNullMethods() {
     try {
-      new EventProducer(this, null);
-      fail("EventProducer must immediately reject null methods.");
+      new ReflectionProducer(this, null);
+      fail("Producer must immediately reject null methods.");
     } catch (NullPointerException expected) {
-      // Hooray!
     }
   }
 
-  /** Checks that EventProducer's constructor disallows null targets. */
+  /** Checks that ReflectionProducer's constructor disallows null targets. */
   @Test public void rejectionOfNullTargets() throws NoSuchMethodException {
     Method method = getRecordingMethod();
     try {
-      new EventProducer(null, method);
-      fail("EventProducer must immediately reject null targets.");
+      new ReflectionProducer(null, method);
+      fail("Producer must immediately reject null targets.");
     } catch (NullPointerException expected) {
-      // Huzzah!
     }
   }
 
   @Test public void testExceptionWrapping() throws NoSuchMethodException {
     Method method = getExceptionThrowingMethod();
-    EventProducer producer = new EventProducer(this, method);
+    ReflectionProducer producer = new ReflectionProducer(this, method);
 
     try {
-      producer.produceEvent();
+      producer.produce();
       fail("Producers whose methods throw must throw InvocationTargetException");
     } catch (InvocationTargetException e) {
       assertTrue("Expected exception must be wrapped.",
@@ -89,23 +87,22 @@ public class EventProducerTest {
 
   @Test public void errorPassthrough() throws InvocationTargetException, NoSuchMethodException {
     Method method = getErrorThrowingMethod();
-    EventProducer producer = new EventProducer(this, method);
+    ReflectionProducer producer = new ReflectionProducer(this, method);
 
     try {
-      producer.produceEvent();
+      producer.produce();
       fail("Producers whose methods throw Errors must rethrow them");
     } catch (JudgmentError expected) {
-      // Expected.
     }
   }
 
   @Test public void returnValueNotCached() throws Exception {
     Method method = getRecordingMethod();
-    EventProducer producer = new EventProducer(this, method);
-    producer.produceEvent();
+    ReflectionProducer producer = new ReflectionProducer(this, method);
+    producer.produce();
     methodReturnValue = new Object();
     methodCalled = false;
-    Object secondReturnValue = producer.produceEvent();
+    Object secondReturnValue = producer.produce();
 
     assertTrue("Producer must call provided method twice.", methodCalled);
     assertSame("Producer result must be *exactly* the specified return value on each invocation.",
