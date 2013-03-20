@@ -20,6 +20,8 @@ package com.squareup.otto;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import android.util.Log;
+
 /**
  * Wraps a single-argument 'handler' method on a specific object.
  *
@@ -81,10 +83,40 @@ class EventHandler {
    * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
    *     an {@link Error} ({@code Error}s are propagated as-is).
    */
-  public void handleEvent(Object event) throws InvocationTargetException {
+  public void handleEvent(final Object event) throws InvocationTargetException {
     if (!valid) {
       throw new IllegalStateException(toString() + " has been invalidated and can no longer handle events.");
     }
+
+    if (onTargetThread()) {
+      // The caller may have been on the right thread all along.
+      // We should give them the opportunity to invoke right now.
+      invokeMethod(event);
+    } else {
+      enqueue(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            invokeMethod(event);
+          } catch (Throwable e) {
+            Log.e("Otto", "Problem invoking " + method, e);
+          }
+        }
+      });
+    }
+  }
+
+  protected boolean onTargetThread() {
+    // never enqueue
+    return true;
+  }
+
+  protected void enqueue(Runnable runnable) {
+    // NOP
+  }
+
+
+  private void invokeMethod(Object event) throws InvocationTargetException {
     try {
       method.invoke(target, event);
     } catch (IllegalAccessException e) {
