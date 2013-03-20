@@ -24,6 +24,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.squareup.otto.Subscribe.ExecuteOn;
+
 /**
  * Helper methods for finding methods annotated with {@link Produce} and {@link Subscribe}.
  *
@@ -129,8 +131,9 @@ final class AnnotatedHandlerFinder {
     return handlersInMethod;
   }
 
-  /** This implementation finds all methods marked with a {@link Subscribe} annotation. */
-  static Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener) {
+  /** This implementation finds all methods marked with a {@link Subscribe} annotation.
+   * @param handlerCreator */
+  static Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener, EventHandlerCreator handlerCreator) {
     Class<?> listenerClass = listener.getClass();
     Map<Class<?>, Set<EventHandler>> handlersInMethod = new HashMap<Class<?>, Set<EventHandler>>();
 
@@ -142,7 +145,10 @@ final class AnnotatedHandlerFinder {
       for (Map.Entry<Class<?>, Set<Method>> e : methods.entrySet()) {
         Set<EventHandler> handlers = new HashSet<EventHandler>();
         for (Method m : e.getValue()) {
-          handlers.add(new EventHandler(listener, m));
+          Subscribe annotation = m.getAnnotation(Subscribe.class);
+          ExecuteOn thread = annotation.thread();
+          EventHandler handler = handlerCreator.createHandler(thread, listener, m);
+          handlers.add(handler);
         }
         handlersInMethod.put(e.getKey(), handlers);
       }
