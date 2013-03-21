@@ -28,10 +28,22 @@ import java.lang.annotation.Target;
  * <p>If this annotation is applied to methods with zero parameters or more than one parameter, the object containing
  * the method will not be able to register for event delivery from the {@link Bus}. Otto fails fast by throwing
  * runtime exceptions in these cases.
- *
+ * <p>The subscriber can be executed on a different thread to the poster. The default is {link POSTER_DECIDES}
  * @author Cliff Biffle
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Subscribe {
+  /**
+   * For safer threading, the subscriber can determine what thread the method is
+   * run on.
+   */
+  public enum ExecuteOn {
+    /** The main or UI thread. */ MAIN,
+    /** A single threaded background thread. Events are queued. */ BACKGROUND,
+    /** One of a thread pool. Events are not queued. */ ASYNC,
+    /** Run synchronously on the event poster's thread. */ POSTER_DECIDES
+  }
+
+  ExecuteOn thread() default ExecuteOn.POSTER_DECIDES;
 }

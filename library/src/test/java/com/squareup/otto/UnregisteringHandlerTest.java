@@ -16,13 +16,19 @@
 
 package com.squareup.otto;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.*;
-
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import org.junit.Before;
+import org.junit.Test;
 
 /** Test case for subscribers which unregister while handling an event. */
 public class UnregisteringHandlerTest {
@@ -104,6 +110,7 @@ public class UnregisteringHandlerTest {
 
     @Override
     public Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener) {
+      AnnotatedHandlerFinder.handlerCreator = new SimpleHandlerCreator();
       Map<Class<?>, Set<EventHandler>> found = HandlerFinder.ANNOTATED.findAllSubscribers(listener);
       Map<Class<?>, Set<EventHandler>> sorted = new HashMap<Class<?>, Set<EventHandler>>();
       for (Map.Entry<Class<?>, Set<EventHandler>> entry : found.entrySet()) {

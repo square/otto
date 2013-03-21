@@ -26,7 +26,6 @@ interface HandlerFinder {
 
   Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener);
 
-
   HandlerFinder ANNOTATED = new HandlerFinder() {
     @Override
     public Map<Class<?>, EventProducer> findAllProducers(Object listener) {
