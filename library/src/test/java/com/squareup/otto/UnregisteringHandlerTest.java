@@ -110,7 +110,8 @@ public class UnregisteringHandlerTest {
 
     @Override
     public Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener) {
-      Map<Class<?>, Set<EventHandler>> found = AnnotatedHandlerFinder.findAllSubscribers(listener,  new SimpleHandlerCreator());
+      AnnotatedHandlerFinder.handlerCreator = new SimpleHandlerCreator();
+      Map<Class<?>, Set<EventHandler>> found = HandlerFinder.ANNOTATED.findAllSubscribers(listener);
       Map<Class<?>, Set<EventHandler>> sorted = new HashMap<Class<?>, Set<EventHandler>>();
       for (Map.Entry<Class<?>, Set<EventHandler>> entry : found.entrySet()) {
         SortedSet<EventHandler> handlers = new TreeSet<EventHandler>(handlerComparator);

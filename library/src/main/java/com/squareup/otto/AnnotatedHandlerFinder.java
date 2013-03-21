@@ -43,6 +43,9 @@ final class AnnotatedHandlerFinder {
   private static final Map<Class<?>, Map<Class<?>, Set<Method>>> SUBSCRIBERS_CACHE =
       new HashMap<Class<?>, Map<Class<?>, Set<Method>>>();
 
+  /** The threading scheme in use can be changed my changing the handlerCreator. */
+  public static EventHandlerCreator handlerCreator = new EventHandlerCreator();
+
   /**
    * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective caches for the
    * specified class.
@@ -131,9 +134,9 @@ final class AnnotatedHandlerFinder {
     return handlersInMethod;
   }
 
-  /** This implementation finds all methods marked with a {@link Subscribe} annotation.
-   * @param handlerCreator */
-  static Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener, EventHandlerCreator handlerCreator) {
+  /** This implementation finds all methods marked with a {@link Subscribe} annotation.*/
+  static Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener) {
+
     Class<?> listenerClass = listener.getClass();
     Map<Class<?>, Set<EventHandler>> handlersInMethod = new HashMap<Class<?>, Set<EventHandler>>();
 
