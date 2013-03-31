@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.squareup.otto;
+package com.squareup.otto.internal;
 
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * Represents an instance that can handle events of the specified type.
+ * Represents an instance that can produce events of the specified type.
  *
  * @author Jake Wharton
  */
-interface Subscriber<T> {
-  void handle(T event) throws InvocationTargetException;
+public interface Producer<T> {
+  T produce() throws InvocationTargetException;
 
-  /** Invalidate this object so that subsequent calls to {@link #handle(T)} are no-ops. */
+  /** Invalidate this object so that subsequent calls to {@link #produce()} are no-ops. */
   void invalidate();
 }

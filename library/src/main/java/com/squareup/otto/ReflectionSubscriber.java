@@ -17,6 +17,7 @@
 
 package com.squareup.otto;
 
+import com.squareup.otto.internal.Subscriber;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 

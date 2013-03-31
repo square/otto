@@ -17,6 +17,9 @@
 
 package com.squareup.otto;
 
+import com.squareup.otto.internal.Finder;
+import com.squareup.otto.internal.Producer;
+import com.squareup.otto.internal.Subscriber;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -171,7 +174,7 @@ class ReflectionFinder implements Finder {
     return handlersInMethod;
   }
 
-  @Override public void install(Object instance, BasicBus bus) {
+  @Override public void install(Object instance, BasicBus.Installer bus) {
     Map<Class<?>, Producer> foundProducers = findAllProducers(instance);
     for (Map.Entry<Class<?>, Producer> entry : foundProducers.entrySet()) {
       bus.installProducer(entry.getKey(), entry.getValue());
@@ -186,7 +189,7 @@ class ReflectionFinder implements Finder {
     }
   }
 
-  @Override public void uninstall(Object instance, BasicBus bus) {
+  @Override public void uninstall(Object instance, BasicBus.Installer bus) {
     Map<Class<?>, Producer> foundProducers = findAllProducers(instance);
     for (Class<?> key : foundProducers.keySet()) {
       bus.uninstallProducer(key);
