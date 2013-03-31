@@ -32,6 +32,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
 import javax.tools.JavaFileObject;
 
 import static javax.lang.model.element.ElementKind.CLASS;
@@ -86,7 +87,10 @@ public class AnnotationProcessor extends AbstractProcessor {
       TypeElement enclosingType = (TypeElement) element.getEnclosingElement();
       Set<Modifier> typeModifiers = enclosingType.getModifiers();
       if (enclosingType.getKind() != CLASS) {
-        error("Unexpected @Produce on " + element);
+        error("Unexpected @Produce on "
+            + enclosingType.getQualifiedName()
+            + "."
+            + element);
         continue;
       }
       if (typeModifiers.contains(PRIVATE) || typeModifiers.contains(ABSTRACT)) {
@@ -105,7 +109,22 @@ public class AnnotationProcessor extends AbstractProcessor {
         continue;
       }
 
-      // TODO check signature and verify no args and non-void return type
+      ExecutableElement executableElement = (ExecutableElement) element;
+      if (executableElement.getReturnType().getKind() == TypeKind.VOID) {
+        error("@Produce methods must not have a void return type: "
+            + enclosingType.getQualifiedName()
+            + "."
+            + element);
+        continue;
+      }
+
+      if (executableElement.getParameters().size() != 0) {
+        error("@Produce methods must have zero parameter: "
+            + enclosingType.getQualifiedName()
+            + "."
+            + element);
+        continue;
+      }
 
       if (producers.containsKey(enclosingType)) {
         error("@Produce method for type " + enclosingType + " already registered.");
@@ -124,7 +143,10 @@ public class AnnotationProcessor extends AbstractProcessor {
       TypeElement enclosingType = (TypeElement) element.getEnclosingElement();
       Set<Modifier> typeModifiers = enclosingType.getModifiers();
       if (enclosingType.getKind() != CLASS) {
-        error("Unexpected @Subscribe on " + element);
+        error("Unexpected @Subscribe on "
+            + enclosingType.getQualifiedName()
+            + "."
+            + element);
         continue;
       }
       if (typeModifiers.contains(PRIVATE) || typeModifiers.contains(ABSTRACT)) {
@@ -144,7 +166,22 @@ public class AnnotationProcessor extends AbstractProcessor {
         continue;
       }
 
-      // TODO check signature and verify single arg and void return type
+      ExecutableElement executableElement = (ExecutableElement) element;
+      if (executableElement.getReturnType().getKind() != TypeKind.VOID) {
+        error("@Subscribe methods must have a void return type: "
+            + enclosingType.getQualifiedName()
+            + "."
+            + element);
+        continue;
+      }
+
+      if (executableElement.getParameters().size() != 1) {
+        error("@Subscribe methods must have one parameter: "
+            + enclosingType.getQualifiedName()
+            + "."
+            + element);
+        continue;
+      }
 
       Set<ExecutableElement> methods = subscribers.get(enclosingType);
       if (methods == null) {
