@@ -16,8 +16,8 @@
 package com.squareup.otto.internal;
 
 /**
- * Base class for generated {@link com.squareup.otto.Producer} and {@link
- * com.squareup.otto.Subscriber} implementations which hold a reference to a target object.
+ * Base class for generated {@link Producer} and {@link
+ * Subscriber} implementations which hold a reference to a target object.
  *
  * @author Jake Wharton
  */

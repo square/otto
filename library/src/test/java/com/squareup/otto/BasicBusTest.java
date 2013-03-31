@@ -16,6 +16,7 @@
 
 package com.squareup.otto;
 
+import com.squareup.otto.internal.Subscriber;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;

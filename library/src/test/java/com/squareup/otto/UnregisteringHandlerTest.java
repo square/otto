@@ -16,6 +16,9 @@
 
 package com.squareup.otto;
 
+import com.squareup.otto.internal.Finder;
+import com.squareup.otto.internal.Producer;
+import com.squareup.otto.internal.Subscriber;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
@@ -110,12 +113,11 @@ public class UnregisteringHandlerTest {
       }
     };
 
-    @Override public void install(Object instance, BasicBus bus) {
-      BasicBus basicBus = (BasicBus) bus;
+    @Override public void install(Object instance, BasicBus.Installer bus) {
 
       Map<Class<?>, Producer> foundProducers = findAllProducers(instance);
       for (Map.Entry<Class<?>, Producer> entry : foundProducers.entrySet()) {
-        basicBus.installProducer(entry.getKey(), entry.getValue());
+        bus.installProducer(entry.getKey(), entry.getValue());
       }
 
       Map<Class<?>, Set<Subscriber>> foundSubscribers = findAllSubscribers(instance);
@@ -124,7 +126,7 @@ public class UnregisteringHandlerTest {
         sorted.addAll(entry.getValue());
         Class<?> type = entry.getKey();
         for (Subscriber foundSubscriber : sorted) {
-          basicBus.installSubscriber(type, foundSubscriber);
+          bus.installSubscriber(type, foundSubscriber);
         }
       }
     }
