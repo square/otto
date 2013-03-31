@@ -80,7 +80,7 @@ public class LocationMapFragment extends Fragment {
     }
   }
 
-  private static class ImageAvailableEvent {
+  public static class ImageAvailableEvent {
     public final Drawable image;
 
     ImageAvailableEvent(Drawable image) {

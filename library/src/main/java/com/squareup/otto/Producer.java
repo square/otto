@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Square, Inc.
+ * Copyright (C) 2013 Square, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.squareup.otto;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.lang.reflect.InvocationTargetException;
 
 /**
- * Marks a method as an instance producer to a {@link Bus}.
- * <p>
- * Otto infers the instance type from the annotated method's return type. Producer methods may
- * return null when there is no appropriate value to share. The calling {@link BasicBus} ignores
- * such returns and posts nothing.
+ * Represents an instance that can produce events of the specified type.
  *
  * @author Jake Wharton
  */
-@Retention(RUNTIME) @Target(METHOD)
-public @interface Produce {
+interface Producer<T> {
+  T produce() throws InvocationTargetException;
+
+  /** Invalidate this object so that subsequent calls to {@link #produce()} are no-ops. */
+  void invalidate();
 }

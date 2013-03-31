@@ -19,13 +19,13 @@ package com.squareup.otto;
 import java.util.ArrayList;
 import java.util.List;
 
-/** An EventHandler mock that records a String and unregisters itself in the handler. */
+/** An Subscriber mock that records a String and unregisters itself in the subscriber. */
 public class UnregisteringStringCatcher {
-  private final BasicBus bus;
+  private final Bus bus;
 
   private List<String> events = new ArrayList<String>();
 
-  public UnregisteringStringCatcher(BasicBus bus) {
+  public UnregisteringStringCatcher(Bus bus) {
     this.bus = bus;
   }
 

@@ -21,7 +21,7 @@ import java.util.List;
 import junit.framework.Assert;
 
 /**
- * A simple EventHandler mock that records Strings.
+ * A simple Subscriber mock that records Strings.
  * <p>
  * For testing fun, also includes a landmine method that BasicBus tests are required <em>not</em>
  * to call ({@link #methodWithoutAnnotation(String)}).
