@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.squareup.otto;
+package com.squareup.otto.internal;
 
-import java.lang.reflect.InvocationTargetException;
+import com.squareup.otto.BasicBus;
 
 /**
- * Represents an instance that can produce events of the specified type.
+ * An object which manages the installation and uninstallation of {@link Subscriber Subscribers}
+ * and {@link Producer Producers} for another type.
  *
  * @author Jake Wharton
  */
-interface Producer<T> {
-  T produce() throws InvocationTargetException;
+public interface Finder<T> {
+  /** Add all subscribers and producers for the supplied {@code instance} to the bus. */
+  void install(T instance, BasicBus.Installer bus);
 
-  /** Invalidate this object so that subsequent calls to {@link #produce()} are no-ops. */
-  void invalidate();
+  /** Remove all subscribers and producers for the supplied {@code instance} from the bus. */
+  void uninstall(T instance, BasicBus.Installer bus);
 }

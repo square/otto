@@ -53,7 +53,6 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 })
 public class AnnotationProcessor extends AbstractProcessor {
 
-  public static final String PACKAGE_PREFIX = "com.squareup.otto.";
   public static final String FINDER_SUFFIX = "$$Finder";
   private static final String PRODUCER_NAME = "$$Producer$";
   private static final String SUBSCRIBER_NAME = "$$Subscriber$";
@@ -197,6 +196,7 @@ public class AnnotationProcessor extends AbstractProcessor {
   private void writeFinder(TypeElement type, ExecutableElement producer,
       Set<ExecutableElement> subscribers, Set<TypeElement> annotatedTypes) throws IOException {
     String targetClass = type.getQualifiedName().toString();
+    String packageName = targetClass.substring(0, targetClass.lastIndexOf("."));
     String targetClassSimple = targetClass.substring(targetClass.lastIndexOf(".") + 1);
     String className = targetClassSimple + FINDER_SUFFIX;
     String ext = "Object"; // TODO loop to find others in the annotated Set
@@ -227,33 +227,37 @@ public class AnnotationProcessor extends AbstractProcessor {
     }
 
     JavaFileObject jfo =
-        processingEnv.getFiler().createSourceFile(PACKAGE_PREFIX + className, type);
+        processingEnv.getFiler().createSourceFile(packageName + "." + className, type);
     Writer writer = jfo.openWriter();
-    writer.write(String.format(FINDER, className, targetClass, ext, install, uninstall));
+    writer.write(
+        String.format(FINDER, packageName, className, targetClass, ext, install, uninstall));
     writer.flush();
     writer.close();
   }
 
   private void writeSubscriber(TypeElement type, String targetClass, String eventClass,
       String simpleName, Name method) throws IOException {
+    String packageName = targetClass.substring(0, targetClass.lastIndexOf("."));
     String className =
         targetClass.substring(targetClass.lastIndexOf(".") + 1) + SUBSCRIBER_NAME + simpleName;
     JavaFileObject jfo =
-        processingEnv.getFiler().createSourceFile(PACKAGE_PREFIX + className, type);
+        processingEnv.getFiler().createSourceFile(packageName + "." + className, type);
     Writer writer = jfo.openWriter();
-    writer.write(String.format(SUBSCRIBER, className, targetClass, eventClass, method));
+    writer.write(
+        String.format(SUBSCRIBER, packageName, className, targetClass, eventClass, method));
     writer.flush();
     writer.close();
   }
 
   private void writeProducer(TypeElement type, String targetClass, String eventClass,
       String simpleName, String method) throws IOException {
+    String packageName = targetClass.substring(0, targetClass.lastIndexOf("."));
     String className =
         targetClass.substring(targetClass.lastIndexOf(".") + 1) + PRODUCER_NAME + simpleName;
     JavaFileObject jfo =
-        processingEnv.getFiler().createSourceFile(PACKAGE_PREFIX + className, type);
+        processingEnv.getFiler().createSourceFile(packageName + "." + className, type);
     Writer writer = jfo.openWriter();
-    writer.write(String.format(PRODUCER, className, targetClass, eventClass, method));
+    writer.write(String.format(PRODUCER, packageName, className, targetClass, eventClass, method));
     writer.flush();
     writer.close();
   }
@@ -274,14 +278,16 @@ public class AnnotationProcessor extends AbstractProcessor {
    * </ol>
    */
   private static final String FINDER = ""
-      + "package com.squareup.otto;\n\n"
-      + "public class %1$s extends %3$s implements Finder<%2$s> {\n"
-      + "  @Override public void install(%2$s instance, BasicBus bus) {\n"
-      + "%4$s"
+      + "package %1$s;\n\n"
+      + "import com.squareup.otto.BasicBus;\n"
+      + "import com.squareup.otto.internal.Finder;\n\n"
+      + "public class %2$s extends %4$s implements Finder<%3$s> {\n"
+      + "  @Override public void install(%3$s instance, BasicBus.Installer bus) {\n"
+      + "%5$s"
       // No trailing newline.
       + "  }\n\n"
-      + "  @Override public void uninstall(%2$s instance, BasicBus bus) {\n"
-      + "%5$s"
+      + "  @Override public void uninstall(%3$s instance, BasicBus.Installer bus) {\n"
+      + "%6$s"
       // No trailing newline.
       + "  }\n"
       + "}\n";
@@ -305,17 +311,18 @@ public class AnnotationProcessor extends AbstractProcessor {
    * </ol>
    */
   private static final String SUBSCRIBER = ""
-      + "package com.squareup.otto;\n\n"
+      + "package %1$s;\n\n"
       + "import java.lang.reflect.InvocationTargetException;\n"
+      + "import com.squareup.otto.internal.Subscriber;\n"
       + "import com.squareup.otto.internal.Target;\n\n"
-      + "public class %1$s extends Target<%2$s> implements Subscriber<%3$s> {\n"
+      + "public class %2$s extends Target<%3$s> implements Subscriber<%4$s> {\n"
       + "  private boolean valid = true;\n\n"
-      + "  public %1$s(%2$s target) {\n"
+      + "  public %2$s(%3$s target) {\n"
       + "    super(target);\n"
       + "  }\n\n"
-      + "  @Override public void handle(%3$s event) throws InvocationTargetException {\n"
+      + "  @Override public void handle(%4$s event) throws InvocationTargetException {\n"
       + "    if (valid) {\n"
-      + "      target.%4$s(event);\n"
+      + "      target.%5$s(event);\n"
       + "    }\n"
       + "  }\n\n"
       + "  @Override public void invalidate() {\n"
@@ -334,16 +341,17 @@ public class AnnotationProcessor extends AbstractProcessor {
    * </ol>
    */
   private static final String PRODUCER = ""
-      + "package com.squareup.otto;\n\n"
+      + "package %1$s;\n\n"
       + "import java.lang.reflect.InvocationTargetException;\n"
+      + "import com.squareup.otto.internal.Producer;\n"
       + "import com.squareup.otto.internal.Target;\n\n"
-      + "public class %1$s extends Target<%2$s> implements Producer<%3$s> {\n"
+      + "public class %2$s extends Target<%3$s> implements Producer<%4$s> {\n"
       + "  private boolean valid = true;\n\n"
-      + "  public %1$s(%2$s target) {\n"
+      + "  public %2$s(%3$s target) {\n"
       + "    super(target);\n"
       + "  }\n\n"
-      + "  @Override public %3$s produce() throws InvocationTargetException {\n"
-      + "    return valid ? target.%4$s() : null;\n"
+      + "  @Override public %4$s produce() throws InvocationTargetException {\n"
+      + "    return valid ? target.%5$s() : null;\n"
       + "  }\n\n"
       + "  @Override public void invalidate() {\n"
       + "    valid = false;\n"

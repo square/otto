@@ -17,6 +17,9 @@
 
 package com.squareup.otto;
 
+import com.squareup.otto.internal.Finder;
+import com.squareup.otto.internal.Producer;
+import com.squareup.otto.internal.Subscriber;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -29,7 +32,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.squareup.otto.internal.AnnotationProcessor.FINDER_SUFFIX;
-import static com.squareup.otto.internal.AnnotationProcessor.PACKAGE_PREFIX;
 
 /**
  * The reference implementation for the Bus interface.  Dispatches events to listeners, and
@@ -45,6 +47,30 @@ import static com.squareup.otto.internal.AnnotationProcessor.PACKAGE_PREFIX;
  */
 public class BasicBus implements Bus {
   private static final String DEFAULT_IDENTIFIER = "default";
+
+  /** Expands the visibility of install and uninstall methods to registered Finders. */
+  public class Installer {
+    Installer() {
+    }
+
+    public <T> void installSubscriber(Class<T> type, Subscriber<T> subscriber) {
+      BasicBus.this.installSubscriber(type, subscriber);
+    }
+
+    public <T> void installProducer(Class<T> type, Producer<T> producer) {
+      BasicBus.this.installProducer(type, producer);
+    }
+
+    public <T> void uninstallSubscriber(Class<T> type, Subscriber<T> subscriber) {
+      BasicBus.this.uninstallSubscriber(type, subscriber);
+    }
+
+    public <T> void uninstallProducer(Class<T> type) {
+      BasicBus.this.uninstallProducer(type);
+    }
+  }
+
+  private final Installer busInstaller = new Installer();
 
   /** All registered event handlers, indexed by event type. */
   private final ConcurrentMap<Class<?>, Map<Subscriber, Subscriber>> subscribersByType =
@@ -144,7 +170,7 @@ public class BasicBus implements Bus {
       Class<?> typeToLoad = type;
       while (typeFinder == null && typeToLoad != Object.class) {
         try {
-          typeFinder = Class.forName(PACKAGE_PREFIX + typeToLoad.getSimpleName() + FINDER_SUFFIX);
+          typeFinder = Class.forName(typeToLoad.getName() + FINDER_SUFFIX);
         } catch (ClassNotFoundException ignored) {
           typeToLoad = typeToLoad.getSuperclass();
         }
@@ -167,7 +193,7 @@ public class BasicBus implements Bus {
 
   @Override public void register(Object object) {
     enforcer.enforce(this);
-    obtainFinder(object.getClass()).install(object, this);
+    obtainFinder(object.getClass()).install(object, busInstaller);
   }
 
   private void dispatchProducerResultToSubscriber(Subscriber subscriber, Producer producer) {
@@ -185,7 +211,7 @@ public class BasicBus implements Bus {
 
   @Override public void unregister(Object object) {
     enforcer.enforce(this);
-    obtainFinder(object.getClass()).uninstall(object, this);
+    obtainFinder(object.getClass()).uninstall(object, busInstaller);
   }
 
   <T> void installSubscriber(Class<T> type, Subscriber<T> subscriber) {
