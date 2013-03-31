@@ -153,15 +153,16 @@ public class BasicBus implements Bus {
         try {
           finder = (Finder) typeFinder.newInstance();
           findersByType.put(type, finder);
-          return finder;
         } catch (InstantiationException e) {
           throw new RuntimeException("Unable to instantiate generated finder instance.", e);
         } catch (IllegalAccessException e) {
           throw new RuntimeException("Unable to instantiate generated finder instance.", e);
         }
+      } else {
+        finder = fallbackFinder;
       }
     }
-    return fallbackFinder;
+    return finder;
   }
 
   @Override public void register(Object object) {
@@ -224,8 +225,8 @@ public class BasicBus implements Bus {
       Subscriber original = subscribers.remove(subscriber);
       if (original != null) {
         original.invalidate();
-        return;
       }
+      return;
     }
     throw new IllegalArgumentException(
         "Missing subscriber for an annotated method. Is " + type + " registered?");
