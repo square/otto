@@ -19,14 +19,17 @@ import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
@@ -86,22 +89,23 @@ public class AnnotationProcessor extends AbstractProcessor {
       TypeElement enclosingType = (TypeElement) element.getEnclosingElement();
       Set<Modifier> typeModifiers = enclosingType.getModifiers();
       if (enclosingType.getKind() != CLASS) {
-        error("Unexpected @Produce on "
+        error(element, Produce.class, "Unexpected @Produce on "
             + enclosingType.getQualifiedName()
             + "."
             + element);
         continue;
       }
       if (typeModifiers.contains(PRIVATE) || typeModifiers.contains(ABSTRACT)) {
-        error("Classes declaring @Produce methods must not be private or abstract: "
-            + enclosingType.getQualifiedName());
+        error(element, Produce.class,
+            "Classes declaring @Produce methods must not be private or abstract: "
+                + enclosingType.getQualifiedName());
         continue;
       }
 
       Set<Modifier> methodModifiers = element.getModifiers();
       if (methodModifiers.contains(PRIVATE) || methodModifiers.contains(ABSTRACT) || methodModifiers
           .contains(STATIC)) {
-        error("@Produce methods must not be private, abstract, or static: "
+        error(element, Produce.class, "@Produce methods must not be private, abstract, or static: "
             + enclosingType.getQualifiedName()
             + "."
             + element);
@@ -110,7 +114,7 @@ public class AnnotationProcessor extends AbstractProcessor {
 
       ExecutableElement executableElement = (ExecutableElement) element;
       if (executableElement.getReturnType().getKind() == TypeKind.VOID) {
-        error("@Produce methods must not have a void return type: "
+        error(element, Produce.class, "@Produce methods must not have a void return type: "
             + enclosingType.getQualifiedName()
             + "."
             + element);
@@ -118,7 +122,7 @@ public class AnnotationProcessor extends AbstractProcessor {
       }
 
       if (executableElement.getParameters().size() != 0) {
-        error("@Produce methods must have zero parameter: "
+        error(element, Produce.class, "@Produce methods must have zero parameter: "
             + enclosingType.getQualifiedName()
             + "."
             + element);
@@ -126,7 +130,8 @@ public class AnnotationProcessor extends AbstractProcessor {
       }
 
       if (producers.containsKey(enclosingType)) {
-        error("@Produce method for type " + enclosingType + " already registered.");
+        error(element, Produce.class,
+            "@Produce method for type " + enclosingType + " already registered.");
         continue;
       }
       producers.put(enclosingType, (ExecutableElement) element);
@@ -142,14 +147,14 @@ public class AnnotationProcessor extends AbstractProcessor {
       TypeElement enclosingType = (TypeElement) element.getEnclosingElement();
       Set<Modifier> typeModifiers = enclosingType.getModifiers();
       if (enclosingType.getKind() != CLASS) {
-        error("Unexpected @Subscribe on "
+        error(element, Subscribe.class, "Unexpected @Subscribe on "
             + enclosingType.getQualifiedName()
             + "."
             + element);
         continue;
       }
       if (typeModifiers.contains(PRIVATE) || typeModifiers.contains(ABSTRACT)) {
-        error(
+        error(element, Subscribe.class,
             "Classes declaring @Subscribe methods must not be private or abstract: " + enclosingType
                 .getQualifiedName());
         continue;
@@ -158,16 +163,17 @@ public class AnnotationProcessor extends AbstractProcessor {
       Set<Modifier> methodModifiers = element.getModifiers();
       if (methodModifiers.contains(PRIVATE) || methodModifiers.contains(ABSTRACT) || methodModifiers
           .contains(STATIC)) {
-        error("@Subscribe methods must not be private, abstract or static: "
-            + enclosingType.getQualifiedName()
-            + "."
-            + element);
+        error(element, Subscribe.class,
+            "@Subscribe methods must not be private, abstract or static: "
+                + enclosingType.getQualifiedName()
+                + "."
+                + element);
         continue;
       }
 
       ExecutableElement executableElement = (ExecutableElement) element;
       if (executableElement.getReturnType().getKind() != TypeKind.VOID) {
-        error("@Subscribe methods must have a void return type: "
+        error(element, Subscribe.class, "@Subscribe methods must have a void return type: "
             + enclosingType.getQualifiedName()
             + "."
             + element);
@@ -175,7 +181,7 @@ public class AnnotationProcessor extends AbstractProcessor {
       }
 
       if (executableElement.getParameters().size() != 1) {
-        error("@Subscribe methods must have one parameter: "
+        error(element, Subscribe.class, "@Subscribe methods must have one parameter: "
             + enclosingType.getQualifiedName()
             + "."
             + element);
@@ -260,6 +266,29 @@ public class AnnotationProcessor extends AbstractProcessor {
     writer.write(String.format(PRODUCER, packageName, className, targetClass, eventClass, method));
     writer.flush();
     writer.close();
+  }
+
+  private void error(Element element, Class<? extends Annotation> annotationClass, String message) {
+    AnnotationMirror annotationMirror = findAnnotationMirror(element, annotationClass);
+    if (annotationMirror != null) {
+      processingEnv.getMessager().printMessage(ERROR, message, element, annotationMirror);
+    } else {
+      processingEnv.getMessager().printMessage(ERROR, message, element);
+    }
+  }
+
+  public AnnotationMirror findAnnotationMirror(Element annotatedElement,
+      Class<? extends Annotation> annotationClass) {
+    List<? extends AnnotationMirror> annotationMirrors = annotatedElement.getAnnotationMirrors();
+
+    for (AnnotationMirror annotationMirror : annotationMirrors) {
+      TypeElement annotationElement =
+          (TypeElement) annotationMirror.getAnnotationType().asElement();
+      if (annotationElement.getQualifiedName().toString().equals(annotationClass.getName())) {
+        return annotationMirror;
+      }
+    }
+    return null;
   }
 
   private void error(String message) {
