@@ -26,9 +26,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.squareup.otto.internal.AnnotationProcessor.FINDER_SUFFIX;
@@ -101,10 +101,10 @@ public class BasicBus implements Bus {
   private final ReflectionFinder fallbackFinder = new ReflectionFinder();
 
   /** Queues of events for the current thread to dispatch. */
-  private final ThreadLocal<ConcurrentLinkedQueue<EventWithSubscriber>> eventsToDispatch =
-      new ThreadLocal<ConcurrentLinkedQueue<EventWithSubscriber>>() {
-        @Override protected ConcurrentLinkedQueue<EventWithSubscriber> initialValue() {
-          return new ConcurrentLinkedQueue<EventWithSubscriber>();
+  private final ThreadLocal<Queue<EventWithSubscriber>> eventsToDispatch =
+      new ThreadLocal<Queue<EventWithSubscriber>>() {
+        @Override protected Queue<EventWithSubscriber> initialValue() {
+          return new LinkedList<EventWithSubscriber>();
         }
       };
 
