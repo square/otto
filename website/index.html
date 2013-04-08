@@ -24,88 +24,82 @@
       </div>
         <div class="offset4 span8 main"><div class="main-inner">
             <h4>Introduction</h4>
-            <p>Otto is an event bus designed to decouple different parts of your application while still allowing them
-            to communicate efficiently.</p>
-            <p>Forked from Guava, Otto adds unique functionality to an already refined event bus as well as specializing
-            it to the Android platform.</p>
-
+            <p>Otto is an Android-optimized event bus forked from Guava that helps discrete parts of your
+            application communicate efficiently.</p>
+            
             <h4>Usage</h4>
-            <p>Otto is designed with Android-specific use cases in mind and is intended for use as a singleton
-             (though that is not required). These examples assume you have an
-            instance in the variable <code>bus</code> obtained through injection or another appropriate mechanism.</p>
-
+            <p>Otto is intended for use as a singleton (although this is not required). These examples assume you have an
+            instance of the <code>Bus</code> class in the variable <code>bus</code> obtained through injection or 
+            another appropriate mechanism.</p>
+            
             <h5>Publishing</h5>
-            <p>Event publishing is the most important part of the bus as it allows you to tell subscribers that an
-            action has occurred. An instance of any class may be published on the bus and it will only be dispatched to
-            subscribers for that type.</p>
-            <p>To publish a new event, call the <code>post</code> method:</p>
+            <p>To publish a new event, call the <code>post</code> method, providing an instance of any class:</p>
             <pre class="prettyprint">bus.post(new AnswerAvailableEvent(42));</pre>
-            <p>Posting to the bus is a synchronous action so when program execution continues it is guaranteed that all
-            subscribers have been called.</p>
+            <p>The bus calls every method that subscribes to events of the argument's type, passing along the
+            argument itself. In most cases, this is a synchronous action—when program execution continues, it's
+            guaranteed that all subscribing methods have been called. This is <em>not</em> a synchronous
+            action, however, if it's called during the execution of another bus method. In that case, the event
+            is enqueued for publication after the current bus method returns.</p>
 
             <h5>Subscribing</h5>
-            <p>Subscription is the complement to event publishing&mdash;it lets you receive notification that an event
-            has occurred. To subscribe to an event, annotate a method with <code>@Subscribe</code>. The method should
-            take only a single parameter, the type of which will be the event you wish to subscribe to.</p>
-            <p>To listen for the event published in the previous section we would need the following:</p>
+            <p>To subscribe to events of a particular type, annotate a method with <code>@Subscribe</code>. 
+            The method should take only a single parameter: the event type you want to subscribe to.</p>
+            <p>To receive the event published in the previous example, you need the following:</p>
             <pre class="prettyprint">@Subscribe public void answerAvailable(AnswerAvailableEvent event) {
     // TODO: React to the event somehow!
 }</pre>
-            <p>The name of the method can be anything you like. The annotation, single argument, and public accessor
-            are all that is required.</p>
-            <p>In order to receive events, a class instance needs to register with the bus. If <code>this</code> refers
-            to an instance of the class in which the previous method was present, we can register using the
-            following:</p>
+            <p>The name of the method can be anything you like. The annotation, argument type, and <code>public</code>
+            accessor are required.</p>
+            <p>Additionally, a class instance needs to register with the bus before its methods (such as 
+            <code>answerAvailable</code>) can receive events:</p>
             <pre class="prettyprint">bus.register(this);</pre>
-            <p><strong>Registering will only find methods on the immediate class type.</strong> Unlike the Guava event
-            bus, Otto will not traverse the class hierarchy and add methods from base classes or interfaces that are
-            annotated. This is an explicit design decision to improve performance of the library as well as keep your
+            <p>A class instance can call the <code>unregister</code> method to stop receiving events. See the 
+            sample application included in the download for a complete example.</p>
+            <p><strong>Note: Registering only applies to methods of the immediate class type.</strong> Unlike the Guava event
+            bus, Otto does not traverse the class hierarchy and add annotated methods from base classes or interfaces.
+            This is an explicit design decision to improve performance of the library and keep your
             code simple and unambiguous.</p>
-            <p>Remember to also call the <code>unregister</code> method when appropriate. See the sample application
-            included in the download for a complete example.</p>
 
             <h5>Producing</h5>
-            <p>When subscribing to events it is often desired to also fetch the current known value for specific events
-            (e.g., current location, active user, etc.). To address this common paradigm, Otto adds the concept of
-            'Producers' which provide an immediate callback to any subscribers upon their registration.</p>
-            <p>To create a producer, annotate a method with <code>@Produce</code>. The method should take no parameters
-            and its return type will be used as the type of event for which it can produce initial values. If we are
-            keeping track of the last answer event somewhere from above we can register to produce its initial
-            value:</p>
+            <p>When you first subscribe to an event type, you often want to know something about the current state of 
+            the world (e.g., the most recently published event). To address this, Otto adds the concept of
+            <strong>producers</strong>, methods that provide an immediate callback to subscribers as soon as they've
+            registered with the bus.</p>
+            <p>To create a producer, annotate a method with <code>@Produce</code>. The method should take no parameters,
+            and its return type should be the event type it's associated with. If you're keeping track of the most recent
+            <code>AnswerAvailableEvent</code>, you can register a producer to provide it to newly registered subscribers:</p>
             <pre class="prettyprint">@Produce public AnswerAvailableEvent produceAnswer() {
     // Assuming 'lastAnswer' exists.
     return new AnswerAvailableEvent(this.lastAnswer);
 }</pre>
-            <p>Producers, like subscribers, must also be registered:</p>
+            <p>Producers, like subscribers, must be registered:</p>
             <pre class="prettyprint">bus.register(this);</pre>
-            <p>When registering, the producer method will be called once for each subscriber previously registered for
-            the same type. The producer method will also be called once for each new method that subscribes to an event
-            of the same type.</p>
-            <p>You may only have one producer per event type registered at a time on a bus.</p>
+            <p>When it's registered, the producer is called once for each <em>existing</em> subscriber of
+            the same type. Thereafter, it's called once for each new subscriber of the same type.</p>
+            <p><strong>Note: You can have only one producer per event type registered at a time on a bus.</strong></p>
 
             <h5>Thread Enforcement</h5>
-            <p>Since at times it may be ambiguous on which thread you are receiving callbacks, Otto provides an
-            enforcement mechanism to ensure you are always called on the thread you desire. By default, all interaction
-            with an instance is confined to the main thread.</p>
-            <pre class="prettyprint">// Both of these are functionally equivalent.
+            <p>Otto provides an enforcement mechanism to ensure you always receive callbacks on the thread you want.
+            By default, all interaction with an instance is confined to the main thread.</p>
+            <pre class="prettyprint">// These are functionally equivalent.
 Bus bus1 = new Bus();
 Bus bus2 = new Bus(ThreadEnforcer.MAIN);</pre>
-            <p>If you are not concerned on which thread interaction is occurring, instantiate a bus instance with
+            <p>If you don't care which thread interactions happen on, instantiate a bus instance with
             <code>ThreadEnforcer.ANY</code>. You can also provide your own implementation of the
             <code>ThreadEnforcer</code> interface if you need additional functionality or validation.</p>
 
             <h4>Including In Your Application</h4>
-            <p>Otto is packaged as a standalone .jar file which you can place in the <code>libs/</code> folder of your
+            <p>Otto is packaged as a standalone <code>.jar</code> file that you can place in the <code>libs/</code> folder
             of your application. It is compatible with all versions of Android and has no minimum SDK requirement. You
-            can download the latest .jar on the GitHub project by clicking the "Download" button.</p>
-            <p>If you are a Maven user, you can also fetch Otto from the central repositories by including the following
+            can download the latest <code>.jar</code> on the GitHub project by clicking the <strong>Download</strong> button.</p>
+            <p>If you're a Maven user, you can also fetch Otto from the central repositories by including the following
             dependnecy in your application's <code>pom.xml</code>:</p>
             <pre class="prettyprint">&lt;dependency>
     &lt;groupId>com.squareup&lt;/groupId>
     &lt;artifactId>otto&lt;/artifactId>
     &lt;version><em>(insert latest version)</em>&lt;/version>
 &lt;/dependency></pre>
-            <p>Once you've installed Otto, add the following lines to your proguard-project.txt file:</p>
+            <p>After you've installed Otto, add the following lines to your <code>proguard-project.txt</code> file:</p>
             <pre class="prettyprint">-keepclassmembers class ** {
     @com.squareup.otto.Subscribe public *;
     @com.squareup.otto.Produce public *;
@@ -113,7 +107,7 @@ Bus bus2 = new Bus(ThreadEnforcer.MAIN);</pre>
             <p>This ensures your annotated methods aren't removed by ProGuard.</p>
 
             <h4>Contributing</h4>
-            <p>If you would like to contribute code to Otto you can do so through GitHub by forking the repository and
+            <p>If you'd like to contribute code to Otto, you can do so through GitHub by forking the repository and
             sending a pull request.</p>
             <p>When submitting code, please make every effort to follow existing conventions and style in order to keep
             the code as readable as possible. Please also make sure your code compiles by running <code>mvn clean
