@@ -1,40 +1,59 @@
 <!DOCTYPE html>
-
 <html lang="en">
-<head>
+  <head>
     <meta charset="utf-8">
-    <title>Otto - An event bus by Square, Inc.</title>
+    <title>Otto</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="An enhanced Guava-based event bus with emphasis on Android support." />
-    <link href="bootstrap.min.css" rel="stylesheet">
-    <link href="bootstrap-responsive.min.css" rel="stylesheet">
-    <link href="prettify.css" rel="stylesheet">
-    <link href="app.css" rel="stylesheet">
-</head>
-<body>
-<div class="container">
-    <div class="row">
-        <div class="span4 side">
+    <meta name="description" content="An enhanced event bus with emphasis on Android support">
+    <link href="static/bootstrap-combined.min.css" rel="stylesheet">
+    <link href="static/app.css" rel="stylesheet">
+    <link href="static/app-theme.css" rel="stylesheet">
+    <link href="http://fonts.googleapis.com/css?family=Roboto:400,300italic,100,100italic,300" rel="stylesheet" type="text/css">
+    <!--[if lt IE 9]><script src="static/html5shiv.min.js"></script><![endif]-->
+  </head>
+  <body data-target=".content-nav">
+    <header>
+      <div class="container">
+        <div class="row">
+          <div class="span5">
             <h1>Otto</h1>
-            <h3>An enhanced Guava-based event bus with emphasis on Android support.</h3>
-            <ul class="unstyled">
-                <li><a href="http://github.com/square/otto" class="btn btn-large btn-inverse" id="download">Download</a></li>
-            </ul>
-            <img src="square.png" alt="by Square, Inc.">
+          </div>
+          <div class="span7">
+            <menu>
+              <ul>
+                <li><a href="#download" class="menu download">Download <span class="version-tag">Latest</span></a></li>
+                <li><a href="http://github.com/square/otto" data-title="View GitHub Project" class="menu github"><img src="static/icon-github.png" alt="GitHub"/></a></li>
+                <li><a href="http://square.github.io/" data-title="Square Open Source Portal" class="menu square"><img src="static/icon-square.png" alt="Square"/></a></li>
+              </ul>
+            </menu>
+          </div>
       </div>
-        <div class="offset4 span8 main"><div class="main-inner">
-            <h4>Introduction</h4>
+    </header>
+    <section id="subtitle">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <h2>An enhanced <strong>event bus</strong> with emphasis on Android support</h2>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="body">
+      <div class="container">
+        <div class="row">
+          <div class="span9">
+            <h3 id="introduction">Introduction</h3>
             <p>Otto is an event bus designed to decouple different parts of your application while still allowing them
             to communicate efficiently.</p>
             <p>Forked from Guava, Otto adds unique functionality to an already refined event bus as well as specializing
             it to the Android platform.</p>
 
-            <h4>Usage</h4>
+            <h3 id="usage">Usage</h3>
             <p>Otto is designed with Android-specific use cases in mind and is intended for use as a singleton
              (though that is not required). These examples assume you have an
             instance in the variable <code>bus</code> obtained through injection or another appropriate mechanism.</p>
 
-            <h5>Publishing</h5>
+            <h4>Publishing</h4>
             <p>Event publishing is the most important part of the bus as it allows you to tell subscribers that an
             action has occurred. An instance of any class may be published on the bus and it will only be dispatched to
             subscribers for that type.</p>
@@ -43,7 +62,7 @@
             <p>Posting to the bus is a synchronous action so when program execution continues it is guaranteed that all
             subscribers have been called.</p>
 
-            <h5>Subscribing</h5>
+            <h4>Subscribing</h4>
             <p>Subscription is the complement to event publishing&mdash;it lets you receive notification that an event
             has occurred. To subscribe to an event, annotate a method with <code>@Subscribe</code>. The method should
             take only a single parameter, the type of which will be the event you wish to subscribe to.</p>
@@ -64,7 +83,7 @@
             <p>Remember to also call the <code>unregister</code> method when appropriate. See the sample application
             included in the download for a complete example.</p>
 
-            <h5>Producing</h5>
+            <h4>Producing</h4>
             <p>When subscribing to events it is often desired to also fetch the current known value for specific events
             (e.g., current location, active user, etc.). To address this common paradigm, Otto adds the concept of
             'Producers' which provide an immediate callback to any subscribers upon their registration.</p>
@@ -83,7 +102,7 @@
             of the same type.</p>
             <p>You may only have one producer per event type registered at a time on a bus.</p>
 
-            <h5>Thread Enforcement</h5>
+            <h4>Thread Enforcement</h4>
             <p>Since at times it may be ambiguous on which thread you are receiving callbacks, Otto provides an
             enforcement mechanism to ensure you are always called on the thread you desire. By default, all interaction
             with an instance is confined to the main thread.</p>
@@ -94,38 +113,30 @@ Bus bus2 = new Bus(ThreadEnforcer.MAIN);</pre>
             <code>ThreadEnforcer.ANY</code>. You can also provide your own implementation of the
             <code>ThreadEnforcer</code> interface if you need additional functionality or validation.</p>
 
-            <h4>Including In Your Application</h4>
-            <p>Otto is packaged as a standalone .jar file which you can place in the <code>libs/</code> folder of your
-            of your application. It is compatible with all versions of Android and has no minimum SDK requirement. You
-            can download the latest .jar on the GitHub project by clicking the "Download" button.</p>
-            <p>If you are a Maven user, you can also fetch Otto from the central repositories by including the following
-            dependnecy in your application's <code>pom.xml</code>:</p>
+            <h3 id="download">Download</h3>
+            <p><a href="http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.squareup&a=otto&v=LATEST" class="dl version-href">&darr; <span class="version-tag">Latest</span> JAR</a></p>
+            <p>The source code to the Otto, its sample, and this website is <a href="http://github.com/square/otto">available on GitHub</a>.</p>
+
+            <h4>Maven</h4>
             <pre class="prettyprint">&lt;dependency>
-    &lt;groupId>com.squareup&lt;/groupId>
-    &lt;artifactId>otto&lt;/artifactId>
-    &lt;version><em>(insert latest version)</em>&lt;/version>
+  &lt;groupId>com.squareup&lt;/groupId>
+  &lt;artifactId>otto&lt;/artifactId>
+  &lt;version><span class="version pln"><em>(insert latest version)</em></span>&lt;/version>
 &lt;/dependency></pre>
-            <p>Once you've installed Otto, add the following lines to your proguard-project.txt file:</p>
+            <p>Once you've installed Otto, add the following lines to your <code>proguard-project.txt</code> file:</p>
             <pre class="prettyprint">-keepclassmembers class ** {
     @com.squareup.otto.Subscribe public *;
     @com.squareup.otto.Produce public *;
 }</pre>
             <p>This ensures your annotated methods aren't removed by ProGuard.</p>
 
-            <h4>Contributing</h4>
-            <p>If you would like to contribute code to Otto you can do so through GitHub by forking the repository and
-            sending a pull request.</p>
-            <p>When submitting code, please make every effort to follow existing conventions and style in order to keep
-            the code as readable as possible. Please also make sure your code compiles by running <code>mvn clean
-            verify</code>. Checkstyle failures during compilation indicate errors in your style and can be viewed in the
-            <code>checkstyle-result.xml</code> file.</p>
-            <p>Before your code can be accepted into the project you must also sign the
-            <a href="https://spreadsheets.google.com/spreadsheet/viewform?formkey=dDViT2xzUHAwRkI3X3k5Z0lQM091OGc6MQ&ndplr=1">Individual
-            Contributor License Agreement (CLA)</a>.</p>
+            <h3 id="contributing">Contributing</h3>
+            <p>If you would like to contribute code you can do so through GitHub by forking the repository and sending a pull request.</p>
+            <p>When submitting code, please make every effort to follow existing conventions and style in order to keep the code as readable as possible. Please also make sure your code compiles by running <code>mvn clean verify</code>.</p>
+            <p>Before your code can be accepted into the project you must also sign the <a href="http://squ.re/sign-the-cla">Individual Contributor License Agreement (CLA)</a>.</p>
 
-            <h4>License</h4>
-            <pre class="license">Copyright 2012 Square, Inc.
-Copyright 2010 Google, Inc.
+            <h3 id="license">License</h3>
+            <pre>Copyright 2013 Square, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -138,19 +149,63 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.</pre>
+          </div>
+          <div class="span3">
+            <div class="content-nav" data-spy="affix" data-offset-top="80">
+              <ul class="nav nav-tabs nav-stacked primary">
+                <li><a href="#introduction">Introduction</a></li>
+                <li><a href="#usage">Usage</a></li>
+                <li><a href="#download">Download</a></li>
+                <li><a href="#contributing">Contributing</a></li>
+                <li><a href="#license">License</a></li>
+              </ul>
+              <ul class="nav nav-pills nav-stacked secondary">
+                <li><a href="https://plus.google.com/communities/109244258569782858265/stream/67e6b6dd-0dcd-40c8-9823-47319d798c25">Google+ Community</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span12 logo">
+            <a href="https://squareup.com"><img src="static/logo-square.png" alt="Square, Inc."/></a>
+          </div>
+        </div>
+      </div>
+    </section>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="static/bootstrap.min.js"></script>
+    <script src="static/jquery.smooth-scroll.min.js"></script>
+    <script src="static/jquery-maven-artifact.min.js"></script>
+    <script src="static/prettify.js"></script>
+    <script type="text/javascript">
+      $(function() {
+        // Syntax highlight code blocks.
+        prettyPrint();
 
-            <a id="ribbon" href="https://github.com/square/otto"><img src="ribbon.png" alt="Fork me on GitHub"></a>
-        </div></div>
-    </div>
-</div>
-<script src="prettify.js"></script>
-<script> prettyPrint(); </script>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="jquery-maven-artifact.min.js"></script>
-<script>
-    $.fn.artifactVersion('com.squareup', 'otto', function(version, url) {
-        $('#download').attr('href', url).text('Download v' + version);
-    });
-</script>
-</body>
+        // Spy on scroll position for real-time updating of current section.
+        $('body').scrollspy();
+        
+        // Use smooth-scroll for internal links.
+        $('a').smoothScroll();
+
+        // Enable tooltips on the header nav image items.
+        $('.menu').tooltip({
+          placement: 'bottom',
+          trigger: 'hover',
+          container: 'body',
+          delay: {
+            show: 500,
+            hide: 0
+          }
+        });
+
+        // Look up the latest version of the library.
+        $.fn.artifactVersion('com.squareup', 'otto', function(version, url) {
+          $('.version').text(version);
+          $('.version-tag').text('v' + version);
+          $('.version-href').attr('href', url);
+        });
+      });
+    </script>
+  </body>
 </html>
