@@ -19,6 +19,7 @@ package com.squareup.otto.sample;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
+import com.squareup.otto.BusProvider;
 import com.squareup.otto.Produce;
 
 import java.util.Random;
