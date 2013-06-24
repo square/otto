@@ -136,6 +136,24 @@ public class BusTest {
         EVENT, events.get(0).event);
   }
 
+  @Test public void testNullInteractions() {
+    try {
+      bus.register(null);
+      fail("Should have thrown an NPE on register.");
+    } catch (NullPointerException e) {
+    }
+    try {
+      bus.unregister(null);
+      fail("Should have thrown an NPE on unregister.");
+    } catch (NullPointerException e) {
+    }
+    try {
+      bus.post(null);
+      fail("Should have thrown an NPE on post.");
+    } catch (NullPointerException e) {
+    }
+  }
+
   @Test public void producerCalledForExistingSubscribers() {
     StringCatcher catcher = new StringCatcher();
     StringProducer producer = new StringProducer();
