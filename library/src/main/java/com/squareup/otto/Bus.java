@@ -180,8 +180,12 @@ public class Bus {
    * the value from the result of calling the producer.
    *
    * @param object object whose handler methods should be registered.
+   * @throws NullPointerException if the object is null.
    */
   public void register(Object object) {
+    if (object == null) {
+      throw new NullPointerException("Object to register must not be null.");
+    }
     enforcer.enforce(this);
 
     Map<Class<?>, EventProducer> foundProducers = handlerFinder.findAllProducers(object);
@@ -253,8 +257,12 @@ public class Bus {
    *
    * @param object object whose producer and handler methods should be unregistered.
    * @throws IllegalArgumentException if the object was not previously registered.
+   * @throws NullPointerException if the object is null.
    */
   public void unregister(Object object) {
+    if (object == null) {
+      throw new NullPointerException("Object to unregister must not be null.");
+    }
     enforcer.enforce(this);
 
     Map<Class<?>, EventProducer> producersInListener = handlerFinder.findAllProducers(object);
@@ -299,8 +307,12 @@ public class Bus {
    * {@link DeadEvent}, it will be wrapped in a DeadEvent and reposted.
    *
    * @param event event to post.
+   * @throws NullPointerException if the event is null.
    */
   public void post(Object event) {
+    if (event == null) {
+      throw new NullPointerException("Event to post must not be null.");
+    }
     enforcer.enforce(this);
 
     Set<Class<?>> dispatchTypes = flattenHierarchy(event.getClass());
