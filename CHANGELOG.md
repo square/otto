@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 1.3.4 *(2013-06-24)*
+----------------------------
+
+ * Explicitly disallow `null` argument to `register`, `unregister`, and `post`.
+
+
 Version 1.3.3 *(2013-02-18)*
 ----------------------------
 
