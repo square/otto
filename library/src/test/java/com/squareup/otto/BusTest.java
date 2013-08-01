@@ -39,7 +39,7 @@ public class BusTest {
   private static final String EVENT = "Hello";
   private static final String BUS_IDENTIFIER = "test-bus";
 
-  private Bus bus;
+  private OldBus bus;
 
   @Before public void setUp() throws Exception {
     bus = new OldBus(ThreadEnforcer.ANY, BUS_IDENTIFIER);

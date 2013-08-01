@@ -16,10 +16,15 @@
 
 package com.squareup.otto;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
@@ -65,26 +70,8 @@ public class UnregisteringHandlerTest {
         Arrays.asList(StringProducer.VALUE), catcher.getEvents());
   }
 
-  @Test public void unregisterProducerInHandler() throws Exception {
-    final Object producer = new Object() {
-      private int calls = 0;
-      @Produce public String produceString() {
-        calls++;
-        if (calls > 1) {
-          fail("Should only have been called once, then unregistered and never called again.");
-        }
-        return "Please enjoy this hand-crafted String.";
-      }
-    };
-    bus.register(producer);
-    bus.register(new Object() {
-      @Subscribe public void firstUnsubscribeTheProducer(String produced) {
-        bus.unregister(producer);
-      }
-      @Subscribe public void shouldNeverBeCalled(String uhoh) {
-        fail("Shouldn't receive events from an unregistered producer.");
-      }
-    });
+  @Test public void destroyBusInHandler() throws Exception {
+    fail("What happens when an @Subscribe method destroys the bus?");
   }
 
   /** Delegates to {@code HandlerFinder.ANNOTATED}, then sorts results by {@code EventHandler#toString} */

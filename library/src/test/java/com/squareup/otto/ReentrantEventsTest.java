@@ -36,7 +36,7 @@ public class ReentrantEventsTest {
   static final String FIRST = "one";
   static final Double SECOND = 2.0d;
 
-  final Bus bus = new Bus(ThreadEnforcer.ANY);
+  final Bus bus = new OldBus(ThreadEnforcer.ANY);
 
   @Test public void noReentrantEvents() {
     ReentrantEventsHater hater = new ReentrantEventsHater();

@@ -29,11 +29,6 @@ public class UnregisteringStringCatcher {
     this.bus = bus;
   }
 
-  @Subscribe public void unregisterOnString(String event) {
-    bus.unregister(this);
-    events.add(event);
-  }
-
   @Subscribe public void zzzSleepinOnStrings(String event) {
     events.add(event);
   }

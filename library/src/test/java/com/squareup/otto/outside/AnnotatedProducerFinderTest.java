@@ -17,14 +17,14 @@
 package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
+import com.squareup.otto.OldBus;
 import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
 import com.squareup.otto.ThreadEnforcer;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -59,7 +59,7 @@ public class AnnotatedProducerFinderTest {
   }
 
   @Test public void simpleProducer() {
-    Bus bus = new Bus(ThreadEnforcer.ANY);
+    Bus bus = new OldBus(ThreadEnforcer.ANY);
     Subscriber subscriber = new Subscriber();
     SimpleProducer producer = new SimpleProducer();
 
@@ -71,7 +71,7 @@ public class AnnotatedProducerFinderTest {
   }
 
   @Test public void multipleSubscriptionsCallsProviderEachTime() {
-    Bus bus = new Bus(ThreadEnforcer.ANY);
+    Bus bus = new OldBus(ThreadEnforcer.ANY);
     SimpleProducer producer = new SimpleProducer();
 
     bus.register(producer);

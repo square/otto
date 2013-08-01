@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static org.fest.assertions.api.Assertions.fail;
 
 public class ThreadEnforcerTest {
 
@@ -49,13 +50,8 @@ public class ThreadEnforcerTest {
     assertTrue(enforcer.called);
   }
 
-  @Test public void enforcerCalledForUnregister() {
-    RecordingThreadEnforcer enforcer = new RecordingThreadEnforcer();
-    Bus bus = new OldBus(enforcer);
-
-    assertFalse(enforcer.called);
-    bus.unregister(this);
-    assertTrue(enforcer.called);
+  @Test public void enforcerCalledForDestroy() {
+    fail("destroy() should be called from the bus thread only.");
   }
 
 }
