@@ -47,7 +47,8 @@ public class LocationMapFragment extends Fragment {
 
   @Override public void onPause() {
     super.onPause();
-    BusProvider.getInstance().unregister(this);
+    // TODO FIXME
+    //BusProvider.getInstance().unregister(this);
 
     // Stop existing download, if it exists.
     if (downloadTask != null) {

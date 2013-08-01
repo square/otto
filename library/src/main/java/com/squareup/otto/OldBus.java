@@ -92,10 +92,6 @@ public class OldBus implements Bus {
   private final ConcurrentMap<Class<?>, Set<EventHandler>> handlersByType =
           new ConcurrentHashMap<Class<?>, Set<EventHandler>>();
 
-  /** All registered event producers, index by event type. */
-  private final ConcurrentMap<Class<?>, EventProducer> producersByType =
-          new ConcurrentHashMap<Class<?>, EventProducer>();
-
   /** Identifier used to differentiate the event bus instance. */
   private final String identifier;
 
@@ -188,24 +184,6 @@ public class OldBus implements Bus {
     }
     enforcer.enforce(this);
 
-    Map<Class<?>, EventProducer> foundProducers = handlerFinder.findAllProducers(object);
-    for (Class<?> type : foundProducers.keySet()) {
-
-      final EventProducer producer = foundProducers.get(type);
-      EventProducer previousProducer = producersByType.putIfAbsent(type, producer);
-      //checking if the previous producer existed
-      if (previousProducer != null) {
-        throw new IllegalArgumentException("Producer method for type " + type
-          + " found on type " + producer.target.getClass()
-          + ", but already registered by type " + previousProducer.target.getClass() + ".");
-      }
-      Set<EventHandler> handlers = handlersByType.get(type);
-      if (handlers != null && !handlers.isEmpty()) {
-        for (EventHandler handler : handlers) {
-          dispatchProducerResultToHandler(handler, producer);
-        }
-      }
-    }
 
     Map<Class<?>, Set<EventHandler>> foundHandlersMap = handlerFinder.findAllSubscribers(object);
     for (Class<?> type : foundHandlersMap.keySet()) {
@@ -221,35 +199,6 @@ public class OldBus implements Bus {
       final Set<EventHandler> foundHandlers = foundHandlersMap.get(type);
       handlers.addAll(foundHandlers);
     }
-
-    for (Map.Entry<Class<?>, Set<EventHandler>> entry : foundHandlersMap.entrySet()) {
-      Class<?> type = entry.getKey();
-      EventProducer producer = producersByType.get(type);
-      if (producer != null && producer.isValid()) {
-        Set<EventHandler> foundHandlers = entry.getValue();
-        for (EventHandler foundHandler : foundHandlers) {
-          if (!producer.isValid()) {
-            break;
-          }
-          if (foundHandler.isValid()) {
-            dispatchProducerResultToHandler(foundHandler, producer);
-          }
-        }
-      }
-    }
-  }
-
-  private void dispatchProducerResultToHandler(EventHandler handler, EventProducer producer) {
-    Object event = null;
-    try {
-      event = producer.produceEvent();
-    } catch (InvocationTargetException e) {
-      throwRuntimeException("Producer " + producer + " threw an exception.", e);
-    }
-    if (event == null) {
-      return;
-    }
-    dispatch(event, handler);
   }
 
   /**
@@ -264,20 +213,6 @@ public class OldBus implements Bus {
       throw new NullPointerException("Object to unregister must not be null.");
     }
     enforcer.enforce(this);
-
-    Map<Class<?>, EventProducer> producersInListener = handlerFinder.findAllProducers(object);
-    for (Map.Entry<Class<?>, EventProducer> entry : producersInListener.entrySet()) {
-      final Class<?> key = entry.getKey();
-      EventProducer producer = getProducerForEventType(key);
-      EventProducer value = entry.getValue();
-
-      if (value == null || !value.equals(producer)) {
-        throw new IllegalArgumentException(
-            "Missing event producer for an annotated method. Is " + object.getClass()
-                + " registered?");
-      }
-      producersByType.remove(key).invalidate();
-    }
 
     Map<Class<?>, Set<EventHandler>> handlersInListener = handlerFinder.findAllSubscribers(object);
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : handlersInListener.entrySet()) {
@@ -406,17 +341,6 @@ public class OldBus implements Bus {
       throwRuntimeException(
           "Could not dispatch event: " + event.getClass() + " to handler " + wrapper, e);
     }
-  }
-
-  /**
-   * Retrieves the currently registered producer for {@code type}.  If no producer is currently registered for
-   * {@code type}, this method will return {@code null}.
-   *
-   * @param type type of producer to retrieve.
-   * @return currently registered producer, or {@code null}.
-   */
-  EventProducer getProducerForEventType(Class<?> type) {
-    return producersByType.get(type);
   }
 
   /**

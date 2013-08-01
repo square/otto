@@ -16,18 +16,9 @@
 
 package com.squareup.otto.outside;
 
-import com.squareup.otto.Bus;
-import com.squareup.otto.OldBus;
-import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
-import com.squareup.otto.ThreadEnforcer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import org.junit.Test;
-
-import static junit.framework.Assert.assertEquals;
-import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
  * Test that Bus finds the correct producers.
@@ -45,39 +36,5 @@ public class AnnotatedProducerFinderTest {
     @Subscribe public void subscribe(Object o) {
       events.add(o);
     }
-  }
-
-  static class SimpleProducer {
-    static final Object VALUE = new Object();
-
-    int produceCalled = 0;
-
-    @Produce public Object produceIt() {
-      produceCalled += 1;
-      return VALUE;
-    }
-  }
-
-  @Test public void simpleProducer() {
-    Bus bus = new OldBus(ThreadEnforcer.ANY);
-    Subscriber subscriber = new Subscriber();
-    SimpleProducer producer = new SimpleProducer();
-
-    bus.register(producer);
-    assertThat(producer.produceCalled).isEqualTo(0);
-    bus.register(subscriber);
-    assertThat(producer.produceCalled).isEqualTo(1);
-    assertEquals(Arrays.asList(SimpleProducer.VALUE), subscriber.events);
-  }
-
-  @Test public void multipleSubscriptionsCallsProviderEachTime() {
-    Bus bus = new OldBus(ThreadEnforcer.ANY);
-    SimpleProducer producer = new SimpleProducer();
-
-    bus.register(producer);
-    bus.register(new Subscriber());
-    assertThat(producer.produceCalled).isEqualTo(1);
-    bus.register(new Subscriber());
-    assertThat(producer.produceCalled).isEqualTo(2);
   }
 }

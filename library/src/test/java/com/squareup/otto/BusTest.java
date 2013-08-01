@@ -154,33 +154,8 @@ public class BusTest {
     }
   }
 
-  @Test public void producerCalledForExistingSubscribers() {
-    StringCatcher catcher = new StringCatcher();
-    StringProducer producer = new StringProducer();
 
-    bus.register(catcher);
-    bus.register(producer);
-
-    assertEquals(Arrays.asList(StringProducer.VALUE), catcher.getEvents());
-  }
-
-  @Test public void producingNullIsNoOp() {
-    LazyStringProducer producer = new LazyStringProducer();
-    StringCatcher catcher = new StringCatcher();
-
-    bus.register(catcher);
-    bus.register(producer);
-
-    assertTrue(catcher.getEvents().isEmpty());
-
-    bus.unregister(producer);
-    producer.value = "Foo";
-    bus.register(producer);
-
-    assertEquals(Arrays.asList("Foo"), catcher.getEvents());
-  }
-
-  @Test public void subscribingOrProducingOnlyAllowedOnPublicMethods() {
+  @Test public void subscribingOnlyAllowedOnPublicMethods() {
     try {
       bus.register(new Object() {
         @Subscribe protected void method(Object o) {}
@@ -203,44 +178,6 @@ public class BusTest {
       fail();
     } catch (IllegalArgumentException expected) {
     }
-    try {
-      bus.register(new Object() {
-        @Produce protected Object method() { return null; }
-      });
-      fail();
-    } catch (IllegalArgumentException expected) {
-    }
-    try {
-      bus.register(new Object() {
-        @Produce Object method() { return null; }
-      });
-      fail();
-    } catch (IllegalArgumentException expected) {
-    }
-    try {
-      bus.register(new Object() {
-        @Produce private Object method() { return null; }
-      });
-      fail();
-    } catch (IllegalArgumentException expected) {
-    }
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void voidProducerThrowsException() throws Exception {
-    class VoidProducer {
-      @Produce public void things() {}
-    }
-    bus.register(new VoidProducer());
-  }
-
-  @Test public void producerUnregisterAllowsReregistering() {
-    StringProducer producer1 = new StringProducer();
-    StringProducer producer2 = new StringProducer();
-
-    bus.register(producer1);
-    bus.unregister(producer1);
-    bus.register(producer2);
   }
 
   @Test public void flattenHierarchy() {
@@ -305,24 +242,6 @@ public class BusTest {
                  expectedEvents, catcher2.getEvents());
   }
 
-  @Test public void producingNullIsInvalid() {
-    try {
-      bus.register(new NullProducer());
-    } catch (IllegalStateException expected) {
-      // Expected.
-    }
-  }
-
-  @Test public void testExceptionThrowingProducer() throws Exception {
-    bus.register(new ExceptionThrowingProducer());
-    try {
-      bus.register(new DummySubscriber());
-      fail("Should have failed due to exception-throwing producer.");
-    } catch (RuntimeException e) {
-      // Expected.
-    }
-  }
-
   @Test public void testExceptionThrowingHandler() throws Exception {
     bus.register(new ExceptionThrowingHandler());
     try {
@@ -330,12 +249,6 @@ public class BusTest {
       fail("Should have failed due to exception-throwing handler.");
     } catch (RuntimeException e) {
       // Expected
-    }
-  }
-
-  private class ExceptionThrowingProducer {
-    @Produce public String produceThingsExceptionally() {
-      throw new IllegalStateException("Bogus!");
     }
   }
 
@@ -371,16 +284,6 @@ public class BusTest {
 
     public List<DeadEvent> getEvents() {
       return events;
-    }
-  }
-
-  public static class NullProducer {
-    @Produce public Object produceNull() {
-      return null;
-    }
-
-    @Subscribe public void method(Object event) {
-      fail();
     }
   }
 

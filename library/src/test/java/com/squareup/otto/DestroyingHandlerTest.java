@@ -58,11 +58,6 @@ public class DestroyingHandlerTest {
     };
 
     @Override
-    public Map<Class<?>, EventProducer> findAllProducers(Object listener) {
-      return HandlerFinder.ANNOTATED.findAllProducers(listener);
-    }
-
-    @Override
     public Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener) {
       Map<Class<?>, Set<EventHandler>> found = HandlerFinder.ANNOTATED.findAllSubscribers(listener);
       Map<Class<?>, Set<EventHandler>> sorted = new HashMap<Class<?>, Set<EventHandler>>();

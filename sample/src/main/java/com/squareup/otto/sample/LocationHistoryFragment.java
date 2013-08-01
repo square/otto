@@ -37,7 +37,8 @@ public class LocationHistoryFragment extends ListFragment {
 
   @Override public void onPause() {
     super.onPause();
-    BusProvider.getInstance().unregister(this);
+    // TODO FIXME
+    //BusProvider.getInstance().unregister(this);
   }
 
   @Override public void onViewCreated(View view, Bundle savedInstanceState) {

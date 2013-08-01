@@ -19,8 +19,6 @@ package com.squareup.otto.sample;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
-import com.squareup.otto.Produce;
-
 import java.util.Random;
 
 import static android.view.View.OnClickListener;
@@ -30,7 +28,6 @@ public class LocationActivity extends FragmentActivity {
   public static final float DEFAULT_LON = -79.994085f;
   private static final float OFFSET = 0.1f;
   private static final Random RANDOM = new Random();
-
   private static float lastLatitude = DEFAULT_LAT;
   private static float lastLongitude = DEFAULT_LON;
 
@@ -70,10 +67,12 @@ public class LocationActivity extends FragmentActivity {
     super.onPause();
 
     // Always unregister when an object no longer should be on the bus.
-    BusProvider.getInstance().unregister(this);
+    // TODO fixme!
+    //BusProvider.getInstance().unregister(this);
   }
 
-  @Produce public LocationChangedEvent produceLocationEvent() {
+  // TODO fixme!
+  public LocationChangedEvent produceLocationEvent() {
     // Provide an initial value for location based on the last known position.
     return new LocationChangedEvent(lastLatitude, lastLongitude);
   }
