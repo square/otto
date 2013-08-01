@@ -16,6 +16,7 @@
 
 package com.squareup.otto;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertFalse;
@@ -50,7 +51,7 @@ public class ThreadEnforcerTest {
     assertTrue(enforcer.called);
   }
 
-  @Test public void enforcerCalledForDestroy() {
+  @Ignore @Test public void enforcerCalledForDestroy() {
     fail("destroy() should be called from the bus thread only.");
   }
 

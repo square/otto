@@ -16,7 +16,6 @@
 
 package com.squareup.otto;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,13 +23,13 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 /** Test case for subscribers which unregister while handling an event. */
-public class UnregisteringHandlerTest {
+public class DestroyingHandlerTest {
 
   private static final String EVENT = "Hello";
   private static final String BUS_IDENTIFIER = "test-bus";
@@ -44,33 +43,7 @@ public class UnregisteringHandlerTest {
   }
 
 
-  @Test
-  public void unregisterInHandler() {
-    UnregisteringStringCatcher catcher = new UnregisteringStringCatcher(bus);
-    bus.register(catcher);
-    bus.post(EVENT);
-
-    assertEquals("One correct event should be delivered.", Arrays.asList(EVENT), catcher.getEvents());
-
-    bus.post(EVENT);
-    bus.post(EVENT);
-    assertEquals("Shouldn't catch any more events when unregistered.", Arrays.asList(EVENT), catcher.getEvents());
-  }
-
-  @Test public void unregisterInHandlerWhenEventProduced() throws Exception {
-    UnregisteringStringCatcher catcher = new UnregisteringStringCatcher(bus);
-
-    bus.register(new StringProducer());
-    bus.register(catcher);
-    assertEquals(Arrays.asList(StringProducer.VALUE), catcher.getEvents());
-
-    bus.post(EVENT);
-    bus.post(EVENT);
-    assertEquals("Shouldn't catch any more events when unregistered.",
-        Arrays.asList(StringProducer.VALUE), catcher.getEvents());
-  }
-
-  @Test public void destroyBusInHandler() throws Exception {
+  @Ignore @Test public void destroyBusInHandler() throws Exception {
     fail("What happens when an @Subscribe method destroys the bus?");
   }
 
