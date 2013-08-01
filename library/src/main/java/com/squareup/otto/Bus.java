@@ -1,7 +1,7 @@
 package com.squareup.otto;
 
 /** A Bus is backed by a single thread.  It is disabled at creation. */
-interface Bus {
+public interface Bus {
   
   /** 
    * Synchronously send event to all subscribers registered on this Bus and its children.

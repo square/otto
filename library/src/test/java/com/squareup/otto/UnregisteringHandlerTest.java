@@ -35,7 +35,7 @@ public class UnregisteringHandlerTest {
 
   @Before
   public void setUp() throws Exception {
-    bus = new Bus(ThreadEnforcer.ANY, BUS_IDENTIFIER, new SortedHandlerFinder());
+    bus = new OldBus(ThreadEnforcer.ANY, BUS_IDENTIFIER, new SortedHandlerFinder());
   }
 
 
