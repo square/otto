@@ -8,15 +8,20 @@ import java.util.Set;
 
 public class Shuttle implements Bus {
 
-  // Phase 1
-
   private final Map<Class<?>, Set<EventHandler>> handlersByEventType =
       new HashMap<Class<?>, Set<EventHandler>>();
-
-  /**
-   * Posting is disabled by default.
-   */
+  private final ShuttleDispatcher dispatcher;
+  /** Posting is disabled by default. */
   private boolean postingEnabled;
+
+  public Shuttle() {
+    this(ShuttleDispatcher.main());
+  }
+
+  /** Exposed for tests.  Don't touch. */
+  public Shuttle(ShuttleDispatcher dispatcher) {
+    this.dispatcher = dispatcher;
+  }
 
   /**
    * Throw a {@link RuntimeException} with given message and cause lifted from an {@link
@@ -34,6 +39,7 @@ public class Shuttle implements Bus {
   }
 
   @Override public void register(Object subscriber) {
+    dispatcher.enforce();
     Map<Class<?>, Set<EventHandler>> handlers =
         AnnotatedHandlerFinder.findAllSubscribers(subscriber);
 
@@ -51,7 +57,7 @@ public class Shuttle implements Bus {
   }
 
   @Override public void post(Object event) {
-
+    dispatcher.enforce();
     if (!postingEnabled) {
       return;
     }
@@ -70,28 +76,34 @@ public class Shuttle implements Bus {
   }
 
   @Override public void enable() {
+    dispatcher.enforce();
     postingEnabled = true;
   }
 
-  // Phase 3  - beer
-
   @Override public void disable() {
+    dispatcher.enforce();
     postingEnabled = false;
   }
 
   // Phase 4 - whiskey
 
+  // thread enforcement!
+
+  // Phase 5
+
   @Override public void postOnBusThread(Object event) {
     throw new UnsupportedOperationException("NOT IMPLEMENTED");
   }
 
-  // Phase 5
+  // Phase 6
 
   @Override public void destroy() {
+    dispatcher.enforce();
     throw new UnsupportedOperationException("NOT IMPLEMENTED");
   }
 
   @Override public Bus spawn() {
+    dispatcher.enforce();
     throw new UnsupportedOperationException("NOT IMPLEMENTED");
   }
 }
