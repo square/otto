@@ -17,14 +17,12 @@
 package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
-import com.squareup.otto.OldBus;
-import com.squareup.otto.Subscribe;
-import com.squareup.otto.ThreadEnforcer;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+import com.squareup.otto.Shuttle;
+import com.squareup.otto.StringCatcher;
+import org.junit.Before;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
  * Test cases for {@code Bus} that must not be in the same package.
@@ -32,28 +30,43 @@ import static junit.framework.Assert.assertEquals;
  * @author Louis Wasserman
  */
 public class OutsideEventBusTest {
+  private static final String EVENT = "Hello";
+
+  Bus bus;
+
+  @Before public void setUp() {
+    bus = new Shuttle();
+  }
 
   /*
    * If you do this test from common.eventbus.BusTest, it doesn't actually test the behavior.
    * That is, even if exactly the same method works from inside the common.eventbus package tests,
    * it can fail here.
    */
-  @Test public void anonymous() {
-    final AtomicReference<String> holder = new AtomicReference<String>();
-    final AtomicInteger deliveries = new AtomicInteger();
-    Bus bus = new OldBus(ThreadEnforcer.ANY);
-    bus.register(new Object() {
-      @Subscribe
-      public void accept(String str) {
-        holder.set(str);
-        deliveries.incrementAndGet();
-      }
-    });
-
-    String EVENT = "Hello!";
+  @Test public void subscriberReceivesPostedEvent() {
+    StringCatcher catcher = new StringCatcher();
+    bus.register(catcher);
     bus.post(EVENT);
+    assertThat(catcher.getEvents()).as("Subscriber should receive posted event.")
+        .containsExactly(EVENT);
+  }
 
-    assertEquals("Only one event should be delivered.", 1, deliveries.get());
-    assertEquals("Correct string should be delivered.", EVENT, holder.get());
+  @Test public void subscriberOnlyReceivesEventsForType() {
+    StringCatcher catcher = new StringCatcher();
+    bus.register(catcher);
+    bus.post(new Object());
+    assertThat(catcher.getEvents()).as("Subscriber should not receive event of wrong type.")
+        .isEmpty();
+  }
+
+  @Test public void onlySubscriberOfCorrectTypeReceivesEvent() {
+    StringCatcher catcher = new StringCatcher();
+    IntegerCatcher intCatcher = new IntegerCatcher();
+    bus.register(catcher);
+    bus.post(EVENT);
+    assertThat(intCatcher.getEvents()).as("Subscriber should not receive event of wrong type.")
+        .isEmpty();
+    assertThat(catcher.getEvents()).as("Subscriber of matching type should receive posted event.")
+        .containsExactly(EVENT);
   }
 }
