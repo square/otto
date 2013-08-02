@@ -18,7 +18,7 @@ public abstract class ShuttleDispatcher {
       creationTag = tag;
     }
 
-    @Override void enforce() throws AssertionError {
+    @Override void enforce() {
       if (threadTag.get() != creationTag) {
         throw new AssertionError(
             "Event bus accessed from illegal thread " + Thread.currentThread());
@@ -43,7 +43,7 @@ public abstract class ShuttleDispatcher {
       main = new ShuttleDispatcher() {
         private final Handler handler = new Handler(Looper.getMainLooper());
 
-        @Override public void enforce() throws AssertionError {
+        @Override public void enforce() {
           if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
             throw new AssertionError(
                 "Event bus accessed from non-main thread " + Thread.currentThread());
@@ -58,7 +58,7 @@ public abstract class ShuttleDispatcher {
     return main;
   }
 
-  abstract void enforce() throws AssertionError;
+  abstract void enforce();
 
   abstract void dispatch(Runnable runnable);
 }
