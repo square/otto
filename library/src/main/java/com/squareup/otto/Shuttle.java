@@ -45,8 +45,6 @@ public class Shuttle implements Bus {
     }
   }
 
-  // Phase 2 - beer
-
   @Override public void post(Object event) {
     Class<?> eventType = event.getClass();
     Set<EventHandler> eventHandlers = handlersByEventType.get(eventType);
