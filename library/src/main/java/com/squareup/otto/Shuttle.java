@@ -14,6 +14,11 @@ public class Shuttle implements Bus {
       new HashMap<Class<?>, Set<EventHandler>>();
 
   /**
+   * Posting is disabled by default.
+   */
+  private boolean postingEnabled;
+
+  /**
    * Throw a {@link RuntimeException} with given message and cause lifted from an {@link
    * java.lang.reflect.InvocationTargetException}. If the specified {@link
    * java.lang.reflect.InvocationTargetException} does not have a
@@ -46,6 +51,11 @@ public class Shuttle implements Bus {
   }
 
   @Override public void post(Object event) {
+
+    if (!postingEnabled) {
+      return;
+    }
+
     Class<?> eventType = event.getClass();
     Set<EventHandler> eventHandlers = handlersByEventType.get(eventType);
     if (eventHandlers == null) return;
@@ -60,13 +70,13 @@ public class Shuttle implements Bus {
   }
 
   @Override public void enable() {
-    throw new UnsupportedOperationException("NOT IMPLEMENTED");
+    postingEnabled = true;
   }
 
   // Phase 3  - beer
 
   @Override public void disable() {
-    throw new UnsupportedOperationException("NOT IMPLEMENTED");
+    postingEnabled = false;
   }
 
   // Phase 4 - whiskey

@@ -19,6 +19,9 @@ package com.squareup.otto;
 import java.util.ArrayList;
 import java.util.List;
 import junit.framework.Assert;
+import org.fest.assertions.api.ListAssert;
+
+import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
  * A simple EventHandler mock that records Strings.
@@ -42,5 +45,13 @@ public class StringCatcher {
 
   public List<String> getEvents() {
     return events;
+  }
+
+  public void reset() {
+    events.clear();
+  }
+
+  public ListAssert<String> assertThatEvents(String description) {
+    return assertThat(getEvents()).as(description);
   }
 }

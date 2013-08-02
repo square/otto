@@ -31,7 +31,6 @@ import static org.fest.assertions.api.Assertions.assertThat;
  */
 public class OutsideEventBusTest {
   private static final String EVENT = "Hello";
-
   Bus bus;
 
   @Before public void setUp() {
@@ -46,16 +45,18 @@ public class OutsideEventBusTest {
   @Test public void subscriberReceivesPostedEvent() {
     StringCatcher catcher = new StringCatcher();
     bus.register(catcher);
+    bus.enable();
     bus.post(EVENT);
-    assertThat(catcher.getEvents()).as("Subscriber should receive posted event.")
+    catcher.assertThatEvents("Subscriber should receive posted event.")
         .containsExactly(EVENT);
   }
 
   @Test public void subscriberOnlyReceivesEventsForType() {
     StringCatcher catcher = new StringCatcher();
     bus.register(catcher);
+    bus.enable();
     bus.post(new Object());
-    assertThat(catcher.getEvents()).as("Subscriber should not receive event of wrong type.")
+    catcher.assertThatEvents("Subscriber should not receive event of wrong type.")
         .isEmpty();
   }
 
@@ -63,10 +64,30 @@ public class OutsideEventBusTest {
     StringCatcher catcher = new StringCatcher();
     IntegerCatcher intCatcher = new IntegerCatcher();
     bus.register(catcher);
+    bus.enable();
     bus.post(EVENT);
     assertThat(intCatcher.getEvents()).as("Subscriber should not receive event of wrong type.")
         .isEmpty();
-    assertThat(catcher.getEvents()).as("Subscriber of matching type should receive posted event.")
+    catcher.assertThatEvents("Subscriber of matching type should receive posted event.")
         .containsExactly(EVENT);
+  }
+
+  @Test public void busIsDisabledWhenCreated() {
+    StringCatcher catcher = new StringCatcher();
+    bus.register(catcher);
+    bus.post(EVENT);
+    catcher.assertThatEvents("Bus should be disabled.").isEmpty();
+  }
+
+  @Test public void busCanBeEnabledAndDisabled() {
+    StringCatcher catcher = new StringCatcher();
+    bus.register(catcher);
+    bus.enable();
+    bus.post(EVENT);
+    catcher.assertThatEvents("Bus should be enabled.").isNotEmpty();
+    catcher.reset();
+    bus.disable();
+    bus.post(EVENT);
+    catcher.assertThatEvents("Bus should be disabled.").isEmpty();
   }
 }
