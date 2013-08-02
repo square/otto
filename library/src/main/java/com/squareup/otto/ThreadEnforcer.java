@@ -26,41 +26,53 @@ import android.os.Looper;
  */
 public interface ThreadEnforcer {
 
-  /**
-   * Enforce a valid thread for the given {@code bus}. Implementations may throw any runtime exception.
-   *
-   * @param bus Event bus instance on which an action is being performed.
-   */
-  void enforce(Bus bus);
+    /**
+     * Enforce a valid thread for the given {@code bus}. Implementations may
+     * throw any runtime exception.
+     *
+     * @param bus
+     *            Event bus instance on which an action is being performed.
+     */
+    void enforce(Bus bus);
 
+    /** A {@link ThreadEnforcer} that does no verification. */
+    ThreadEnforcer ANY = new ThreadEnforcer() {
+        @Override
+        public void enforce(Bus bus) {
+            // Allow any thread.
+        }
+    };
 
-  /** A {@link ThreadEnforcer} that does no verification. */
-  ThreadEnforcer ANY = new ThreadEnforcer() {
-    @Override public void enforce(Bus bus) {
-      // Allow any thread.
-    }
-  };
+    /**
+     * A {@link ThreadEnforcer} that confines {@link Bus} methods to any but
+     * always the same thread.
+     */
+    ThreadEnforcer SINGLE = new ThreadEnforcer() {
+        private Thread thread;
 
-  /** A {@link ThreadEnforcer} that confines {@link Bus} methods to any but always the same thread. */
-  ThreadEnforcer SINGLE = new ThreadEnforcer() {
-	  private Thread thread;
-	  @Override public void enforce(Bus bus) {
-		  if (thread == null) {
-			  thread = Thread.currentThread();
-		  } else if (thread != Thread.currentThread()) {
-			  throw new IllegalStateException(bus + " accessed from two threads, while a single thred is expected: " 
-					  + thread + " vs. " + Thread.currentThread());
-		  }
-	  }
-  };
-  
-  /** A {@link ThreadEnforcer} that confines {@link Bus} methods to the main thread. */
-  ThreadEnforcer MAIN = new ThreadEnforcer() {
-    @Override public void enforce(Bus bus) {
-      if (Looper.myLooper() != Looper.getMainLooper()) {
-        throw new IllegalStateException("Event bus " + bus + " accessed from non-main thread " + Looper.myLooper());
-      }
-    }
-  };
+        @Override
+        public void enforce(Bus bus) {
+            if (thread == null) {
+                thread = Thread.currentThread();
+            } else if (thread != Thread.currentThread()) {
+                throw new IllegalStateException(bus + " accessed from two threads, while a single thred is expected: "
+                        + thread + " vs. " + Thread.currentThread());
+            }
+        }
+    };
+
+    /**
+     * A {@link ThreadEnforcer} that confines {@link Bus} methods to the main
+     * thread.
+     */
+    ThreadEnforcer MAIN = new ThreadEnforcer() {
+        @Override
+        public void enforce(Bus bus) {
+            if (Looper.myLooper() != Looper.getMainLooper()) {
+                throw new IllegalStateException("Event bus " + bus + " accessed from non-main thread "
+                        + Looper.myLooper());
+            }
+        }
+    };
 
 }

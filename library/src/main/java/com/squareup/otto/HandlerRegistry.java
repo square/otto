@@ -22,26 +22,29 @@ import java.util.Map;
 import com.squareup.otto.EventHandler.EventProducer;
 import com.squareup.otto.EventHandler.EventSubscriber;
 
-/** Registry for subscribers, producers and events */
+/** Registry for subscribers, producers and events. */
 interface HandlerRegistry {
 
-	abstract Map<Class<?>, EventProducer> findEventProducers(Object listener);
-	abstract Map<Class<?>, Collection<EventSubscriber>> findEventSubscribers(Object listener);
-	abstract Collection<Class<?>> readEventClassHierarchy(Object event);
+    Map<Class<?>, EventProducer> findEventProducers(Object listener);
+    Map<Class<?>, Collection<EventSubscriber>> findEventSubscribers(Object listener);
+    Collection<Class<?>> readEventClassHierarchy(Object event);
 
-	public static final HandlerRegistry ANNOTATED = new HandlerRegistry() {
-		
-		@Override public Collection<Class<?>> readEventClassHierarchy(Object event) {
-			return AnnotatedHandlerRegistry.readEventClassHierarchy(event);
-		}
-		
-		@Override public Map<Class<?>, Collection<EventSubscriber>> findEventSubscribers(Object listener) {
-			return AnnotatedHandlerRegistry.findEventSubscribers(listener);
-		}
-		
-		@Override public Map<Class<?>, EventProducer> findEventProducers(Object listener) {
-			return AnnotatedHandlerRegistry.findEventProducers(listener);
-		}
-	};
-	
+    HandlerRegistry ANNOTATED = new HandlerRegistry() {
+
+        @Override
+        public Collection<Class<?>> readEventClassHierarchy(Object event) {
+            return AnnotatedHandlerRegistry.readEventClassHierarchy(event);
+        }
+
+        @Override
+        public Map<Class<?>, Collection<EventSubscriber>> findEventSubscribers(Object listener) {
+            return AnnotatedHandlerRegistry.findEventSubscribers(listener);
+        }
+
+        @Override
+        public Map<Class<?>, EventProducer> findEventProducers(Object listener) {
+            return AnnotatedHandlerRegistry.findEventProducers(listener);
+        }
+    };
+
 }
