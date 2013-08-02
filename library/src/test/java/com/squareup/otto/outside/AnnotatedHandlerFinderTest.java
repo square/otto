@@ -16,9 +16,12 @@
 
 package com.squareup.otto.outside;
 
-import com.squareup.otto.Bus;
-import com.squareup.otto.Subscribe;
-import com.squareup.otto.ThreadEnforcer;
+import static junit.framework.Assert.fail;
+import static org.fest.assertions.api.Assertions.assertThat;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
@@ -27,12 +30,9 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import static junit.framework.Assert.fail;
-import static org.fest.assertions.api.Assertions.assertThat;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
+import com.squareup.otto.ThreadEnforcer;
 
 /**
  * Test that Bus finds the correct handlers.
@@ -42,7 +42,6 @@ import static org.fest.assertions.api.Assertions.assertThat;
  * @author Louis Wasserman
  */
 @RunWith(Enclosed.class)
-@SuppressWarnings("UnusedDeclaration")
 public class AnnotatedHandlerFinderTest {
 
   private static final Object EVENT = new Object();

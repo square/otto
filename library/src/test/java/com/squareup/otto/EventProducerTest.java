@@ -16,15 +16,18 @@
 
 package com.squareup.otto;
 
-import org.junit.Before;
-import org.junit.Test;
+import static junit.framework.Assert.assertSame;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import static junit.framework.Assert.assertSame;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.squareup.otto.EventHandler.EventProducer;
+
 
 public class EventProducerTest {
 
@@ -80,7 +83,7 @@ public class EventProducerTest {
     try {
       producer.produceEvent();
       fail("Producers whose methods throw must throw InvocationTargetException");
-    } catch (InvocationTargetException e) {
+    } catch (Exception e) {
       assertTrue("Expected exception must be wrapped.",
           e.getCause() instanceof IntentionalException);
     }
@@ -93,8 +96,8 @@ public class EventProducerTest {
     try {
       producer.produceEvent();
       fail("Producers whose methods throw Errors must rethrow them");
-    } catch (JudgmentError expected) {
-      // Expected.
+    } catch (Throwable expected) {
+    	// expected
     }
   }
 
