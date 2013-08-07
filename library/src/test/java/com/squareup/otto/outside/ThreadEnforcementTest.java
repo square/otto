@@ -21,78 +21,65 @@ public class ThreadEnforcementTest {
   }
 
   @Test(expected = AssertionError.class) public void registerEnforcesThread() throws Throwable {
-    Future<?> task = backgroundThread.submit(new Runnable() {
+    enforcesThread(new Runnable() {
       @Override public void run() {
         bus.register(new Object());
       }
     });
-    try {
-      task.get();
-    } catch (Exception e) {
-      throw e.getCause();
-    }
   }
 
   @Test(expected = AssertionError.class) public void postEnforcesThread() throws Throwable {
-    Future<?> task = backgroundThread.submit(new Runnable() {
+    enforcesThread(new Runnable() {
       @Override public void run() {
         bus.post(new Object());
       }
     });
-    try {
-      task.get();
-    } catch (Exception e) {
-      throw e.getCause();
-    }
   }
 
   @Test(expected = AssertionError.class) public void alsoEnforcesWhenDisabled() throws Throwable {
     bus.disable();
-    Future<?> task = backgroundThread.submit(new Runnable() {
+    enforcesThread(new Runnable() {
       @Override public void run() {
         bus.post(new Object());
       }
     });
-    try {
-      task.get();
-    } catch (Exception e) {
-      throw e.getCause();
-    }
   }
 
   @Test(expected = AssertionError.class) public void enableEnforcesThread() throws Throwable {
     bus.disable();
-    Future<?> task = backgroundThread.submit(new Runnable() {
+    enforcesThread(new Runnable() {
       @Override public void run() {
         bus.enable();
       }
     });
-    try {
-      task.get();
-    } catch (Exception e) {
-      throw e.getCause();
-    }
   }
 
   @Test(expected = AssertionError.class) public void disableEnforcesThread() throws Throwable {
-    Future<?> task = backgroundThread.submit(new Runnable() {
+    enforcesThread(new Runnable() {
       @Override public void run() {
         bus.disable();
       }
     });
-    try {
-      task.get();
-    } catch (Exception e) {
-      throw e.getCause();
-    }
   }
 
   @Test(expected = AssertionError.class) public void destroyEnforcesThread() throws Throwable {
-    Future<?> task = backgroundThread.submit(new Runnable() {
+    enforcesThread(new Runnable() {
       @Override public void run() {
         bus.destroy();
       }
     });
+  }
+
+  @Test(expected = AssertionError.class) public void spawnEnforcesThread() throws Throwable {
+    enforcesThread(new Runnable() {
+      @Override public void run() {
+        bus.spawn();
+      }
+    });
+  }
+
+  public void enforcesThread(Runnable runnable) throws Throwable {
+    Future<?> task = backgroundThread.submit(runnable);
     try {
       task.get();
     } catch (Exception e) {
@@ -100,16 +87,4 @@ public class ThreadEnforcementTest {
     }
   }
 
-  @Test(expected = AssertionError.class) public void spawnEnforcesThread() throws Throwable {
-    Future<?> task = backgroundThread.submit(new Runnable() {
-      @Override public void run() {
-        bus.spawn();
-      }
-    });
-    try {
-      task.get();
-    } catch (Exception e) {
-      throw e.getCause();
-    }
-  }
 }

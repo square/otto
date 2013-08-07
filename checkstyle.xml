@@ -82,7 +82,10 @@
         <module name="AvoidNestedBlocks"/>
         <!--module name="EmptyBlock"/-->
         <module name="LeftCurly"/>
-        <module name="NeedBraces"/>
+        <module name="NeedBraces">
+            <!-- "if" doesn't need braces -->
+            <property name="tokens" value="LITERAL_DO, LITERAL_ELSE, LITERAL_FOR, LITERAL_WHILE"/>
+        </module>
         <module name="RightCurly"/>
 
 
@@ -98,7 +101,7 @@
         <module name="InnerAssignment"/>
         <module name="MagicNumber"/>
         <module name="MissingSwitchDefault"/>
-        <module name="RedundantThrows"/>
+        <!--<module name="RedundantThrows"/>-->
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
 
