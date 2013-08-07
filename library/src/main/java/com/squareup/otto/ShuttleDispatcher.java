@@ -29,7 +29,7 @@ public abstract class ShuttleDispatcher {
       runnable.run();
     }
   };
-  private static ShuttleDispatcher MAIN;
+  private static ShuttleDispatcher main;
 
   private ShuttleDispatcher() {
   }
@@ -39,8 +39,8 @@ public abstract class ShuttleDispatcher {
       throw new IllegalStateException(
           "Event bus created from non-main thread " + Thread.currentThread());
     }
-    if (MAIN == null) {
-      MAIN = new ShuttleDispatcher() {
+    if (main == null) {
+      main = new ShuttleDispatcher() {
         private final Handler handler = new Handler(Looper.getMainLooper());
 
         @Override public void enforce() throws AssertionError {
@@ -55,7 +55,7 @@ public abstract class ShuttleDispatcher {
         }
       };
     }
-    return MAIN;
+    return main;
   }
 
   abstract void enforce() throws AssertionError;
