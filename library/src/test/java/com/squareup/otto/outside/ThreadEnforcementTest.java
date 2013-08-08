@@ -2,20 +2,22 @@ package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
 import com.squareup.otto.Shuttle;
-import com.squareup.otto.ShuttleDispatcher;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
+@RunWith(RobolectricTestRunner.class)
 public class ThreadEnforcementTest {
 
   Bus bus;
   ExecutorService backgroundThread;
 
   @Before public void setUp() {
-    bus = new Shuttle(ShuttleDispatcher.TEST);
+    bus = Shuttle.createRootBus();
     bus.enable();
     backgroundThread = Executors.newSingleThreadExecutor();
   }
@@ -78,6 +80,14 @@ public class ThreadEnforcementTest {
     });
   }
 
+  @Test(expected = AssertionError.class) public void busBuilderEnforcesThread() throws Throwable {
+    enforcesThread(new Runnable() {
+      @Override public void run() {
+        Shuttle.createRootBus();
+      }
+    });
+  }
+
   public void enforcesThread(Runnable runnable) throws Throwable {
     Future<?> task = backgroundThread.submit(runnable);
     try {
@@ -86,5 +96,4 @@ public class ThreadEnforcementTest {
       throw e.getCause();
     }
   }
-
 }

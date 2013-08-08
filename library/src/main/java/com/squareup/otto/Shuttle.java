@@ -1,40 +1,20 @@
 package com.squareup.otto;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Shuttle implements Bus {
+import static java.lang.String.format;
+
+public final class Shuttle implements Bus {
 
   public static Shuttle createRootBus() {
     return new Shuttle();
-  }
-
-  private final Map<Class<?>, Set<EventHandler>> handlersByEventType =
-      new HashMap<Class<?>, Set<EventHandler>>();
-  private final ShuttleDispatcher dispatcher;
-  private final Set<Shuttle> children = new HashSet<Shuttle>();
-  /** null if a root bus. */
-  private final Shuttle parent;
-  /** Posting is disabled by default. */
-  private boolean postingEnabled;
-  private boolean destroyed;
-
-  private Shuttle() {
-    this(ShuttleDispatcher.main());
-  }
-
-  /** Exposed for tests.  Don't touch. */
-  public Shuttle(ShuttleDispatcher dispatcher) {
-    this(null, dispatcher);
-  }
-
-  private Shuttle(Shuttle parent, ShuttleDispatcher dispatcher) {
-    this.parent = parent;
-    this.dispatcher = dispatcher;
-    if (parent != null) parent.children.add(this);
   }
 
   /**
@@ -52,8 +32,40 @@ public class Shuttle implements Bus {
     }
   }
 
+  class BusHandler extends Handler {
+    @Override public void handleMessage(Message message) {
+      Object event = message.obj;
+      Shuttle.this.post(event);
+    }
+  }
+
+  private final Map<Class<?>, Set<EventHandler>> handlersByEventType =
+      new HashMap<Class<?>, Set<EventHandler>>();
+  private final Set<Shuttle> children = new HashSet<Shuttle>();
+
+  /**
+   * Each bus gets its own Handler.
+   */
+  private final Handler handler = new BusHandler();
+
+  /** null if a root bus. */
+  private final Shuttle parent;
+  /** Posting is disabled by default. */
+  private boolean postingEnabled;
+  private boolean destroyed;
+
+  private Shuttle() {
+    this(null);
+  }
+
+  private Shuttle(Shuttle parent) {
+    enforceMainThread();
+    this.parent = parent;
+    if (parent != null) parent.children.add(this);
+  }
+
   @Override public void register(Object subscriber) {
-    dispatcher.enforce();
+    enforceMainThread();
     Map<Class<?>, Set<EventHandler>> handlers =
         AnnotatedHandlerFinder.findAllSubscribers(subscriber);
 
@@ -71,7 +83,7 @@ public class Shuttle implements Bus {
   }
 
   @Override public void post(Object event) {
-    dispatcher.enforce();
+    enforceMainThread();
     doPost(event);
   }
 
@@ -86,8 +98,8 @@ public class Shuttle implements Bus {
         try {
           handler.handleEvent(event);
         } catch (InvocationTargetException e) {
-          throwRuntimeException("Could not dispatch event: " + eventType + " to handler " + handler,
-              e);
+          String msg = format("Could not dispatch event %s to handler %s", eventType, handler);
+          throwRuntimeException(msg, e);
         }
       }
     }
@@ -96,8 +108,18 @@ public class Shuttle implements Bus {
     }
   }
 
+  @Override public void postOnMainThread(final Object event) {
+    if (isOnMainThread()) {
+      post(event);
+    } else {
+      Message message = handler.obtainMessage();
+      message.obj = event;
+      handler.sendMessage(message);
+    }
+  }
+
   @Override public void enable() {
-    dispatcher.enforce();
+    enforceMainThread();
     if (postingEnabled) throw new IllegalStateException("Bus is already enabled.");
     if (destroyed) throw new IllegalStateException("Bus has been destroyed.");
     postingEnabled = true;
@@ -107,19 +129,15 @@ public class Shuttle implements Bus {
   }
 
   @Override public void disable() {
-    dispatcher.enforce();
+    enforceMainThread();
     postingEnabled = false;
     for (Bus child : children) {
       child.disable();
     }
   }
 
-  @Override public void postOnBusThread(Object event) {
-    throw new UnsupportedOperationException("NOT IMPLEMENTED");
-  }
-
   @Override public void destroy() {
-    dispatcher.enforce();
+    enforceMainThread();
     if (destroyed) throw new IllegalStateException("Bus has already been destroyed.");
     if (parent != null) parent.children.remove(this);
     destroyRecursively();
@@ -135,7 +153,17 @@ public class Shuttle implements Bus {
   }
 
   @Override public Bus spawn() {
-    dispatcher.enforce();
-    return new Shuttle(this, dispatcher);
+    // Main thread enforcement is handled by the constructor.
+    return new Shuttle(this);
+  }
+
+  private void enforceMainThread() {
+    if (!isOnMainThread()) {
+      throw new AssertionError("Event bus accessed from non-main thread " + Thread.currentThread());
+    }
+  }
+
+  private boolean isOnMainThread() {
+    return Thread.currentThread() == Looper.getMainLooper().getThread();
   }
 }

@@ -271,7 +271,7 @@ public class OldBus implements Bus {
     dispatchQueuedEvents();
   }
 
-  @Override public void postOnBusThread(Object event) {
+  @Override public void postOnMainThread(Object event) {
     throw new UnsupportedOperationException();
   }
 

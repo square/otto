@@ -1,19 +1,19 @@
 package com.squareup.otto;
 
-/** A Bus is backed by a single thread.  It is disabled at creation. */
+/** A Bus is backed by the main thread. It is disabled at creation. */
 public interface Bus {
 
   /**
    * Synchronously send event to all subscribers registered on this Bus and its children.
-   * Must be called from the thread on which the Bus was created.
+   * Must be called on the main thread.
    */
   void post(Object event);
 
   /**
-   * Like post, but may be called from any thread.  The event will be dispatched on the Bus's
-   * thread.  When posting from the Bus's thread, this is equivalent to {@link #post(Object)}.
+   * Like post, but may be called from any thread. The event will be dispatched on the  main
+   * thread. When posting from the main thread, this is equivalent to {@link #post(Object)}.
    */
-  void postOnBusThread(Object event);
+  void postOnMainThread(Object event);
 
   /** Must be called on the Bus's thread. */
   void register(Object subscriber);
@@ -23,16 +23,19 @@ public interface Bus {
    * its ancestors.  Events posted to a child bus will not be sent to subscribers of
    * its ancestors.
    *
-   * Must be called on the Bus's thread.  Child will be backed by the same thread.
+   * Must be called on the main thread.
    */
   Bus spawn();
 
   /** Permanently disable the bus and all descendents, dropping all references to subscribers. */
   void destroy();
 
-  /** Turn on dispatch of events on this bus and all descendents. */
+  /** Turn on dispatch of events on this bus and all descendents. Must be called on the main thread. */
   void enable();
 
-  /** Turn off dispatch of events on this bus and all descendents. */
+  /**
+   * Turn off dispatch of events on this bus and all descendents. Must be called on the main
+   * thread.
+   */
   void disable();
 }
