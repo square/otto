@@ -8,19 +8,33 @@ import java.util.Set;
 
 public class Shuttle implements Bus {
 
+  public static Shuttle createRootBus() {
+    return new Shuttle();
+  }
+
   private final Map<Class<?>, Set<EventHandler>> handlersByEventType =
       new HashMap<Class<?>, Set<EventHandler>>();
   private final ShuttleDispatcher dispatcher;
+  private final Set<Shuttle> children = new HashSet<Shuttle>();
+  /** null if a root bus. */
+  private final Shuttle parent;
   /** Posting is disabled by default. */
   private boolean postingEnabled;
+  private boolean destroyed;
 
-  public Shuttle() {
+  private Shuttle() {
     this(ShuttleDispatcher.main());
   }
 
   /** Exposed for tests.  Don't touch. */
   public Shuttle(ShuttleDispatcher dispatcher) {
+    this(null, dispatcher);
+  }
+
+  private Shuttle(Shuttle parent, ShuttleDispatcher dispatcher) {
+    this.parent = parent;
     this.dispatcher = dispatcher;
+    if (parent != null) parent.children.add(this);
   }
 
   /**
@@ -58,52 +72,70 @@ public class Shuttle implements Bus {
 
   @Override public void post(Object event) {
     dispatcher.enforce();
+    doPost(event);
+  }
+
+  private void doPost(Object event) {
     if (!postingEnabled) {
       return;
     }
-
     Class<?> eventType = event.getClass();
     Set<EventHandler> eventHandlers = handlersByEventType.get(eventType);
-    if (eventHandlers == null) return;
-    for (EventHandler handler : eventHandlers) {
-      try {
-        handler.handleEvent(event);
-      } catch (InvocationTargetException e) {
-        throwRuntimeException("Could not dispatch event: " + eventType + " to handler " + handler,
-            e);
+    if (eventHandlers != null) {
+      for (EventHandler handler : eventHandlers) {
+        try {
+          handler.handleEvent(event);
+        } catch (InvocationTargetException e) {
+          throwRuntimeException("Could not dispatch event: " + eventType + " to handler " + handler,
+              e);
+        }
       }
+    }
+    for (Shuttle child : children) {
+      child.doPost(event);
     }
   }
 
   @Override public void enable() {
     dispatcher.enforce();
+    if (postingEnabled) throw new IllegalStateException("Bus is already enabled.");
+    if (destroyed) throw new IllegalStateException("Bus has been destroyed.");
     postingEnabled = true;
+    for (Bus child : children) {
+      child.enable();
+    }
   }
 
   @Override public void disable() {
     dispatcher.enforce();
     postingEnabled = false;
+    for (Bus child : children) {
+      child.disable();
+    }
   }
-
-  // Phase 4 - whiskey
-
-  // thread enforcement!
-
-  // Phase 5
 
   @Override public void postOnBusThread(Object event) {
     throw new UnsupportedOperationException("NOT IMPLEMENTED");
   }
 
-  // Phase 6
-
   @Override public void destroy() {
     dispatcher.enforce();
-    throw new UnsupportedOperationException("NOT IMPLEMENTED");
+    if (destroyed) throw new IllegalStateException("Bus has already been destroyed.");
+    if (parent != null) parent.children.remove(this);
+    destroyRecursively();
+  }
+
+  private void destroyRecursively() {
+    for (Shuttle child : children) {
+      child.destroyRecursively();
+    }
+    children.clear();
+    postingEnabled = false;
+    destroyed = true;
   }
 
   @Override public Bus spawn() {
     dispatcher.enforce();
-    throw new UnsupportedOperationException("NOT IMPLEMENTED");
+    return new Shuttle(this, dispatcher);
   }
 }
