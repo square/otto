@@ -2,11 +2,13 @@ package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
 import com.squareup.otto.Shuttle;
-import com.squareup.otto.ShuttleDispatcher;
 import com.squareup.otto.StringCatcher;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
+@RunWith(RobolectricTestRunner.class)
 public class HierarchyTest {
 
   private static final String EVENT = "Hello";
@@ -15,7 +17,7 @@ public class HierarchyTest {
   private StringCatcher catcher;
 
   @Before public void setUp() {
-    root = new Shuttle(ShuttleDispatcher.TEST);
+    root = Shuttle.createRootBus();
     root.enable();
     child = root.spawn();
     catcher = new StringCatcher();

@@ -46,6 +46,7 @@
     <android.version>4.1.1.4</android.version>
     <android.platform>16</android.platform>
     <android.support.version>r7</android.support.version>
+    <robolectric.version>2.0</robolectric.version>
 
     <!-- Test Dependencies -->
     <junit.version>4.10</junit.version>
@@ -88,7 +89,12 @@
         <artifactId>support-v4</artifactId>
         <version>${android.support.version}</version>
       </dependency>
-
+      <dependency>
+        <groupId>org.robolectric</groupId>
+        <artifactId>robolectric</artifactId>
+        <version>${robolectric.version}</version>
+        <scope>test</scope>
+      </dependency>
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>

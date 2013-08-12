@@ -2,19 +2,21 @@ package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
 import com.squareup.otto.Shuttle;
-import com.squareup.otto.ShuttleDispatcher;
 import com.squareup.otto.StringCatcher;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
+@RunWith(RobolectricTestRunner.class)
 public class OutsideEventBusTest {
   private static final String EVENT = "Hello";
   Bus bus;
 
   @Before public void setUp() {
-    bus = new Shuttle(ShuttleDispatcher.TEST);
+    bus = Shuttle.createRootBus();
   }
 
   /*
