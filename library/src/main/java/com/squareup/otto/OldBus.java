@@ -283,14 +283,6 @@ public class OldBus implements Bus {
     throw new UnsupportedOperationException();
   }
 
-  @Override public void enable() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override public void disable() {
-    throw new UnsupportedOperationException();
-  }
-
   /**
    * Queue the {@code event} for dispatch during {@link #dispatchQueuedEvents()}. Events are queued in-order of
    * occurrence so they can be dispatched in the same order.

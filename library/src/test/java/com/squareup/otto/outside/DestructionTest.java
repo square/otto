@@ -18,9 +18,7 @@ public class DestructionTest {
 
   @Before public void setUp() {
     root = Shuttle.createRootBus();
-    root.enable();
     child = root.spawn();
-    child.enable();
     catcher = new StringCatcher();
   }
 
@@ -29,16 +27,6 @@ public class DestructionTest {
     root.destroy();
     root.post(EVENT);
     catcher.assertThatEvents("Destroyed bus should not dispatch post.").isEmpty();
-  }
-
-  @Test public void destroyedBusCannotBeEnabled() {
-    root.register(catcher);
-    root.destroy();
-    try {
-      root.enable();
-      Assert.fail("Should not be possible to re-enable a destroyed bus.");
-    } catch (IllegalStateException e) {
-    }
   }
 
   @Test public void destroyedBusCannotBeDestroyed() {

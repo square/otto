@@ -27,7 +27,6 @@ public class OutsideEventBusTest {
   @Test public void subscriberReceivesPostedEvent() {
     StringCatcher catcher = new StringCatcher();
     bus.register(catcher);
-    bus.enable();
     bus.post(EVENT);
     catcher.assertThatEvents("Subscriber should receive posted event.")
         .containsExactly(EVENT);
@@ -36,7 +35,6 @@ public class OutsideEventBusTest {
   @Test public void subscriberOnlyReceivesEventsForType() {
     StringCatcher catcher = new StringCatcher();
     bus.register(catcher);
-    bus.enable();
     bus.post(new Object());
     catcher.assertThatEvents("Subscriber should not receive event of wrong type.")
         .isEmpty();
@@ -46,30 +44,10 @@ public class OutsideEventBusTest {
     StringCatcher catcher = new StringCatcher();
     IntegerCatcher intCatcher = new IntegerCatcher();
     bus.register(catcher);
-    bus.enable();
     bus.post(EVENT);
     assertThat(intCatcher.getEvents()).as("Subscriber should not receive event of wrong type.")
         .isEmpty();
     catcher.assertThatEvents("Subscriber of matching type should receive posted event.")
         .containsExactly(EVENT);
-  }
-
-  @Test public void busIsDisabledWhenCreated() {
-    StringCatcher catcher = new StringCatcher();
-    bus.register(catcher);
-    bus.post(EVENT);
-    catcher.assertThatEvents("Bus should be disabled.").isEmpty();
-  }
-
-  @Test public void busCanBeEnabledAndDisabled() {
-    StringCatcher catcher = new StringCatcher();
-    bus.register(catcher);
-    bus.enable();
-    bus.post(EVENT);
-    catcher.assertThatEvents("Bus should be enabled.").isNotEmpty();
-    catcher.reset();
-    bus.disable();
-    bus.post(EVENT);
-    catcher.assertThatEvents("Bus should be disabled.").isEmpty();
   }
 }

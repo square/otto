@@ -50,8 +50,6 @@ public final class Shuttle implements Bus {
 
   /** null if a root bus. */
   private final Shuttle parent;
-  /** Posting is disabled by default. */
-  private boolean postingEnabled;
   private boolean destroyed;
 
   private Shuttle() {
@@ -88,9 +86,7 @@ public final class Shuttle implements Bus {
   }
 
   private void doPost(Object event) {
-    if (!postingEnabled) {
-      return;
-    }
+    if (destroyed) return;
     Class<?> eventType = event.getClass();
     Set<EventHandler> eventHandlers = handlersByEventType.get(eventType);
     if (eventHandlers != null) {
@@ -118,24 +114,6 @@ public final class Shuttle implements Bus {
     }
   }
 
-  @Override public void enable() {
-    enforceMainThread();
-    if (postingEnabled) throw new IllegalStateException("Bus is already enabled.");
-    if (destroyed) throw new IllegalStateException("Bus has been destroyed.");
-    postingEnabled = true;
-    for (Bus child : children) {
-      child.enable();
-    }
-  }
-
-  @Override public void disable() {
-    enforceMainThread();
-    postingEnabled = false;
-    for (Bus child : children) {
-      child.disable();
-    }
-  }
-
   @Override public void destroy() {
     enforceMainThread();
     if (destroyed) throw new IllegalStateException("Bus has already been destroyed.");
@@ -148,7 +126,6 @@ public final class Shuttle implements Bus {
       child.destroyRecursively();
     }
     children.clear();
-    postingEnabled = false;
     destroyed = true;
   }
 

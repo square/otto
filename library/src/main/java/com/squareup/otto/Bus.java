@@ -29,13 +29,4 @@ public interface Bus {
 
   /** Permanently disable the bus and all descendents, dropping all references to subscribers. */
   void destroy();
-
-  /** Turn on dispatch of events on this bus and all descendents. Must be called on the main thread. */
-  void enable();
-
-  /**
-   * Turn off dispatch of events on this bus and all descendents. Must be called on the main
-   * thread.
-   */
-  void disable();
 }

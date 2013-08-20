@@ -27,7 +27,6 @@ public class PostOnMainThreadTest {
   @Test public void postFromMainThreadIsSynchronous() {
     StringCatcher catcher = new StringCatcher();
     bus.register(catcher);
-    bus.enable();
     bus.post(EVENT);
     catcher.assertThatEvents("Subscriber should receive posted event.").containsExactly(EVENT);
   }
@@ -45,7 +44,6 @@ public class PostOnMainThreadTest {
 
     Subscriber subscriber = new Subscriber();
     bus.register(subscriber);
-    bus.enable();
 
     Thread backgroundThread = new Thread() {
       @Override public void run() {
