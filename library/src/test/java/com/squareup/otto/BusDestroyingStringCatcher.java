@@ -19,14 +19,19 @@ package com.squareup.otto;
 import java.util.ArrayList;
 import java.util.List;
 
-/** An EventHandler mock that records a String and unregisters itself in the handler. */
-public class UnregisteringStringCatcher {
+/** An EventHandler mock that records a String and destroys its bus. */
+public class BusDestroyingStringCatcher {
   private final Bus bus;
 
   private List<String> events = new ArrayList<String>();
 
-  public UnregisteringStringCatcher(Bus bus) {
+  public BusDestroyingStringCatcher(Bus bus) {
     this.bus = bus;
+  }
+
+  @Subscribe public void destroyOnString(String event) {
+    bus.destroy();
+    events.add(event);
   }
 
   @Subscribe public void zzzSleepinOnStrings(String event) {

@@ -23,31 +23,46 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
-import static junit.framework.Assert.fail;
+import static org.fest.assertions.api.Assertions.assertThat;
 
-/** Test case for subscribers which unregister while handling an event. */
+/** Test case for subscribers which destroy their bus while handling an event. */
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE)
 public class DestroyingHandlerTest {
 
   private static final String EVENT = "Hello";
-  private static final String BUS_IDENTIFIER = "test-bus";
-
   private Bus bus;
-
 
   @Before
   public void setUp() throws Exception {
-    bus = new OldBus(ThreadEnforcer.ANY, BUS_IDENTIFIER, new SortedHandlerFinder());
+    bus = Shuttle.createTestBus(new SortedHandlerFinder());
   }
 
+  @Test public void destroyBusInHandler() throws Exception {
+    Bus childBus = bus.spawn();
+    BusDestroyingStringCatcher catcher = new BusDestroyingStringCatcher(childBus);
+    childBus.register(catcher);
+    bus.post(EVENT);
 
-  @Ignore @Test public void destroyBusInHandler() throws Exception {
-    fail("What happens when an @Subscribe method destroys the bus?");
+    assertThat(catcher.getEvents()).as("One correct event should be delivered.")
+        .containsExactly(EVENT);
+
+    bus.post(EVENT);
+    bus.post(EVENT);
+
+    assertThat(catcher.getEvents()).as("Shouldn't catch any more events after bus is destroyed")
+        .containsExactly(EVENT);
   }
 
-  /** Delegates to {@code HandlerFinder.ANNOTATED}, then sorts results by {@code EventHandler#toString} */
+  /**
+   * Delegates to {@code HandlerFinder.ANNOTATED}, then sorts results by {@code
+   * EventHandler#toString}
+   */
   static class SortedHandlerFinder implements HandlerFinder {
 
     static Comparator<EventHandler> handlerComparator = new Comparator<EventHandler>() {

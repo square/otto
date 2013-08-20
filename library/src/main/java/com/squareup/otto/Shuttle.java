@@ -16,7 +16,12 @@ import java.util.Set;
 public final class Shuttle implements Bus {
 
   public static Shuttle createRootBus() {
-    return new Shuttle();
+    return new Shuttle(HandlerFinder.ANNOTATED);
+  }
+
+  /** Create a root bus for testing. */
+  static Shuttle createTestBus(HandlerFinder handlerFinder) {
+    return new Shuttle(handlerFinder);
   }
 
   /**
@@ -40,6 +45,9 @@ public final class Shuttle implements Bus {
       Shuttle.this.post(event);
     }
   }
+
+  /** Used to find handler methods in register and unregister. */
+  private final HandlerFinder handlerFinder;
 
   private final Map<Class<?>, Set<EventHandler>> handlersByEventType =
       new HashMap<Class<?>, Set<EventHandler>>();
@@ -66,10 +74,11 @@ public final class Shuttle implements Bus {
   private boolean destroyed;
 
   /** Create a root bus. */
-  private Shuttle() {
+  private Shuttle(HandlerFinder handlerFinder) {
     enforceMainThread();
     this.parent = null;
     this.root = this;
+    this.handlerFinder = handlerFinder;
   }
 
   /** Create a non-root bus. */
@@ -77,24 +86,24 @@ public final class Shuttle implements Bus {
     enforceMainThread();
     this.parent = parent;
     this.root = root == null ? this : root;
+    this.handlerFinder = this.root.handlerFinder;
     if (parent != null) parent.children.add(this);
   }
 
   @Override public void register(Object subscriber) {
     enforceMainThread();
     Map<Class<?>, Set<EventHandler>> handlers =
-        AnnotatedHandlerFinder.findAllSubscribers(subscriber);
+        handlerFinder.findAllSubscribers(subscriber);
 
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : handlers.entrySet()) {
       Class<?> eventType = entry.getKey();
       Set<EventHandler> registeredHandlers;
       if (!handlersByEventType.containsKey(eventType)) {
-        registeredHandlers = new HashSet<EventHandler>();
-        handlersByEventType.put(eventType, registeredHandlers);
+        handlersByEventType.put(eventType, entry.getValue());
       } else {
         registeredHandlers = handlersByEventType.get(eventType);
+        registeredHandlers.addAll(entry.getValue());
       }
-      registeredHandlers.addAll(entry.getValue());
     }
   }
 
@@ -130,10 +139,11 @@ public final class Shuttle implements Bus {
     if (dispatching) return;
     try {
       dispatching = true;
-      while (!dispatchQueue.isEmpty()) {
+      while ((!destroyed) && (!dispatchQueue.isEmpty())) {
         dispatchQueue.poll().handleEvent();
       }
     } finally {
+      dispatchQueue.clear();
       dispatching = false;
     }
   }
