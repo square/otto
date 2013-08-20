@@ -16,14 +16,15 @@
 
 package com.squareup.otto;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -35,14 +36,15 @@ import static junit.framework.Assert.fail;
  *
  * @author Cliff Biffle
  */
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE)
 public class BusTest {
   private static final String EVENT = "Hello";
-  private static final String BUS_IDENTIFIER = "test-bus";
 
-  private OldBus bus;
+  private Shuttle bus;
 
   @Before public void setUp() throws Exception {
-    bus = new OldBus(ThreadEnforcer.ANY, BUS_IDENTIFIER);
+    bus = Shuttle.createRootBus();
   }
 
   @Test public void basicCatcherDistribution() {
@@ -143,11 +145,6 @@ public class BusTest {
     } catch (NullPointerException e) {
     }
     try {
-      bus.unregister(null);
-      fail("Should have thrown an NPE on unregister.");
-    } catch (NullPointerException e) {
-    }
-    try {
       bus.post(null);
       fail("Should have thrown an NPE on post.");
     } catch (NullPointerException e) {
@@ -194,54 +191,6 @@ public class BusTest {
     bus.register(new Object());
   }
 
-  @Test public void unregister() {
-    StringCatcher catcher1 = new StringCatcher();
-    StringCatcher catcher2 = new StringCatcher();
-    try {
-      bus.unregister(catcher1);
-      fail("Attempting to unregister an unregistered object succeeded");
-    } catch (IllegalArgumentException expected) {
-      // OK.
-    }
-
-    bus.register(catcher1);
-    bus.post(EVENT);
-    bus.register(catcher2);
-    bus.post(EVENT);
-
-    List<String> expectedEvents = new ArrayList<String>();
-    expectedEvents.add(EVENT);
-    expectedEvents.add(EVENT);
-
-    assertEquals("Two correct events should be delivered.",
-                 expectedEvents, catcher1.getEvents());
-
-    assertEquals("One correct event should be delivered.",
-        Arrays.asList(EVENT), catcher2.getEvents());
-
-    bus.unregister(catcher1);
-    bus.post(EVENT);
-
-    assertEquals("Shouldn't catch any more events when unregistered.",
-                 expectedEvents, catcher1.getEvents());
-    assertEquals("Two correct events should be delivered.",
-                 expectedEvents, catcher2.getEvents());
-
-    try {
-      bus.unregister(catcher1);
-      fail("Attempting to unregister an unregistered object succeeded");
-    } catch (IllegalArgumentException expected) {
-      // OK.
-    }
-
-    bus.unregister(catcher2);
-    bus.post(EVENT);
-    assertEquals("Shouldn't catch any more events when unregistered.",
-                 expectedEvents, catcher1.getEvents());
-    assertEquals("Shouldn't catch any more events when unregistered.",
-                 expectedEvents, catcher2.getEvents());
-  }
-
   @Test public void testExceptionThrowingHandler() throws Exception {
     bus.register(new ExceptionThrowingHandler());
     try {
@@ -249,11 +198,6 @@ public class BusTest {
       fail("Should have failed due to exception-throwing handler.");
     } catch (RuntimeException e) {
       // Expected
-    }
-  }
-
-  private class DummySubscriber {
-    @Subscribe public void subscribeToString(String value) {
     }
   }
 
