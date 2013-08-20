@@ -16,11 +16,13 @@
 
 package com.squareup.otto;
 
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
@@ -31,12 +33,14 @@ import static junit.framework.Assert.assertTrue;
  *
  * @author Jesse Wilson
  */
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE)
 public class ReentrantEventsTest {
 
   static final String FIRST = "one";
   static final Double SECOND = 2.0d;
 
-  final Bus bus = new OldBus(ThreadEnforcer.ANY);
+  final Bus bus = Shuttle.createRootBus();
 
   @Test public void noReentrantEvents() {
     ReentrantEventsHater hater = new ReentrantEventsHater();
