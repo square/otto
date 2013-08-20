@@ -119,6 +119,7 @@ public class EventHandlerTest {
    *
    * @param arg  argument to record.
    */
+  @SuppressWarnings("UnusedDeclaration")
   public void recordingMethod(Object arg) {
     if (methodCalled) {
       throw new IllegalStateException("Method called more than once.");
@@ -127,6 +128,7 @@ public class EventHandlerTest {
     methodArgument = arg;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void exceptionThrowingMethod(Object arg) throws Exception {
     throw new IntentionalException();
   }
@@ -136,6 +138,7 @@ public class EventHandlerTest {
     private static final long serialVersionUID = -2500191180248181379L;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void errorThrowingMethod(Object arg) {
     throw new JudgmentError();
   }

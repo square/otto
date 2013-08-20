@@ -2,6 +2,9 @@
 package com.squareup.otto;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import static junit.framework.Assert.assertTrue;
 
@@ -11,6 +14,8 @@ import static junit.framework.Assert.assertTrue;
  *
  * @author Ray Ryan (ray@squareup.com)
  */
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE)
 public class EventBusInnerClassStressTest {
   public static final int REPS = 1000000;
   boolean called;
@@ -22,10 +27,11 @@ public class EventBusInnerClassStressTest {
     }
   }
 
+  Bus eb = Shuttle.createRootBus();
+
   Sub sub = new Sub();
 
   @Test public void eventBusOkayWithNonStaticInnerClass() {
-    Bus eb = new OldBus(ThreadEnforcer.ANY);
     eb.register(sub);
     int i = 0;
     while (i < REPS) {
@@ -37,7 +43,6 @@ public class EventBusInnerClassStressTest {
   }
 
   @Test public void eventBusFailWithAnonInnerClass() {
-    Bus eb = new OldBus(ThreadEnforcer.ANY);
     eb.register(new Object() {
       @Subscribe
       public void in(String o) {
@@ -54,7 +59,6 @@ public class EventBusInnerClassStressTest {
   }
 
   @Test public void eventBusNpeWithAnonInnerClassWaitingForObject() {
-    Bus eb = new OldBus(ThreadEnforcer.ANY);
     eb.register(new Object() {
       @Subscribe
       public void in(Object o) {
