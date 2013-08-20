@@ -18,7 +18,6 @@ public class ThreadEnforcementTest {
 
   @Before public void setUp() {
     bus = Shuttle.createRootBus();
-    bus.enable();
     backgroundThread = Executors.newSingleThreadExecutor();
   }
 
@@ -34,32 +33,6 @@ public class ThreadEnforcementTest {
     enforcesThread(new Runnable() {
       @Override public void run() {
         bus.post(new Object());
-      }
-    });
-  }
-
-  @Test(expected = AssertionError.class) public void alsoEnforcesWhenDisabled() throws Throwable {
-    bus.disable();
-    enforcesThread(new Runnable() {
-      @Override public void run() {
-        bus.post(new Object());
-      }
-    });
-  }
-
-  @Test(expected = AssertionError.class) public void enableEnforcesThread() throws Throwable {
-    bus.disable();
-    enforcesThread(new Runnable() {
-      @Override public void run() {
-        bus.enable();
-      }
-    });
-  }
-
-  @Test(expected = AssertionError.class) public void disableEnforcesThread() throws Throwable {
-    enforcesThread(new Runnable() {
-      @Override public void run() {
-        bus.disable();
       }
     });
   }
