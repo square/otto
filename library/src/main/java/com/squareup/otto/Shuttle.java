@@ -50,15 +50,22 @@ public final class Shuttle implements Bus {
 
   /** null if a root bus. */
   private final Shuttle parent;
+  /** null if a root bus. */
+  private final Shuttle root;
   private boolean destroyed;
 
+  /** Create a root bus. */
   private Shuttle() {
-    this(null);
+    enforceMainThread();
+    this.parent = null;
+    this.root = this;
   }
 
-  private Shuttle(Shuttle parent) {
+  /** Create a non-root bus. */
+  private Shuttle(Shuttle parent, Shuttle root) {
     enforceMainThread();
     this.parent = parent;
+    this.root = root == null ? this : root;
     if (parent != null) parent.children.add(this);
   }
 
@@ -82,7 +89,7 @@ public final class Shuttle implements Bus {
 
   @Override public void post(Object event) {
     enforceMainThread();
-    doPost(event);
+    root.doPost(event);
   }
 
   private void doPost(Object event) {
@@ -131,7 +138,7 @@ public final class Shuttle implements Bus {
 
   @Override public Bus spawn() {
     // Main thread enforcement is handled by the constructor.
-    return new Shuttle(this);
+    return new Shuttle(this, root);
   }
 
   private void enforceMainThread() {

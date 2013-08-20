@@ -4,7 +4,7 @@ package com.squareup.otto;
 public interface Bus {
 
   /**
-   * Synchronously send event to all subscribers registered on this Bus and its children.
+   * Synchronously send event to all subscribers registered to any bus on this bus's tree.
    * Must be called on the main thread.
    */
   void post(Object event);
