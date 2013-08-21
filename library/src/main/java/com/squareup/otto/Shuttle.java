@@ -58,8 +58,7 @@ public final class Shuttle implements Bus {
   private final Queue<Object> dispatchEventQueue = new ArrayDeque<Object>();
   private final Queue<EventHandler> dispatchHandlerQueue = new ArrayDeque<EventHandler>();
 
-  private final Map<Class<?>, Set<Class<?>>> flattenHierarchyCache =
-      new HashMap<Class<?>, Set<Class<?>>>();
+  private final HierarchyFlattener hierarchyFlattener;
 
   private boolean dispatching;
 
@@ -80,14 +79,16 @@ public final class Shuttle implements Bus {
     this.parent = null;
     this.root = this;
     this.handlerFinder = handlerFinder;
+    this.hierarchyFlattener = new HierarchyFlattener();
   }
 
   /** Create a non-root bus. */
-  private Shuttle(Shuttle parent, Shuttle root) {
+  private Shuttle(Shuttle parent, Shuttle root, HierarchyFlattener hierarchyFlattener) {
     enforceMainThread();
     this.parent = parent;
     this.root = root == null ? this : root;
     this.handlerFinder = this.root.handlerFinder;
+    this.hierarchyFlattener = hierarchyFlattener;
     if (parent != null) parent.children.add(this);
   }
 
@@ -115,7 +116,7 @@ public final class Shuttle implements Bus {
 
   private void doPost(Object event) {
     if (destroyed) return;
-    Set<Class<?>> dispatchTypes = flattenHierarchy(event.getClass());
+    Set<Class<?>> dispatchTypes = hierarchyFlattener.flatten(event.getClass());
     boolean dispatched = false;
 
     for (Class eventType : dispatchTypes) {
@@ -186,7 +187,7 @@ public final class Shuttle implements Bus {
 
   @Override public Bus spawn() {
     // Main thread enforcement is handled by the constructor.
-    return new Shuttle(this, root);
+    return new Shuttle(this, root, hierarchyFlattener);
   }
 
   private void enforceMainThread() {
@@ -197,23 +198,6 @@ public final class Shuttle implements Bus {
 
   private boolean isOnMainThread() {
     return Thread.currentThread() == Looper.getMainLooper().getThread();
-  }
-
-  /**
-   * Flattens a class's type hierarchy into a set of Class objects.  The set will include all superclasses
-   * (transitively), and all interfaces implemented by these superclasses.
-   *
-   * @param concreteClass class whose type hierarchy will be retrieved.
-   * @return {@code concreteClass}'s complete type hierarchy, flattened and uniqued.
-   */
-  Set<Class<?>> flattenHierarchy(Class<?> concreteClass) {
-    Set<Class<?>> classes = flattenHierarchyCache.get(concreteClass);
-    if (classes == null) {
-      classes = getClassesFor(concreteClass);
-      flattenHierarchyCache.put(concreteClass, classes);
-    }
-
-    return classes;
   }
 
   /**

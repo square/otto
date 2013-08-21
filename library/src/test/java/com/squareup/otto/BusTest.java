@@ -178,16 +178,6 @@ public class BusTest {
     }
   }
 
-  @Test public void flattenHierarchy() {
-    HierarchyFixture fixture = new HierarchyFixture();
-    Set<Class<?>> hierarchy = bus.flattenHierarchy(fixture.getClass());
-
-    assertEquals(3, hierarchy.size());
-    assertContains(Object.class, hierarchy);
-    assertContains(HierarchyFixtureParent.class, hierarchy);
-    assertContains(HierarchyFixture.class, hierarchy);
-  }
-
   @Test public void missingSubscribe() {
     bus.register(new Object());
   }
@@ -246,24 +236,4 @@ public class BusTest {
       // Do nothing.
     }
   }
-
-
-  public interface HierarchyFixtureInterface {
-    // Exists only for hierarchy mapping; no members.
-  }
-
-  public interface HierarchyFixtureSubinterface
-      extends HierarchyFixtureInterface {
-    // Exists only for hierarchy mapping; no members.
-  }
-
-  public static class HierarchyFixtureParent
-      implements HierarchyFixtureSubinterface {
-    // Exists only for hierarchy mapping; no members.
-  }
-
-  public static class HierarchyFixture extends HierarchyFixtureParent {
-    // Exists only for hierarchy mapping; no members.
-  }
-
 }
