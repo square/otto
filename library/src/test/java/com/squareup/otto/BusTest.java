@@ -16,6 +16,7 @@
 
 package com.squareup.otto;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -191,6 +192,15 @@ public class BusTest {
     bus.register(new Object());
   }
 
+  @Test public void subscribingToInterfaceFails() {
+    try {
+      Shuttle.createRootBus().register(new InterfaceSubscriber());
+      fail("Annotation finder allowed subscription to illegal interface type.");
+    } catch (IllegalArgumentException expected) {
+      // Do nothing.
+    }
+  }
+
   @Test public void testExceptionThrowingHandler() throws Exception {
     bus.register(new ExceptionThrowingHandler());
     try {
@@ -230,6 +240,13 @@ public class BusTest {
       return events;
     }
   }
+
+  static class InterfaceSubscriber {
+    @Subscribe public void whatever(Serializable thingy) {
+      // Do nothing.
+    }
+  }
+
 
   public interface HierarchyFixtureInterface {
     // Exists only for hierarchy mapping; no members.
