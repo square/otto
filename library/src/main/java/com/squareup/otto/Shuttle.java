@@ -55,7 +55,8 @@ public final class Shuttle implements Bus {
 
   // ArrayDeque is an array-backed queue that grows and shrinks, so it won't create a lot of
   // unnecessary objects for the GC to deal with.
-  private final Queue<EventWithHandler> dispatchQueue = new ArrayDeque<EventWithHandler>();
+  private final Queue<Object> dispatchEventQueue = new ArrayDeque<Object>();
+  private final Queue<EventHandler> dispatchHandlerQueue = new ArrayDeque<EventHandler>();
 
   private final Map<Class<?>, Set<Class<?>>> flattenHierarchyCache =
       new HashMap<Class<?>, Set<Class<?>>>();
@@ -122,7 +123,8 @@ public final class Shuttle implements Bus {
       if (eventHandlers != null && !eventHandlers.isEmpty()) {
         dispatched = true;
         for (EventHandler handler : eventHandlers) {
-          dispatchQueue.add(new EventWithHandler(event, handler));
+          dispatchEventQueue.add(event);
+          dispatchHandlerQueue.add(handler);
         }
       }
     }
@@ -139,11 +141,20 @@ public final class Shuttle implements Bus {
     if (dispatching) return;
     try {
       dispatching = true;
-      while ((!destroyed) && (!dispatchQueue.isEmpty())) {
-        dispatchQueue.poll().handleEvent();
+      while ((!destroyed) && (!dispatchEventQueue.isEmpty())) {
+        EventHandler handler = dispatchHandlerQueue.poll();
+        Object event = dispatchEventQueue.poll();
+        try {
+          handler.handleEvent(event);
+        } catch (InvocationTargetException e) {
+          Class<?> eventType = event.getClass();
+          throwRuntimeException("Could not dispatch event: " + eventType + " to handler " + handler,
+              e);
+        }
       }
     } finally {
-      dispatchQueue.clear();
+      dispatchHandlerQueue.clear();
+      dispatchEventQueue.clear();
       dispatching = false;
     }
   }
@@ -232,26 +243,5 @@ public final class Shuttle implements Bus {
       }
     }
     return classes;
-  }
-
-  /** Simple struct representing an event and its handler. */
-  private static final class EventWithHandler {
-    final Object event;
-    final EventHandler handler;
-
-    public EventWithHandler(Object event, EventHandler handler) {
-      this.event = event;
-      this.handler = handler;
-    }
-
-    void handleEvent() {
-      try {
-        handler.handleEvent(event);
-      } catch (InvocationTargetException e) {
-        Class<?> eventType = event.getClass();
-        throwRuntimeException("Could not dispatch event: " + eventType + " to handler " + handler,
-            e);
-      }
-    }
   }
 }
