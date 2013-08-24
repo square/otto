@@ -16,35 +16,34 @@
 
 package com.squareup.otto;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * An EventHandler mock that records a String and unregisters itself in the
+ * handler.
+ */
+public class UnregisteringStringCatcher extends EventRecorder {
+	private final Bus bus;
 
-/** An EventHandler mock that records a String and unregisters itself in the handler. */
-public class UnregisteringStringCatcher {
-  private final Bus bus;
+	public UnregisteringStringCatcher(Bus bus) {
+		this.bus = bus;
+	}
 
-  private List<String> events = new ArrayList<String>();
+	@Subscribe public void unregisterOnString(String event) {
+		unregisterOrRecord(event);
+	}
 
-  public UnregisteringStringCatcher(Bus bus) {
-    this.bus = bus;
-  }
+	@Subscribe public void zzzSleepinOnStrings(String event) {
+		unregisterOrRecord(event);
+	}
 
-  @Subscribe public void unregisterOnString(String event) {
-    bus.unregister(this);
-    events.add(event);
-  }
+	@Subscribe public void haveAnInteger(Integer event) { }
+	@Subscribe public void enjoyThisLong(Long event) { }
+	@Subscribe public void perhapsATastyDouble(Double event) { }
 
-  @Subscribe public void zzzSleepinOnStrings(String event) {
-    events.add(event);
-  }
+	private void unregisterOrRecord(String event) {
+		if (isFirstEvent()) {
+			bus.unregister(this);
+		}
+		recordEvent(event);
+	}
 
-  @Subscribe public void haveAnInteger(Integer event) {}
-
-  @Subscribe public void enjoyThisLong(Long event) {}
-
-  @Subscribe public void perhapsATastyDouble(Double event) {}
-
-  public List<String> getEvents() {
-    return events;
-  }
 }

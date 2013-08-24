@@ -16,19 +16,20 @@
 
 package com.squareup.otto;
 
-import org.junit.Before;
-import org.junit.Test;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.squareup.otto.EventHandler.EventSubscriber;
 
 /**
  * Test case for {@link Bus}.
@@ -49,7 +50,7 @@ public class BusTest {
     StringCatcher catcher = new StringCatcher();
     bus.register(catcher);
 
-    Set<EventHandler> wrappers = bus.getHandlersForEventType(String.class);
+    Collection<EventSubscriber> wrappers = bus.getEventSubscribers(String.class);
     assertNotNull("Should have at least one method registered.", wrappers);
     assertEquals("One method should be registered.", 1, wrappers.size());
 
@@ -245,7 +246,7 @@ public class BusTest {
 
   @Test public void flattenHierarchy() {
     HierarchyFixture fixture = new HierarchyFixture();
-    Set<Class<?>> hierarchy = bus.flattenHierarchy(fixture.getClass());
+    Collection<Class<?>> hierarchy = bus.getEventClassHierarchy(fixture);
 
     assertEquals(3, hierarchy.size());
     assertContains(Object.class, hierarchy);

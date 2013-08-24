@@ -16,8 +16,6 @@
 
 package com.squareup.otto;
 
-import java.util.ArrayList;
-import java.util.List;
 import junit.framework.Assert;
 
 /**
@@ -27,20 +25,16 @@ import junit.framework.Assert;
  * required <em>not</em> to call ({@link #methodWithoutAnnotation(String)}).
  *
  * @author Cliff Biffle
+ * @author Sergej Shafarenka
  */
-public class StringCatcher {
-  private List<String> events = new ArrayList<String>();
+public class StringCatcher extends EventRecorder {
 
-  @Subscribe
-  public void hereHaveAString(String string) {
-    events.add(string);
-  }
+	@Subscribe public void catchStringEvent(String event) {
+		recordEvent(event);
+	}
 
-  public void methodWithoutAnnotation(String string) {
-    Assert.fail("Event bus must not call methods without @Subscribe!");
-  }
+	public void methodWithoutAnnotation(String string) {
+		Assert.fail("Event bus must not call methods without @Subscribe!");
+	}
 
-  public List<String> getEvents() {
-    return events;
-  }
 }

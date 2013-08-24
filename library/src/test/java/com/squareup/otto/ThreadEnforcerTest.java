@@ -16,10 +16,11 @@
 
 package com.squareup.otto;
 
-import org.junit.Test;
-
 import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+
+import org.junit.Test;
 
 public class ThreadEnforcerTest {
 
@@ -58,4 +59,27 @@ public class ThreadEnforcerTest {
     assertTrue(enforcer.called);
   }
 
+	@Test public void testSingleThreadEnforcer() throws InterruptedException {
+
+		final Bus bus = new Bus();
+		final ThreadEnforcer e = ThreadEnforcer.SINGLE;
+		final Exception[] expected = new Exception[1];
+
+		e.enforce(bus);
+
+		Thread thread = new Thread(new Runnable() {
+			@Override public void run() {
+				try {
+					e.enforce(bus);
+				} catch (Exception e) {
+					expected[0] = e;
+				}
+			}
+		});
+		thread.start();
+		thread.join();
+		
+		assertNotNull(expected[0]);
+	}
+  
 }

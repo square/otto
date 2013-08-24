@@ -23,104 +23,102 @@ import java.lang.reflect.Method;
 /**
  * Wraps a single-argument 'handler' method on a specific object.
  *
- * <p>This class only verifies the suitability of the method and event type if something fails.  Callers are expected t
- * verify their uses of this class.
+ * <p>
+ * This class only verifies the suitability of the method and event type if
+ * something fails. Callers are expected t verify their uses of this class.
  *
- * <p>Two EventHandlers are equivalent when they refer to the same method on the same object (not class).   This
- * property is used to ensure that no handler method is registered more than once.
+ * <p>
+ * Two EventHandlers are equivalent when they refer to the same method on the
+ * same object (not class). This property is used to ensure that no handler
+ * method is registered more than once.
  *
  * @author Cliff Biffle
+ * @author Jake Wharton
+ * @author Sergej Shafarenka
  */
-class EventHandler {
+abstract class EventHandler {
 
-  /** Object sporting the handler method. */
-  private final Object target;
-  /** Handler method. */
-  private final Method method;
-  /** Object hash code. */
-  private final int hashCode;
-  /** Should this handler receive events? */
-  private boolean valid = true;
+    /** Event subscriber handler. */
+    static class EventSubscriber extends EventHandler {
+        public EventSubscriber(Object target, Method method) {
+            super(target, method);
+        }
 
-  EventHandler(Object target, Method method) {
-    if (target == null) {
-      throw new NullPointerException("EventHandler target cannot be null.");
-    }
-    if (method == null) {
-      throw new NullPointerException("EventHandler method cannot be null.");
-    }
+        public void handleEvent(Object event) throws IllegalAccessException,
+                InvocationTargetException {
+            if (!valid) {
+                throw new IllegalStateException(toString() + " has been invalidated and can no longer handle events.");
+            }
+            method.invoke(target, event);
+        }
 
-    this.target = target;
-    this.method = method;
-    method.setAccessible(true);
-
-    // Compute hash code eagerly since we know it will be used frequently and we cannot estimate the runtime of the
-    // target's hashCode call.
-    final int prime = 31;
-    hashCode = (prime + method.hashCode()) * prime + target.hashCode();
-  }
-
-  public boolean isValid() {
-    return valid;
-  }
-
-  /**
-   * If invalidated, will subsequently refuse to handle events.
-   *
-   * Should be called when the wrapped object is unregistered from the Bus.
-   */
-  public void invalidate() {
-    valid = false;
-  }
-
-  /**
-   * Invokes the wrapped handler method to handle {@code event}.
-   *
-   * @param event  event to handle
-   * @throws java.lang.IllegalStateException  if previously invalidated.
-   * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
-   *     an {@link Error} ({@code Error}s are propagated as-is).
-   */
-  public void handleEvent(Object event) throws InvocationTargetException {
-    if (!valid) {
-      throw new IllegalStateException(toString() + " has been invalidated and can no longer handle events.");
-    }
-    try {
-      method.invoke(target, event);
-    } catch (IllegalAccessException e) {
-      throw new AssertionError(e);
-    } catch (InvocationTargetException e) {
-      if (e.getCause() instanceof Error) {
-        throw (Error) e.getCause();
-      }
-      throw e;
-    }
-  }
-
-  @Override public String toString() {
-    return "[EventHandler " + method + "]";
-  }
-
-  @Override public int hashCode() {
-    return hashCode;
-  }
-
-  @Override public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
     }
 
-    if (obj == null) {
-      return false;
+    /** Event producer handler. */
+    static class EventProducer extends EventHandler {
+        public EventProducer(Object target, Method method) {
+            super(target, method);
+        }
+
+        public Object produceEvent() throws IllegalAccessException, InvocationTargetException {
+            if (!valid) {
+                throw new IllegalStateException(toString() + " has been invalidated and can no longer produce events.");
+            }
+            return method.invoke(target);
+        }
     }
 
-    if (getClass() != obj.getClass()) {
-      return false;
+    private static final int PRIME = 31;
+
+    /** Object sporting the handler method. */
+    protected final Object target;
+    /** Handler method. */
+    protected final Method method;
+    /** Object hash code. */
+    protected final int hashCode;
+    /** Shows whether handler is still valid for event delivery. */
+    public boolean valid = true;
+
+    EventHandler(Object target, Method method) {
+        if (target == null) {
+            throw new NullPointerException("EventHandler target cannot be null.");
+        }
+        if (method == null) {
+            throw new NullPointerException("EventHandler method cannot be null.");
+        }
+
+        this.target = target;
+        this.method = method;
+
+        // Compute hash code eagerly since we know it will be used frequently
+        // and we cannot estimate the runtime of the target's hashCode call.
+        hashCode = (PRIME + method.hashCode()) * PRIME + target.hashCode();
     }
 
-    final EventHandler other = (EventHandler) obj;
+    @Override
+    public int hashCode() {
+        return hashCode;
+    }
 
-    return method.equals(other.method) && target == other.target;
-  }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final EventHandler other = (EventHandler) obj;
+        return method.equals(other.method) && target == other.target;
+    }
+
+    @Override
+    public String toString() {
+        return new StringBuffer('[').append(getClass().getSimpleName()).append(' ').append(method).append(']')
+                .toString();
+    }
 
 }
