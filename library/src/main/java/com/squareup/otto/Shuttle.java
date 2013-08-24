@@ -7,8 +7,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -209,23 +207,5 @@ public final class Shuttle implements Bus {
    */
   Set<EventHandler> getHandlersForEventType(Class<?> type) {
     return handlersByEventType.get(type);
-  }
-
-  private Set<Class<?>> getClassesFor(Class<?> concreteClass) {
-    List<Class<?>> parents = new LinkedList<Class<?>>();
-    Set<Class<?>> classes = new HashSet<Class<?>>();
-
-    parents.add(concreteClass);
-
-    while (!parents.isEmpty()) {
-      Class<?> clazz = parents.remove(0);
-      classes.add(clazz);
-
-      Class<?> parent = clazz.getSuperclass();
-      if (parent != null) {
-        parents.add(parent);
-      }
-    }
-    return classes;
   }
 }
