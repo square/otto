@@ -1,7 +1,7 @@
 package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
-import com.squareup.otto.Shuttle;
+import com.squareup.otto.OttoBus;
 import com.squareup.otto.StringCatcher;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +21,7 @@ public class HierarchyTest {
   private StringCatcher catcher;
 
   @Before public void setUp() {
-    root = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
+    root = new OttoBus(IGNORE_DEAD_EVENTS);
     child = root.spawn();
     catcher = new StringCatcher();
   }
@@ -42,7 +42,7 @@ public class HierarchyTest {
 
     // Create a tree of buses.
     Bus[] buses = new Bus[10];
-    buses[0] = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
+    buses[0] = new OttoBus(IGNORE_DEAD_EVENTS);
     for (int i = 0; i < buses.length / 2; i++) {
       buses[i + 1] = buses[i].spawn();
       buses[buses.length / 2 + i] = buses[i].spawn();

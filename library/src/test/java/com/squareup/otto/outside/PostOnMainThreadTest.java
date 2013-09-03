@@ -2,7 +2,7 @@ package com.squareup.otto.outside;
 
 import android.os.Looper;
 import com.squareup.otto.Bus;
-import com.squareup.otto.Shuttle;
+import com.squareup.otto.OttoBus;
 import com.squareup.otto.StringCatcher;
 import com.squareup.otto.Subscribe;
 import org.junit.Before;
@@ -22,7 +22,7 @@ public class PostOnMainThreadTest {
   Bus bus;
 
   @Before public void setUp() {
-    bus = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
+    bus = new OttoBus(IGNORE_DEAD_EVENTS);
   }
 
   @Test public void postFromMainThreadIsSynchronous() {

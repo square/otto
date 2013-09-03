@@ -1,7 +1,7 @@
 package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
-import com.squareup.otto.Shuttle;
+import com.squareup.otto.OttoBus;
 import com.squareup.otto.StringCatcher;
 import org.junit.Assert;
 import org.junit.Before;
@@ -19,7 +19,7 @@ public class DestructionTest {
   private StringCatcher catcher;
 
   @Before public void setUp() {
-    root = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
+    root = new OttoBus(IGNORE_DEAD_EVENTS);
     child = root.spawn();
     catcher = new StringCatcher();
   }

@@ -28,7 +28,7 @@ public class EventBusInnerClassStressTest {
     }
   }
 
-  Bus eb = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
+  Bus eb = new OttoBus(IGNORE_DEAD_EVENTS);
 
   Sub sub = new Sub();
 
