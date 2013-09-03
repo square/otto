@@ -10,6 +10,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
+
 @RunWith(RobolectricTestRunner.class)
 public class ThreadEnforcementTest {
 
@@ -17,7 +19,7 @@ public class ThreadEnforcementTest {
   ExecutorService backgroundThread;
 
   @Before public void setUp() {
-    bus = Shuttle.createRootBus();
+    bus = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
     backgroundThread = Executors.newSingleThreadExecutor();
   }
 
@@ -56,7 +58,7 @@ public class ThreadEnforcementTest {
   @Test(expected = AssertionError.class) public void busBuilderEnforcesThread() throws Throwable {
     enforcesThread(new Runnable() {
       @Override public void run() {
-        Shuttle.createRootBus();
+        Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
       }
     });
   }

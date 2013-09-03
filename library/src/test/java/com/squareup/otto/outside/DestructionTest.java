@@ -9,6 +9,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
+
 @RunWith(RobolectricTestRunner.class)
 public class DestructionTest {
   private static final String EVENT = "Hello";
@@ -17,7 +19,7 @@ public class DestructionTest {
   private StringCatcher catcher;
 
   @Before public void setUp() {
-    root = Shuttle.createRootBus();
+    root = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
     child = root.spawn();
     catcher = new StringCatcher();
   }

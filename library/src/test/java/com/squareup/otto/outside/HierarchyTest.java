@@ -9,6 +9,8 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
 public class HierarchyTest {
@@ -19,7 +21,7 @@ public class HierarchyTest {
   private StringCatcher catcher;
 
   @Before public void setUp() {
-    root = Shuttle.createRootBus();
+    root = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
     child = root.spawn();
     catcher = new StringCatcher();
   }
@@ -40,7 +42,7 @@ public class HierarchyTest {
 
     // Create a tree of buses.
     Bus[] buses = new Bus[10];
-    buses[0] = Shuttle.createRootBus();
+    buses[0] = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
     for (int i = 0; i < buses.length / 2; i++) {
       buses[i + 1] = buses[i].spawn();
       buses[buses.length / 2 + i] = buses[i].spawn();

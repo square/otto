@@ -14,12 +14,15 @@ import java.util.Set;
 public final class Shuttle implements Bus {
 
   public static Shuttle createRootBus() {
-    return new Shuttle(HandlerFinder.ANNOTATED);
+    return new Shuttle(HandlerFinder.ANNOTATED, DeadEventHandler.IGNORE_DEAD_EVENTS);
+  }
+  public static Shuttle createRootBus(DeadEventHandler deadEventHandler) {
+    return new Shuttle(HandlerFinder.ANNOTATED, deadEventHandler);
   }
 
   /** Create a root bus for testing. */
-  static Shuttle createTestBus(HandlerFinder handlerFinder) {
-    return new Shuttle(handlerFinder);
+  static Shuttle createTestBus(HandlerFinder handlerFinder, DeadEventHandler deadEventHandler) {
+    return new Shuttle(handlerFinder, deadEventHandler);
   }
 
   /**
@@ -46,6 +49,7 @@ public final class Shuttle implements Bus {
 
   /** Used to find handler methods in register and unregister. */
   private final HandlerFinder handlerFinder;
+  private final DeadEventHandler deadEventHandler;
 
   private final Map<Class<?>, Set<EventHandler>> handlersByEventType =
       new HashMap<Class<?>, Set<EventHandler>>();
@@ -72,7 +76,8 @@ public final class Shuttle implements Bus {
   private boolean destroyed;
 
   /** Create a root bus. */
-  private Shuttle(HandlerFinder handlerFinder) {
+  private Shuttle(HandlerFinder handlerFinder, DeadEventHandler deadEventHandler) {
+    this.deadEventHandler = deadEventHandler;
     enforceMainThread();
     this.parent = null;
     this.root = this;
@@ -81,12 +86,13 @@ public final class Shuttle implements Bus {
   }
 
   /** Create a non-root bus. */
-  private Shuttle(Shuttle parent, Shuttle root, HierarchyFlattener hierarchyFlattener) {
+  private Shuttle(Shuttle parent, Shuttle root) {
     enforceMainThread();
     this.parent = parent;
     this.root = root == null ? this : root;
     this.handlerFinder = this.root.handlerFinder;
-    this.hierarchyFlattener = hierarchyFlattener;
+    this.deadEventHandler = this.root.deadEventHandler;
+    this.hierarchyFlattener = this.root.hierarchyFlattener;
     if (parent != null) parent.children.add(this);
   }
 
@@ -110,7 +116,7 @@ public final class Shuttle implements Bus {
   @Override public void post(Object event) {
     enforceMainThread();
     boolean dispatched = root.doPost(event);
-    if (!dispatched) doPost(new DeadEvent(this, event));
+    if (!dispatched) deadEventHandler.onDeadEvent(event);
   }
 
   /**
@@ -187,7 +193,7 @@ public final class Shuttle implements Bus {
 
   @Override public Bus spawn() {
     // Main thread enforcement is handled by the constructor.
-    return new Shuttle(this, root, hierarchyFlattener);
+    return new Shuttle(this, root);
   }
 
   private void enforceMainThread() {
