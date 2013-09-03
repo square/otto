@@ -109,13 +109,17 @@ public final class Shuttle implements Bus {
 
   @Override public void post(Object event) {
     enforceMainThread();
-    root.doPost(event);
+    boolean dispatched = root.doPost(event);
+    if (!dispatched) doPost(new DeadEvent(this, event));
   }
 
-  private void doPost(Object event) {
-    if (destroyed) return;
-    Set<Class<?>> dispatchTypes = hierarchyFlattener.flatten(event.getClass());
+  /**
+   * @return true iff event was dispatched to some subscriber.
+   */
+  private boolean doPost(Object event) {
     boolean dispatched = false;
+    if (destroyed) return false;
+    Set<Class<?>> dispatchTypes = hierarchyFlattener.flatten(event.getClass());
 
     for (Class eventType : dispatchTypes) {
       Set<EventHandler> eventHandlers = handlersByEventType.get(eventType);
@@ -127,13 +131,11 @@ public final class Shuttle implements Bus {
         }
       }
     }
-    if (!dispatched && !(event instanceof DeadEvent)) {
-      post(new DeadEvent(this, event));
-    }
     dispatchQueuedEvents();
     for (Shuttle child : children) {
-      child.doPost(event);
+      dispatched |= child.doPost(event);
     }
+    return dispatched;
   }
 
   private void dispatchQueuedEvents() {

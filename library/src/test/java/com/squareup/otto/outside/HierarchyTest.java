@@ -63,5 +63,4 @@ public class HierarchyTest {
       catcher.assertThatEvents("Catcher received all events").hasSize(buses.length);
     }
   }
-
 }

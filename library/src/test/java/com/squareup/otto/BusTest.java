@@ -31,6 +31,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
  * Test case for {@link Bus}.
@@ -137,6 +138,14 @@ public class BusTest {
         1, events.size());
     assertEquals("The dead event must not be re-wrapped.",
         EVENT, events.get(0).event);
+  }
+
+  @Test public void eventsDontDieIfChildHasSubscribers() {
+    GhostCatcher catcher = new GhostCatcher();
+    bus.register(catcher);
+    bus.spawn().register(new StringCatcher());
+    bus.post(EVENT);
+    assertThat(catcher.getEvents()).isEmpty();
   }
 
   @Test public void testNullInteractions() {
