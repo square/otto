@@ -1,7 +1,7 @@
 package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
-import com.squareup.otto.Shuttle;
+import com.squareup.otto.OttoBus;
 import com.squareup.otto.StringCatcher;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +17,7 @@ public class OutsideEventBusTest {
   Bus bus;
 
   @Before public void setUp() {
-    bus = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
+    bus = new OttoBus(IGNORE_DEAD_EVENTS);
   }
 
   /*

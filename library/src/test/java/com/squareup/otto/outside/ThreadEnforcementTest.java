@@ -1,7 +1,7 @@
 package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
-import com.squareup.otto.Shuttle;
+import com.squareup.otto.OttoBus;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -19,7 +19,7 @@ public class ThreadEnforcementTest {
   ExecutorService backgroundThread;
 
   @Before public void setUp() {
-    bus = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
+    bus = new OttoBus(IGNORE_DEAD_EVENTS);
     backgroundThread = Executors.newSingleThreadExecutor();
   }
 
@@ -58,7 +58,7 @@ public class ThreadEnforcementTest {
   @Test(expected = AssertionError.class) public void busBuilderEnforcesThread() throws Throwable {
     enforcesThread(new Runnable() {
       @Override public void run() {
-        Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
+        new OttoBus(IGNORE_DEAD_EVENTS);
       }
     });
   }

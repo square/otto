@@ -41,10 +41,10 @@ import static junit.framework.Assert.fail;
 public class BusTest {
   private static final String EVENT = "Hello";
 
-  private Shuttle bus;
+  private OttoBus bus;
 
   @Before public void setUp() throws Exception {
-    bus = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
+    bus = new OttoBus(IGNORE_DEAD_EVENTS);
   }
 
   @Test public void basicCatcherDistribution() {
@@ -157,7 +157,7 @@ public class BusTest {
 
   @Test public void subscribingToInterfaceFails() {
     try {
-      Shuttle.createRootBus(IGNORE_DEAD_EVENTS).register(new InterfaceSubscriber());
+      new OttoBus(IGNORE_DEAD_EVENTS).register(new InterfaceSubscriber());
       fail("Annotation finder allowed subscription to illegal interface type.");
     } catch (IllegalArgumentException expected) {
       // Do nothing.

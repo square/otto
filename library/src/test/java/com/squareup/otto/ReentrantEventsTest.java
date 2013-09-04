@@ -41,7 +41,7 @@ public class ReentrantEventsTest {
   static final String FIRST = "one";
   static final Double SECOND = 2.0d;
 
-  final Bus bus = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
+  final Bus bus = new OttoBus(IGNORE_DEAD_EVENTS);
 
   @Test public void noReentrantEvents() {
     ReentrantEventsHater hater = new ReentrantEventsHater();

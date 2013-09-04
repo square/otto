@@ -41,7 +41,7 @@ public class DestroyingHandlerTest {
 
   @Before
   public void setUp() throws Exception {
-    bus = Shuttle.createTestBus(new SortedHandlerFinder(), IGNORE_DEAD_EVENTS);
+    bus = new OttoBus(new SortedHandlerFinder(), IGNORE_DEAD_EVENTS);
   }
 
   @Test public void destroyBusInHandler() throws Exception {

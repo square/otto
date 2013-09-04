@@ -20,7 +20,7 @@ public class DeadEventTest {
 
   @Before public void setUp() throws Exception {
     catcher = new DeadEventCatcher();
-    bus = Shuttle.createRootBus(catcher);
+    bus = new OttoBus(catcher);
   }
 
   @Test public void eventDiesIfNoSubscribers() {

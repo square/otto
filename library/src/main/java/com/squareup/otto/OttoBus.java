@@ -11,18 +11,62 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-public final class Shuttle implements Bus {
+public final class OttoBus implements Bus {
 
-  public static Shuttle createRootBus() {
-    return new Shuttle(HandlerFinder.ANNOTATED, DeadEventHandler.IGNORE_DEAD_EVENTS);
-  }
-  public static Shuttle createRootBus(DeadEventHandler deadEventHandler) {
-    return new Shuttle(HandlerFinder.ANNOTATED, deadEventHandler);
+  /** Used to find handler methods in register and unregister. */
+  private final HandlerFinder handlerFinder;
+  private final DeadEventHandler deadEventHandler;
+  private final Map<Class<?>, Set<EventHandler>> handlersByEventType =
+      new HashMap<Class<?>, Set<EventHandler>>();
+  private final Set<OttoBus> children = new HashSet<OttoBus>();
+  // ArrayDeque is an array-backed queue that grows and shrinks, so it won't create a lot of
+  // unnecessary objects for the GC to deal with.
+  private final Queue<Object> dispatchEventQueue = new ArrayDeque<Object>();
+  private final Queue<EventHandler> dispatchHandlerQueue = new ArrayDeque<EventHandler>();
+  private final HierarchyFlattener hierarchyFlattener;
+  /** null if a root bus. */
+  private final OttoBus parent;
+  /** this if a root bus. */
+  private final OttoBus root;
+  private MainThread mainThread;
+  private boolean dispatching;
+  private boolean destroyed;
+  /** Create a root bus that ignores dead events. */
+  public OttoBus() {
+    this(HandlerFinder.ANNOTATED, DeadEventHandler.IGNORE_DEAD_EVENTS);
   }
 
-  /** Create a root bus for testing. */
-  static Shuttle createTestBus(HandlerFinder handlerFinder, DeadEventHandler deadEventHandler) {
-    return new Shuttle(handlerFinder, deadEventHandler);
+  /** Create a root bus. */
+  public OttoBus(DeadEventHandler deadEventHandler) {
+    this(HandlerFinder.ANNOTATED, deadEventHandler);
+  }
+
+  OttoBus(HandlerFinder handlerFinder, DeadEventHandler deadEventHandler) {
+    this(new AndroidMainThread(), handlerFinder, deadEventHandler);
+  }
+
+  /** Create a root bus. */
+  OttoBus(MainThread mainThread, HandlerFinder handlerFinder, DeadEventHandler deadEventHandler) {
+    mainThread.setBus(this);
+    mainThread.enforce();
+    this.mainThread = mainThread;
+    this.parent = null;
+    this.root = this;
+    this.handlerFinder = handlerFinder;
+    this.deadEventHandler = deadEventHandler;
+    this.hierarchyFlattener = new HierarchyFlattener();
+  }
+
+  /** Create a non-root bus. */
+  private OttoBus(OttoBus parent, OttoBus root) {
+    root.mainThread.enforce();
+    this.parent = parent;
+    this.root = root;
+    this.mainThread = root.mainThread;
+    this.handlerFinder = root.handlerFinder;
+    this.deadEventHandler = root.deadEventHandler;
+    this.hierarchyFlattener = root.hierarchyFlattener;
+    parent.children.add(this);
   }
 
   /**
@@ -40,81 +84,27 @@ public final class Shuttle implements Bus {
     }
   }
 
-  class BusHandler extends Handler {
-    @Override public void handleMessage(Message message) {
-      Object event = message.obj;
-      Shuttle.this.post(event);
-    }
-  }
-
-  /** Used to find handler methods in register and unregister. */
-  private final HandlerFinder handlerFinder;
-  private final DeadEventHandler deadEventHandler;
-
-  private final Map<Class<?>, Set<EventHandler>> handlersByEventType =
-      new HashMap<Class<?>, Set<EventHandler>>();
-  private final Set<Shuttle> children = new HashSet<Shuttle>();
-
-  // ArrayDeque is an array-backed queue that grows and shrinks, so it won't create a lot of
-  // unnecessary objects for the GC to deal with.
-  private final Queue<Object> dispatchEventQueue = new ArrayDeque<Object>();
-  private final Queue<EventHandler> dispatchHandlerQueue = new ArrayDeque<EventHandler>();
-
-  private final HierarchyFlattener hierarchyFlattener;
-
-  private boolean dispatching;
-
-  /**
-   * Each bus gets its own Handler.
-   */
-  private final Handler handler = new BusHandler();
-
-  /** null if a root bus. */
-  private final Shuttle parent;
-  /** this if a root bus. */
-  private final Shuttle root;
-  private boolean destroyed;
-
-  /** Create a root bus. */
-  private Shuttle(HandlerFinder handlerFinder, DeadEventHandler deadEventHandler) {
-    this.deadEventHandler = deadEventHandler;
-    enforceMainThread();
-    this.parent = null;
-    this.root = this;
-    this.handlerFinder = handlerFinder;
-    this.hierarchyFlattener = new HierarchyFlattener();
-  }
-
-  /** Create a non-root bus. */
-  private Shuttle(Shuttle parent, Shuttle root) {
-    enforceMainThread();
-    this.parent = parent;
-    this.root = root == null ? this : root;
-    this.handlerFinder = this.root.handlerFinder;
-    this.deadEventHandler = this.root.deadEventHandler;
-    this.hierarchyFlattener = this.root.hierarchyFlattener;
-    if (parent != null) parent.children.add(this);
-  }
-
   @Override public void register(Object subscriber) {
-    enforceMainThread();
+    mainThread.enforce();
+
     Map<Class<?>, Set<EventHandler>> handlers =
         handlerFinder.findAllSubscribers(subscriber);
 
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : handlers.entrySet()) {
       Class<?> eventType = entry.getKey();
-      Set<EventHandler> registeredHandlers;
-      if (!handlersByEventType.containsKey(eventType)) {
+
+      Set<EventHandler> eventHandlers = handlersByEventType.get(eventType);
+      if (eventHandlers == null) {
         handlersByEventType.put(eventType, entry.getValue());
       } else {
-        registeredHandlers = handlersByEventType.get(eventType);
-        registeredHandlers.addAll(entry.getValue());
+        eventHandlers.addAll(entry.getValue());
       }
     }
   }
 
   @Override public void post(Object event) {
-    enforceMainThread();
+    mainThread.enforce();
+
     boolean dispatched = root.doPost(event);
     if (!dispatched) deadEventHandler.onDeadEvent(event);
   }
@@ -138,7 +128,7 @@ public final class Shuttle implements Bus {
       }
     }
     dispatchQueuedEvents();
-    for (Shuttle child : children) {
+    for (OttoBus child : children) {
       dispatched |= child.doPost(event);
     }
     return dispatched;
@@ -167,24 +157,19 @@ public final class Shuttle implements Bus {
   }
 
   @Override public void postOnMainThread(final Object event) {
-    if (isOnMainThread()) {
-      post(event);
-    } else {
-      Message message = handler.obtainMessage();
-      message.obj = event;
-      handler.sendMessage(message);
-    }
+    mainThread.post(event);
   }
 
   @Override public void destroy() {
-    enforceMainThread();
+    mainThread.enforce();
+
     if (destroyed) throw new IllegalStateException("Bus has already been destroyed.");
     if (parent != null) parent.children.remove(this);
     destroyRecursively();
   }
 
   private void destroyRecursively() {
-    for (Shuttle child : children) {
+    for (OttoBus child : children) {
       child.destroyRecursively();
     }
     children.clear();
@@ -193,17 +178,7 @@ public final class Shuttle implements Bus {
 
   @Override public Bus spawn() {
     // Main thread enforcement is handled by the constructor.
-    return new Shuttle(this, root);
-  }
-
-  private void enforceMainThread() {
-    if (!isOnMainThread()) {
-      throw new AssertionError("Event bus accessed from non-main thread " + Thread.currentThread());
-    }
-  }
-
-  private boolean isOnMainThread() {
-    return Thread.currentThread() == Looper.getMainLooper().getThread();
+    return new OttoBus(this, root);
   }
 
   /**
@@ -216,4 +191,56 @@ public final class Shuttle implements Bus {
   Set<EventHandler> getHandlersForEventType(Class<?> type) {
     return handlersByEventType.get(type);
   }
+
+  /**
+   * Encapsulates the main thread implementation.  This exists only so that the Handler can be
+   * avoided by using {@link TestBus}.
+   */
+  interface MainThread {
+    void enforce();
+
+    void post(Object event);
+
+    void setBus(OttoBus bus);
+  }
+
+  private static final class AndroidMainThread implements MainThread {
+
+    private final Handler handler = new BusHandler();
+    private OttoBus bus;
+
+    private boolean isOnMainThread() {
+      return Thread.currentThread() == Looper.getMainLooper().getThread();
+    }
+
+    @Override public void setBus(OttoBus bus) {
+      this.bus = bus;
+    }
+
+    @Override public void enforce() {
+      if (!isOnMainThread()) {
+        throw new AssertionError("Event bus accessed from non-main thread "
+            + Thread.currentThread());
+      }
+    }
+
+    @Override public void post(Object event) {
+      if (isOnMainThread()) {
+        bus.post(event);
+      } else {
+        Message message = handler.obtainMessage();
+        message.obj = event;
+        handler.sendMessage(message);
+      }
+    }
+
+    private final class BusHandler extends Handler {
+      @Override public void handleMessage(Message message) {
+        Object event = message.obj;
+        bus.post(event);
+      }
+    }
+
+  };
+
 }

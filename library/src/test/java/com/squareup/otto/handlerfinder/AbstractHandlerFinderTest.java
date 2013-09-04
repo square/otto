@@ -1,7 +1,7 @@
 package com.squareup.otto.handlerfinder;
 
 import com.squareup.otto.Bus;
-import com.squareup.otto.Shuttle;
+import com.squareup.otto.OttoBus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -23,7 +23,7 @@ public abstract class AbstractHandlerFinderTest<H> {
   @Before
   public void setUp() throws Exception {
     handler = createHandler();
-    Bus bus = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
+    Bus bus = new OttoBus(IGNORE_DEAD_EVENTS);
     bus.register(handler);
     bus.post(EVENT);
   }
