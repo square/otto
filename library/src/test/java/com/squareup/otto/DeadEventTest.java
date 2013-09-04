@@ -24,7 +24,7 @@ public class DeadEventTest {
   }
 
   @Test public void eventDiesIfNoSubscribers() {
-    // A String -- an event for which noone has registered.
+    // A String -- an event for which no-one has registered.
     bus.post(EVENT);
     assertThat(catcher.getEvents()).containsExactly(EVENT);
   }
