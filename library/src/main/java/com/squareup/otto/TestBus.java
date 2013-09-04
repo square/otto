@@ -8,23 +8,16 @@ public final class TestBus implements Bus {
 
   private final OttoBus delegate;
 
-  private static final OttoBus.MainThread TEST_THREAD = new OttoBus.MainThread() {
-    private OttoBus bus;
-
-    @Override public void setBus(OttoBus bus) {
-      this.bus = bus;
-    }
-
-    @Override public void enforce() {
-    }
-
-    @Override public void post(Object event) {
-      bus.post(event);
-    }
-  };
-
   public TestBus(DeadEventHandler deadEventHandler)  {
-    delegate = new OttoBus(TEST_THREAD, HandlerFinder.ANNOTATED, deadEventHandler);
+    OttoBus.MainThread thread = new OttoBus.MainThread() {
+      @Override public void enforce() {
+      }
+
+      @Override public void post(Object event) {
+        delegate.post(event);
+      }
+    };
+    delegate = new OttoBus(thread, HandlerFinder.ANNOTATED, deadEventHandler);
   }
 
   @Override public void post(Object event) {

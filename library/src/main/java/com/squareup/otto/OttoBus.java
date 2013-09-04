@@ -42,14 +42,13 @@ public final class OttoBus implements Bus {
   }
 
   OttoBus(HandlerFinder handlerFinder, DeadEventHandler deadEventHandler) {
-    this(new AndroidMainThread(), handlerFinder, deadEventHandler);
+    this(null, handlerFinder, deadEventHandler);
   }
 
   /** Create a root bus. */
   OttoBus(MainThread mainThread, HandlerFinder handlerFinder, DeadEventHandler deadEventHandler) {
-    mainThread.setBus(this);
-    mainThread.enforce();
-    this.mainThread = mainThread;
+    this.mainThread = mainThread == null ? new AndroidMainThread() : mainThread;
+    this.mainThread.enforce();
     this.parent = null;
     this.root = this;
     this.handlerFinder = handlerFinder;
@@ -200,21 +199,14 @@ public final class OttoBus implements Bus {
     void enforce();
 
     void post(Object event);
-
-    void setBus(OttoBus bus);
   }
 
-  private static final class AndroidMainThread implements MainThread {
+  private final class AndroidMainThread implements MainThread {
 
     private final Handler handler = new BusHandler();
-    private OttoBus bus;
 
     private boolean isOnMainThread() {
       return Thread.currentThread() == Looper.getMainLooper().getThread();
-    }
-
-    @Override public void setBus(OttoBus bus) {
-      this.bus = bus;
     }
 
     @Override public void enforce() {
@@ -226,7 +218,7 @@ public final class OttoBus implements Bus {
 
     @Override public void post(Object event) {
       if (isOnMainThread()) {
-        bus.post(event);
+        OttoBus.this.post(event);
       } else {
         Message message = handler.obtainMessage();
         message.obj = event;
@@ -237,10 +229,8 @@ public final class OttoBus implements Bus {
     private final class BusHandler extends Handler {
       @Override public void handleMessage(Message message) {
         Object event = message.obj;
-        bus.post(event);
+        OttoBus.this.post(event);
       }
     }
-
-  };
-
+  }
 }
