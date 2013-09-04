@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
@@ -16,7 +17,7 @@ public class OutsideEventBusTest {
   Bus bus;
 
   @Before public void setUp() {
-    bus = Shuttle.createRootBus();
+    bus = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
   }
 
   /*

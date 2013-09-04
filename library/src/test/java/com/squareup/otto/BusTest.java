@@ -18,7 +18,6 @@ package com.squareup.otto;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.junit.Before;
@@ -27,9 +26,9 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 /**
@@ -45,7 +44,7 @@ public class BusTest {
   private Shuttle bus;
 
   @Before public void setUp() throws Exception {
-    bus = Shuttle.createRootBus();
+    bus = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
   }
 
   @Test public void basicCatcherDistribution() {
@@ -113,32 +112,6 @@ public class BusTest {
         COMP_EVENT, objectEvents.get(2));
   }
 
-  @Test public void deadEventForwarding() {
-    GhostCatcher catcher = new GhostCatcher();
-    bus.register(catcher);
-
-    // A String -- an event for which noone has registered.
-    bus.post(EVENT);
-
-    List<DeadEvent> events = catcher.getEvents();
-    assertEquals("One dead event should be delivered.", 1, events.size());
-    assertEquals("The dead event should wrap the original event.",
-        EVENT, events.get(0).event);
-  }
-
-  @Test public void deadEventPosting() {
-    GhostCatcher catcher = new GhostCatcher();
-    bus.register(catcher);
-
-    bus.post(new DeadEvent(this, EVENT));
-
-    List<DeadEvent> events = catcher.getEvents();
-    assertEquals("The explicit DeadEvent should be delivered.",
-        1, events.size());
-    assertEquals("The dead event must not be re-wrapped.",
-        EVENT, events.get(0).event);
-  }
-
   @Test public void testNullInteractions() {
     try {
       bus.register(null);
@@ -184,7 +157,7 @@ public class BusTest {
 
   @Test public void subscribingToInterfaceFails() {
     try {
-      Shuttle.createRootBus().register(new InterfaceSubscriber());
+      Shuttle.createRootBus(IGNORE_DEAD_EVENTS).register(new InterfaceSubscriber());
       fail("Annotation finder allowed subscription to illegal interface type.");
     } catch (IllegalArgumentException expected) {
       // Do nothing.
@@ -204,30 +177,6 @@ public class BusTest {
   private class ExceptionThrowingHandler {
     @Subscribe public void subscribeToString(String value) {
       throw new IllegalStateException("Dude where's my car?");
-    }
-  }
-
-  private <T> void assertContains(T element, Collection<T> collection) {
-    assertTrue("Collection must contain " + element,
-        collection.contains(element));
-  }
-
-  /**
-   * A collector for DeadEvents.
-   *
-   * @author cbiffle
-   *
-   */
-  public static class GhostCatcher {
-    private List<DeadEvent> events = new ArrayList<DeadEvent>();
-
-    @Subscribe
-    public void ohNoesIHaveDied(DeadEvent event) {
-      events.add(event);
-    }
-
-    public List<DeadEvent> getEvents() {
-      return events;
     }
   }
 

@@ -6,6 +6,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 
+import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
+
 @Ignore // Tests are in extending classes.
 public abstract class AbstractHandlerFinderTest<H> {
   static final Object EVENT = new Object();
@@ -21,7 +23,7 @@ public abstract class AbstractHandlerFinderTest<H> {
   @Before
   public void setUp() throws Exception {
     handler = createHandler();
-    Bus bus = Shuttle.createRootBus();
+    Bus bus = Shuttle.createRootBus(IGNORE_DEAD_EVENTS);
     bus.register(handler);
     bus.post(EVENT);
   }

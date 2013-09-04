@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 /** Test case for subscribers which destroy their bus while handling an event. */
@@ -40,7 +41,7 @@ public class DestroyingHandlerTest {
 
   @Before
   public void setUp() throws Exception {
-    bus = Shuttle.createTestBus(new SortedHandlerFinder());
+    bus = Shuttle.createTestBus(new SortedHandlerFinder(), IGNORE_DEAD_EVENTS);
   }
 
   @Test public void destroyBusInHandler() throws Exception {
