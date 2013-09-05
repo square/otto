@@ -50,10 +50,7 @@
 
             <h3 id="usage">Usage</h3>
             <p>Otto is designed with Android-specific use cases in mind and is intended for use as a singleton
-             (though that is not required). These examples assume you have an
-            instance in the variable <code>bus</code> obtained through injection or another appropriate mechanism.</p>
-            <p><strong>Otto operates on the main thread.</strong>  Unless otherwise noted, all bus operations will throw
-            an exception if attempted from a background thread.
+            (though that is not required).  <strong>Otto operates on the main thread.</strong>  Unless otherwise noted, all bus operations will throw an exception if attempted from a background thread.
 
             <h4>Publishing</h4>
             <p>Publishing an event to the bus sends the event to any registered subscribers.</p>
@@ -80,12 +77,6 @@
             annotated. This is an explicit design decision to improve performance of the library as well as keep your
             code simple and unambiguous.</p>
 
-            <h4>Notes on Delivery</h4>
-            <p>Events published with <code>post</code> are delivered synchronously, so when program execution continues it is guaranteed that all subscribers have been called.  When called from a background thread, <code>postOnMainThread</code> is asynchronous.</p>
-            <p>An instance of any class may be published on the bus and it will only be dispatched to subscribers for that type and its supertypes.</p>
-            <p>All events are delivered in order of publication.</p>
-
-
             <h4>Children and Scoping</h4>
             <p>An Otto bus can have children, which means a bus may be part of a tree of buses.  Any event published to a bus is delivered to every subscriber registered to a bus in the same tree.</p>
             <pre class="prettyprint">Bus child1 = bus.spawn();
@@ -100,6 +91,22 @@ Bus child2 = bus.spawn();
 bus.destroy(); // bus, child1, grandchild1, and child2 are all destroyed.</pre>
 
             <p>Spawning and destroying child buses is important mechanism for avoiding reference leaks.  It is the only way to release references from the bus to registered subscriber objects.</p>
+
+            <h4>Event Delivery</h4>
+            <p>Events published with <code>post</code> are delivered synchronously, so when program execution continues it is guaranteed that all subscribers have been called.  When called from a background thread, <code>postOnMainThread</code> is asynchronous.</p>
+            <p>An instance of any class may be published on the bus and it will only be dispatched to subscribers for that class and its superclasses.</p>
+            <p>All events are delivered in order of publication.</p>
+
+            <h4>Dead Events</h4>
+            <p>When an event is published and there are no suitable subscribers, it is considered "dead".  The bus may be constructed with a handler which receives all dead events.  This is a useful diagnostic tool-- dead events generally indicate an unneeded publisher or a potential bug in a client's subscriber management.
+            <pre class="prettyprint">class DeadEventLogger implements DeadEventHandler {
+  @Override public void onDeadEvent(Object event) {
+    Log.w("Event " + event + " was not delivered.");
+  }
+}
+
+Bus bus = new OttoBus(new DeadEventLogger());</pre>
+
             <h3 id="download">Download</h3>
             <p><a href="http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.squareup&a=otto&v=LATEST" class="dl version-href">&darr; <span class="version-tag">Latest</span> JAR</a></p>
             <p>The source code to Otto and this website is <a href="http://github.com/square/otto">available on GitHub</a>.</p>
