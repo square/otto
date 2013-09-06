@@ -50,9 +50,10 @@
 
             <h3 id="usage">Usage</h3>
             <p>Otto is designed with Android-specific use cases in mind and is intended for use as a singleton
-             (though that is not required). These examples assume you have an
-            instance in the variable <code>bus</code> obtained through injection or another appropriate mechanism.</p>
-
+             (though that is not required). Create an instance of an event bus with
+             <pre class="prettyprint">Bus bus = new Bus();</pre> Because a bus is only effective if it is shared, we 
+             recommend obtaining the instance through injection or another appropriate mechanism.</p>
+            
             <h4>Publishing</h4>
             <p>Event publishing is the most important part of the bus as it allows you to tell subscribers that an
             action has occurred. An instance of any class may be published on the bus and it will only be dispatched to
