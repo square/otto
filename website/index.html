@@ -54,33 +54,21 @@
             instance in the variable <code>bus</code> obtained through injection or another appropriate mechanism.</p>
 
             <h4>Creating a Bus</h4>
-            <p>Busses can be created with or without a customized identifier and/or thread enforcer. The identifier
-            separates different instances of <code>Bus</code>. <pre class="prettyprint">Bus bus = new Bus();</pre> creates
-            a default bus (it's identifier is "default"). Whereas, 
-            <pre class="prettyprint">Bus controller_bus = new Bus("Controller Bus");</pre> creates a bus identified as the
-            "Controller Bus".</p>
-            <p>By default, interactions with the bus must be on the main thread. You can change this by specifying a 
-            <code>ThreadEnforcer</code>.
-            <pre class="prettyprint">Bus unsheriffed_bus = new Bus(ThreadEnforcer.ANY);</pre> creates a bus that can be
-            accessed from any <code>Thread</code>.</p>
+            <p>Creating a <code>Bus</code> is as simple as <pre class="prettyprint">Bus bus = new Bus();</pre>.</p>
             <p>A common pattern is to create and acquire the instance of a <code>Bus</code> through dependency injection.
-            With <a href="http://github.com/square/dagger" data-title="Dagger">Dagger</a>, providing the 3 busses above would look like the following:</p>
+            With <a href="http://github.com/square/dagger" data-title="Dagger">Dagger</a>, providing the the bus above 
+            would look like the following:</p>
             <pre class="prettyprint">@Module(injects = { MainActivity.class })
     public class Module {
         
         @Provides @Singleton
         Bus providesBus() {
             return new Bus();
-        }    
-            
-        @Provides @Singleton @Named("Controller Bus")
-        Bus providesControllerBus() {
-            return new Bus("Controller Bus");
-        }
-        
-        @Provides @Singleton @Named("Unsheriffed Bus")
-        Bus providesUnsheriffedBus() {
-            return new Bus(ThreadEnforcer.ANY);
+}</pre>
+            <pre class="prettyprint">public class MainActivity extends Activity {
+    @Inject Bus bus;  
+          
+    // TODO: The rest of the Activity       
 }</pre>
             
             <h4>Publishing</h4>
