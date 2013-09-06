@@ -50,26 +50,9 @@
 
             <h3 id="usage">Usage</h3>
             <p>Otto is designed with Android-specific use cases in mind and is intended for use as a singleton
-             (though that is not required). These examples assume you have an
-            instance in the variable <code>bus</code> obtained through injection or another appropriate mechanism.</p>
-
-            <h4>Creating a Bus</h4>
-            <p>Creating a <code>Bus</code> is as simple as <pre class="prettyprint">Bus bus = new Bus();</pre>.</p>
-            <p>A common pattern is to create and acquire the instance of a <code>Bus</code> through dependency injection.
-            With <a href="http://github.com/square/dagger" data-title="Dagger">Dagger</a>, providing the the bus above 
-            would look like the following:</p>
-            <pre class="prettyprint">@Module(injects = { MainActivity.class })
-    public class Module {
-        
-        @Provides @Singleton
-        Bus providesBus() {
-            return new Bus();
-}</pre>
-            <pre class="prettyprint">public class MainActivity extends Activity {
-    @Inject Bus bus;  
-          
-    // TODO: The rest of the Activity       
-}</pre>
+             (though that is not required). Create an instance of an event bus with
+             <pre class="prettyprint">Bus bus = new Bus();</pre> Because a bus is only effective if it is shared, we 
+             recommend obtaining the instance through injection or another appropriate mechanism.</p>
             
             <h4>Publishing</h4>
             <p>Event publishing is the most important part of the bus as it allows you to tell subscribers that an
