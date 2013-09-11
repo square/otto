@@ -6,7 +6,7 @@ import android.os.Message;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -18,11 +18,15 @@ public final class OttoBus implements Bus {
   private final DeadEventHandler deadEventHandler;
   private final Map<Class<?>, Set<EventHandler>> handlersByEventType =
       new HashMap<Class<?>, Set<EventHandler>>();
-  private final Set<OttoBus> children = new HashSet<OttoBus>();
+
+  // We use LinkedHashSet essentially so that our tests are deterministic.  Consistent iteration
+  // over children is NOT part of the contract and should not be relied upon by clients.
+  private final Set<OttoBus> children = new LinkedHashSet<OttoBus>();
   // ArrayDeque is an array-backed queue that grows and shrinks, so it won't create a lot of
   // unnecessary objects for the GC to deal with.
-  private final Queue<Object> dispatchEventQueue = new ArrayDeque<Object>();
-  private final Queue<EventHandler> dispatchHandlerQueue = new ArrayDeque<EventHandler>();
+  private final Queue<Object> dispatchEventQueue;
+  private final Queue<OttoBus> dispatchBusQueue;
+  private final Queue<EventHandler> dispatchHandlerQueue;
   private final HierarchyFlattener hierarchyFlattener;
   /** null if a root bus. */
   private final OttoBus parent;
@@ -54,6 +58,9 @@ public final class OttoBus implements Bus {
     this.handlerFinder = handlerFinder;
     this.deadEventHandler = deadEventHandler;
     this.hierarchyFlattener = new HierarchyFlattener();
+    this.dispatchEventQueue = new ArrayDeque<Object>();
+    this.dispatchBusQueue = new ArrayDeque<OttoBus>();
+    this.dispatchHandlerQueue = new ArrayDeque<EventHandler>();
   }
 
   /** Create a non-root bus. */
@@ -65,6 +72,9 @@ public final class OttoBus implements Bus {
     this.handlerFinder = root.handlerFinder;
     this.deadEventHandler = root.deadEventHandler;
     this.hierarchyFlattener = root.hierarchyFlattener;
+    this.dispatchBusQueue = root.dispatchBusQueue;
+    this.dispatchEventQueue = root.dispatchEventQueue;
+    this.dispatchHandlerQueue = root.dispatchHandlerQueue;
     parent.children.add(this);
   }
 
@@ -105,7 +115,11 @@ public final class OttoBus implements Bus {
     mainThread.enforce();
 
     boolean dispatched = root.doPost(event);
-    if (!dispatched) deadEventHandler.onDeadEvent(event);
+    if (dispatched) {
+      dispatchQueuedEvents();
+    } else {
+      deadEventHandler.onDeadEvent(event);
+    }
   }
 
   /**
@@ -121,12 +135,12 @@ public final class OttoBus implements Bus {
       if (eventHandlers != null && !eventHandlers.isEmpty()) {
         dispatched = true;
         for (EventHandler handler : eventHandlers) {
+          dispatchBusQueue.add(this);
           dispatchEventQueue.add(event);
           dispatchHandlerQueue.add(handler);
         }
       }
     }
-    dispatchQueuedEvents();
     for (OttoBus child : children) {
       dispatched |= child.doPost(event);
     }
@@ -138,8 +152,10 @@ public final class OttoBus implements Bus {
     try {
       dispatching = true;
       while ((!destroyed) && (!dispatchEventQueue.isEmpty())) {
+        OttoBus bus = dispatchBusQueue.poll();
         EventHandler handler = dispatchHandlerQueue.poll();
         Object event = dispatchEventQueue.poll();
+        if (bus.destroyed) continue;
         try {
           handler.handleEvent(event);
         } catch (InvocationTargetException e) {

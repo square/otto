@@ -39,6 +39,10 @@ public class StringCatcher {
     events.add(string);
   }
 
+  @Subscribe public void integersAreBoring(Integer integer) {
+    // ignored.
+  }
+
   public void methodWithoutAnnotation(String string) {
     Assert.fail("Event bus must not call methods without @Subscribe!");
   }
