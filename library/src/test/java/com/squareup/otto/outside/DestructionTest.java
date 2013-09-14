@@ -41,6 +41,15 @@ public class DestructionTest {
     }
   }
 
+  @Test public void destroyedBusCannotRegisterSubscribers() {
+    root.destroy();
+    try {
+      root.register(catcher);
+      Assert.fail("Should not be possible to register subscribers on a destroyed bus.");
+    } catch (IllegalStateException e) {
+    }
+  }
+
   @Test public void destroyedChildDoesNotReceiveEventPostedToParent() {
     child.register(catcher);
     child.destroy();

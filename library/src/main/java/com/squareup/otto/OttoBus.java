@@ -95,6 +95,7 @@ public final class OttoBus implements Bus {
 
   @Override public void register(Object subscriber) {
     mainThread.enforce();
+    if (destroyed) throw new IllegalStateException("Bus has been destroyed.");
 
     Map<Class<?>, Set<EventHandler>> handlers =
         handlerFinder.findAllSubscribers(subscriber);
