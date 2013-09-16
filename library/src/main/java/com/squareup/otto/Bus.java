@@ -10,8 +10,8 @@ public interface Bus {
   void post(Object event);
 
   /**
-   * Like post, but may be called from any thread. The event will be dispatched on the  main
-   * thread. When posting from the main thread, this is equivalent to {@link #post(Object)}.
+   * Like post, but may be called from any thread. The event will be dispatched on the  main thread.
+   * When posting from the main thread, this is equivalent to {@link #post(Object)}.
    */
   void postOnMainThread(Object event);
 
@@ -19,9 +19,8 @@ public interface Bus {
   void register(Object subscriber);
 
   /**
-   * Create a child Bus.  All subscribers to a child bus will receive events sent to
-   * its ancestors.  Events posted to a child bus will not be sent to subscribers of
-   * its ancestors.
+   * Create a child Bus.  All subscribers to a child bus will receive events sent to its ancestors.
+   * Events posted to a child bus will not be sent to subscribers of its ancestors.
    *
    * Must be called on the main thread.
    */

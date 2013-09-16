@@ -35,6 +35,7 @@ public final class OttoBus implements Bus {
   private MainThread mainThread;
   private boolean dispatching;
   private boolean destroyed;
+
   /** Create a root bus that ignores dead events. */
   public OttoBus() {
     this(HandlerFinder.ANNOTATED, DeadEventHandler.IGNORE_DEAD_EVENTS);
@@ -96,8 +97,7 @@ public final class OttoBus implements Bus {
   @Override public void register(Object subscriber) {
     mainThread.enforce();
 
-    Map<Class<?>, Set<EventHandler>> handlers =
-        handlerFinder.findAllSubscribers(subscriber);
+    Map<Class<?>, Set<EventHandler>> handlers = handlerFinder.findAllSubscribers(subscriber);
 
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : handlers.entrySet()) {
       Class<?> eventType = entry.getKey();
@@ -197,8 +197,9 @@ public final class OttoBus implements Bus {
   }
 
   /**
-   * Retrieves a mutable set of the currently registered handlers for {@code type}.  If no handlers are currently
-   * registered for {@code type}, this method may either return {@code null} or an empty set.
+   * Retrieves a mutable set of the currently registered handlers for {@code type}.  If no handlers
+   * are currently registered for {@code type}, this method may either return {@code null} or an
+   * empty set.
    *
    * @param type type of handlers to retrieve.
    * @return currently registered handlers, or {@code null}.
@@ -227,8 +228,8 @@ public final class OttoBus implements Bus {
 
     @Override public void enforce() {
       if (!isOnMainThread()) {
-        throw new AssertionError("Event bus accessed from non-main thread "
-            + Thread.currentThread());
+        throw new AssertionError(
+            "Event bus accessed from non-main thread " + Thread.currentThread());
       }
     }
 
