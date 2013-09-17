@@ -26,6 +26,9 @@ public interface Bus {
    */
   Bus spawn();
 
-  /** Permanently disable the bus and all descendents, dropping all references to subscribers. */
+  /**
+   * Permanently disable the bus and all descendants, dropping all references to subscribers.
+   * Redundant calls are allowed.
+   */
   void destroy();
 }
