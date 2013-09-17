@@ -31,14 +31,11 @@ public class DestructionTest {
     catcher.assertThatEvents("Destroyed bus should not dispatch post.").isEmpty();
   }
 
-  @Test public void destroyedBusCannotBeDestroyed() {
+  @Test public void destroyingIsIdempotent() {
     root.register(catcher);
     root.destroy();
-    try {
-      root.destroy();
-      Assert.fail("Should not be possible to destroy a destroyed bus.");
-    } catch (IllegalStateException e) {
-    }
+    root.destroy();
+    // ta da!
   }
 
   @Test public void destroyedBusCannotRegisterSubscribers() {

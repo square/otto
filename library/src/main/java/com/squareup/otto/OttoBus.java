@@ -179,7 +179,7 @@ public final class OttoBus implements Bus {
   @Override public void destroy() {
     mainThread.enforce();
 
-    if (destroyed) throw new IllegalStateException("Bus has already been destroyed.");
+    if (destroyed) return;
     if (parent != null) parent.children.remove(this);
     destroyRecursively();
   }
