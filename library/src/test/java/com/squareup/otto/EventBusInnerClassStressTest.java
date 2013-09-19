@@ -30,8 +30,7 @@ import static junit.framework.Assert.assertTrue;
  *
  * @author Ray Ryan (ray@squareup.com)
  */
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
 public class EventBusInnerClassStressTest {
   public static final int REPS = 1000000;
   boolean called;

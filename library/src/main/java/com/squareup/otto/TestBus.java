@@ -24,7 +24,7 @@ public final class TestBus implements Bus {
 
   private final OttoBus delegate;
 
-  public TestBus(DeadEventHandler deadEventHandler)  {
+  public TestBus(DeadEventHandler deadEventHandler) {
     OttoBus.MainThread thread = new OttoBus.MainThread() {
       @Override public void enforce() {
       }

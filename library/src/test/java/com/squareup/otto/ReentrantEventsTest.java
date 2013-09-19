@@ -34,8 +34,7 @@ import static junit.framework.Assert.assertTrue;
  *
  * @author Jesse Wilson
  */
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
 public class ReentrantEventsTest {
 
   static final String FIRST = "one";
@@ -49,8 +48,8 @@ public class ReentrantEventsTest {
 
     bus.post(FIRST);
 
-    assertEquals("ReentrantEventHater expected 2 events",
-        Arrays.<Object>asList(FIRST, SECOND), hater.eventsReceived);
+    assertEquals("ReentrantEventHater expected 2 events", Arrays.<Object>asList(FIRST, SECOND),
+        hater.eventsReceived);
   }
 
   public class ReentrantEventsHater {
@@ -84,8 +83,8 @@ public class ReentrantEventsTest {
 
     bus.post(FIRST);
 
-    assertEquals("EventRecorder expected events in order",
-        Arrays.<Object>asList(FIRST, SECOND), recorder.eventsReceived);
+    assertEquals("EventRecorder expected events in order", Arrays.<Object>asList(FIRST, SECOND),
+        recorder.eventsReceived);
   }
 
   public class EventProcessor {
@@ -96,6 +95,7 @@ public class ReentrantEventsTest {
 
   public class EventRecorder {
     List<Object> eventsReceived = new ArrayList<Object>();
+
     @Subscribe public void listenForEverything(Object event) {
       eventsReceived.add(event);
     }

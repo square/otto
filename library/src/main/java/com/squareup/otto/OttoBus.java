@@ -140,9 +140,7 @@ public final class OttoBus implements Bus {
     deadEventHandler.onDeadEvent(event);
   }
 
-  /**
-   * @return true iff event was dispatched to some subscriber.
-   */
+  /** @return true iff event was dispatched to some subscriber. */
   private boolean doPost(Object event) {
     boolean dispatched = false;
     if (destroyed) return false;

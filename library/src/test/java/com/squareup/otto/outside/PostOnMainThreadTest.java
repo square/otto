@@ -34,7 +34,6 @@ import static org.fest.assertions.api.Assertions.assertThat;
 public class PostOnMainThreadTest {
 
   private static final String EVENT = "Hello";
-
   Bus bus;
 
   @Before public void setUp() {

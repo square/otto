@@ -45,6 +45,7 @@ public class BusSpawningPostingCatcher {
 
   static final class IntegerCatcher {
     List<Integer> events = new ArrayList<Integer>();
+
     @Subscribe public void onInteger(Integer event) {
       events.add(event);
     }

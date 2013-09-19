@@ -31,7 +31,6 @@ import java.lang.annotation.Target;
  *
  * @author Cliff Biffle
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME) @Target(ElementType.METHOD)
 public @interface Subscribe {
 }

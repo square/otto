@@ -28,10 +28,21 @@ import org.robolectric.annotation.Config;
 /*
  * We break the tests up based on whether they are annotated or abstract in the superclass.
  */
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
 public class BasicHandlerFinderTest
     extends AbstractHandlerFinderTest<BasicHandlerFinderTest.Handler> {
+  @Test public void nonSubscriber() {
+    Assertions.assertThat(getHandler().nonSubscriberEvents).isEmpty();
+  }
+
+  @Test public void subscriber() {
+    Assertions.assertThat(getHandler().subscriberEvents).containsExactly(EVENT);
+  }
+
+  @Override Handler createHandler() {
+    return new Handler();
+  }
+
   static class Handler {
     final List<Object> nonSubscriberEvents = new ArrayList<Object>();
     final List<Object> subscriberEvents = new ArrayList<Object>();
@@ -44,18 +55,5 @@ public class BasicHandlerFinderTest
     public void subscriber(Object o) {
       subscriberEvents.add(o);
     }
-  }
-
-  @Test public void nonSubscriber() {
-    Assertions.assertThat(getHandler().nonSubscriberEvents).isEmpty();
-  }
-
-  @Test public void subscriber() {
-    Assertions.assertThat(getHandler().subscriberEvents).containsExactly(
-        EVENT);
-  }
-
-  @Override Handler createHandler() {
-    return new Handler();
   }
 }

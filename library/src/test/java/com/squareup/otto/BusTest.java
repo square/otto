@@ -37,8 +37,7 @@ import static junit.framework.Assert.fail;
  *
  * @author Cliff Biffle
  */
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
 public class BusTest {
   private static final String EVENT = "Hello";
 
@@ -78,8 +77,7 @@ public class BusTest {
 
     final List<Object> objectEvents = new ArrayList<Object>();
     Object objCatcher = new Object() {
-      @SuppressWarnings("unused")
-      @Subscribe public void eat(Object food) {
+      @SuppressWarnings("unused") @Subscribe public void eat(Object food) {
         objectEvents.add(food);
       }
     };
@@ -97,20 +95,15 @@ public class BusTest {
 
     // Check the StringCatcher...
     List<String> stringEvents = stringCatcher.getEvents();
-    assertEquals("Only one String should be delivered.",
-        1, stringEvents.size());
-    assertEquals("Correct string should be delivered.",
-        EVENT, stringEvents.get(0));
+    assertEquals("Only one String should be delivered.", 1, stringEvents.size());
+    assertEquals("Correct string should be delivered.", EVENT, stringEvents.get(0));
 
     // Check the Catcher<Object>...
-    assertEquals("Three Objects should be delivered.",
-        3, objectEvents.size());
-    assertEquals("String fixture must be first object delivered.",
-        EVENT, objectEvents.get(0));
-    assertEquals("Object fixture must be second object delivered.",
-        OBJ_EVENT, objectEvents.get(1));
-    assertEquals("Comparable fixture must be thirdobject delivered.",
-        COMP_EVENT, objectEvents.get(2));
+    assertEquals("Three Objects should be delivered.", 3, objectEvents.size());
+    assertEquals("String fixture must be first object delivered.", EVENT, objectEvents.get(0));
+    assertEquals("Object fixture must be second object delivered.", OBJ_EVENT, objectEvents.get(1));
+    assertEquals("Comparable fixture must be thirdobject delivered.", COMP_EVENT,
+        objectEvents.get(2));
   }
 
   @Test public void testNullInteractions() {
@@ -126,11 +119,11 @@ public class BusTest {
     }
   }
 
-
   @Test public void subscribingOnlyAllowedOnPublicMethods() {
     try {
       bus.register(new Object() {
-        @Subscribe protected void method(Object o) {}
+        @Subscribe protected void method(Object o) {
+        }
       });
       fail();
     } catch (IllegalArgumentException expected) {
@@ -138,14 +131,16 @@ public class BusTest {
     }
     try {
       bus.register(new Object() {
-        @Subscribe void method(Object o) {}
+        @Subscribe void method(Object o) {
+        }
       });
       fail();
     } catch (IllegalArgumentException expected) {
     }
     try {
       bus.register(new Object() {
-        @Subscribe private void method(Object o) {}
+        @Subscribe private void method(Object o) {
+        }
       });
       fail();
     } catch (IllegalArgumentException expected) {

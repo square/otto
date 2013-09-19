@@ -38,11 +38,14 @@ public class BusDestroyingStringCatcher {
     events.add(event);
   }
 
-  @Subscribe public void haveAnInteger(Integer event) {}
+  @Subscribe public void haveAnInteger(Integer event) {
+  }
 
-  @Subscribe public void enjoyThisLong(Long event) {}
+  @Subscribe public void enjoyThisLong(Long event) {
+  }
 
-  @Subscribe public void perhapsATastyDouble(Double event) {}
+  @Subscribe public void perhapsATastyDouble(Double event) {
+  }
 
   public List<String> getEvents() {
     return events;
