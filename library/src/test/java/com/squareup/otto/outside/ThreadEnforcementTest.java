@@ -79,6 +79,20 @@ public class ThreadEnforcementTest {
     });
   }
 
+  @Test(expected = AssertionError.class) public void postOnMainEnforcesBackgroundThread()
+      throws Throwable {
+    bus.postOnMainThread(new Object());
+  }
+
+  @Test public void postOnMainLegalFromBackgroundThread() throws Throwable {
+    Future<?> task = backgroundThread.submit(new Runnable() {
+      @Override public void run() {
+        bus.postOnMainThread(new Object());
+      }
+    });
+    task.get();
+  }
+
   public void enforcesThread(Runnable runnable) throws Throwable {
     Future<?> task = backgroundThread.submit(runnable);
     try {
