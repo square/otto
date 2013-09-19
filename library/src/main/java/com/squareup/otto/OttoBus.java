@@ -114,13 +114,14 @@ public final class OttoBus implements Bus {
 
   @Override public void post(Object event) {
     mainThread.enforce();
-
-    boolean dispatched = root.doPost(event);
-    if (dispatched) {
-      dispatchQueuedEvents();
-    } else {
-      deadEventHandler.onDeadEvent(event);
+    if (!destroyed) {
+      boolean dispatched = root.doPost(event);
+      if (dispatched) {
+        dispatchQueuedEvents();
+        return;
+      }
     }
+    deadEventHandler.onDeadEvent(event);
   }
 
   /**
