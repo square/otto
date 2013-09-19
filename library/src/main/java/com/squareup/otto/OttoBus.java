@@ -34,7 +34,6 @@ public final class OttoBus implements Bus {
   private final DeadEventHandler deadEventHandler;
   private final Map<Class<?>, Set<EventHandler>> handlersByEventType =
       new HashMap<Class<?>, Set<EventHandler>>();
-
   // We use LinkedHashSet essentially so that our tests are deterministic.  Consistent iteration
   // over children is NOT part of the contract and should not be relied upon by clients.
   private final Set<OttoBus> children = new LinkedHashSet<OttoBus>();
@@ -189,6 +188,7 @@ public final class OttoBus implements Bus {
   }
 
   @Override public void postOnMainThread(final Object event) {
+    mainThread.forbid();
     mainThread.post(event);
   }
 
@@ -232,6 +232,8 @@ public final class OttoBus implements Bus {
   interface MainThread {
     void enforce();
 
+    void forbid();
+
     void post(Object event);
   }
 
@@ -246,8 +248,12 @@ public final class OttoBus implements Bus {
     @Override public void enforce() {
       if (!isOnMainThread()) {
         throw new AssertionError(
-            "Event bus accessed from non-main thread " + Thread.currentThread());
+            "Illegal bus access from non-main thread " + Thread.currentThread());
       }
+    }
+
+    @Override public void forbid() {
+      if (isOnMainThread()) throw new AssertionError("Illegal bus access from main thread");
     }
 
     @Override public void post(Object event) {
