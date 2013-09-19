@@ -166,6 +166,7 @@ public final class OttoBus implements Bus {
         }
       }
     } finally {
+      dispatchBusQueue.clear();
       dispatchHandlerQueue.clear();
       dispatchEventQueue.clear();
       dispatching = false;
