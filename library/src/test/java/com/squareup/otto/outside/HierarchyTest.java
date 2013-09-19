@@ -27,8 +27,7 @@ import org.robolectric.annotation.Config;
 
 import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
 public class HierarchyTest {
 
   private static final String EVENT = "Hello";

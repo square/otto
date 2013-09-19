@@ -32,8 +32,7 @@ import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 /** Test case for subscribers which destroy their bus while handling an event. */
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class) @Config(manifest = Config.NONE)
 public class DestroyingHandlerTest {
 
   private static final String EVENT = "Hello";

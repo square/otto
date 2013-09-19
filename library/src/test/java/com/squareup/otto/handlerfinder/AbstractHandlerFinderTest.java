@@ -27,10 +27,9 @@ import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
 @Ignore // Tests are in extending classes.
 public abstract class AbstractHandlerFinderTest<H> {
   static final Object EVENT = new Object();
+  private H handler;
 
   abstract H createHandler();
-
-  private H handler;
 
   H getHandler() {
     return handler;
