@@ -29,6 +29,9 @@ public final class TestBus implements Bus {
       @Override public void enforce() {
       }
 
+      @Override public void forbid() {
+      }
+
       @Override public void post(Object event) {
         delegate.post(event);
       }

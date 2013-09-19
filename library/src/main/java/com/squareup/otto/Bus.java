@@ -26,8 +26,8 @@ public interface Bus {
   void post(Object event);
 
   /**
-   * Like post, but may be called from any thread. The event will be dispatched on the main thread.
-   * When posting from the main thread, this is equivalent to {@link #post(Object)}.
+   * Like post, but must be called from a thread other than the main thread. The event will be
+   * dispatched on the main thread.
    */
   void postOnMainThread(Object event);
 
