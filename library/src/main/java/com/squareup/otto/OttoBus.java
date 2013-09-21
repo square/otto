@@ -19,12 +19,9 @@ package com.squareup.otto;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 
 public final class OttoBus implements Bus {
@@ -34,12 +31,8 @@ public final class OttoBus implements Bus {
     /** Used to find handler methods in register and unregister. */
     final HandlerFinder handlerFinder;
     final DeadEventHandler deadEventHandler;
-    // ArrayDeque is an array-backed queue that grows and shrinks, so it won't create a lot of
-    // unnecessary objects for the GC to deal with.
-    final Queue<Object> dispatchEventQueue;
-    final Queue<OttoBus> dispatchBusQueue;
-    final Queue<EventHandler> dispatchHandlerQueue;
-    final HierarchyFlattener hierarchyFlattener;
+    final DispatchQueue dispatchQueue = new DispatchQueue();
+    final HierarchyFlattener hierarchyFlattener = new HierarchyFlattener();
     final OttoBus root;
 
     Shared(MainThread mainThread, HandlerFinder handlerFinder, DeadEventHandler deadEventHandler,
@@ -48,10 +41,6 @@ public final class OttoBus implements Bus {
       this.handlerFinder = handlerFinder;
       this.deadEventHandler = deadEventHandler;
       this.root = root;
-      this.hierarchyFlattener = new HierarchyFlattener();
-      this.dispatchEventQueue = new ArrayDeque<Object>();
-      this.dispatchBusQueue = new ArrayDeque<OttoBus>();
-      this.dispatchHandlerQueue = new ArrayDeque<EventHandler>();
     }
   }
 
@@ -65,6 +54,7 @@ public final class OttoBus implements Bus {
   private final OttoBus parent;
   private final Shared shared;
   private boolean dispatching;
+
   private boolean destroyed;
 
   /** Create a root bus that ignores dead events. */
@@ -97,19 +87,8 @@ public final class OttoBus implements Bus {
     parent.children.add(this);
   }
 
-  /**
-   * Throw a {@link RuntimeException} with given message and cause lifted from an {@link
-   * java.lang.reflect.InvocationTargetException}. If the specified {@link
-   * java.lang.reflect.InvocationTargetException} does not have a
-   * cause, neither will the {@link RuntimeException}.
-   */
-  private static void throwRuntimeException(String msg, InvocationTargetException e) {
-    Throwable cause = e.getCause();
-    if (cause != null) {
-      throw new RuntimeException(msg, cause);
-    } else {
-      throw new RuntimeException(msg);
-    }
+  boolean isDestroyed() {
+    return destroyed;
   }
 
   @Override public void register(Object subscriber) {
@@ -153,9 +132,7 @@ public final class OttoBus implements Bus {
       if (eventHandlers != null && !eventHandlers.isEmpty()) {
         dispatched = true;
         for (EventHandler handler : eventHandlers) {
-          shared.dispatchBusQueue.add(this);
-          shared.dispatchEventQueue.add(event);
-          shared.dispatchHandlerQueue.add(handler);
+          shared.dispatchQueue.enqueueForDispatch(this, event, handler);
         }
       }
     }
@@ -169,23 +146,11 @@ public final class OttoBus implements Bus {
     if (dispatching) return;
     try {
       dispatching = true;
-      while ((!destroyed) && (!shared.dispatchEventQueue.isEmpty())) {
-        OttoBus bus = shared.dispatchBusQueue.poll();
-        EventHandler handler = shared.dispatchHandlerQueue.poll();
-        Object event = shared.dispatchEventQueue.poll();
-        if (bus.destroyed) continue;
-        try {
-          handler.handleEvent(event);
-        } catch (InvocationTargetException e) {
-          Class<?> eventType = event.getClass();
-          throwRuntimeException("Could not dispatch event: " + eventType + " to handler " + handler,
-              e);
-        }
+      while ((!destroyed) && (!shared.dispatchQueue.isEmpty())) {
+        shared.dispatchQueue.dispatchNext();
       }
     } finally {
-      shared.dispatchBusQueue.clear();
-      shared.dispatchHandlerQueue.clear();
-      shared.dispatchEventQueue.clear();
+      shared.dispatchQueue.clear();
       dispatching = false;
     }
   }
