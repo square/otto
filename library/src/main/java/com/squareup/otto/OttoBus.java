@@ -29,25 +29,41 @@ import java.util.Set;
 
 public final class OttoBus implements Bus {
 
-  /** Used to find handler methods in register and unregister. */
-  private final HandlerFinder handlerFinder;
-  private final DeadEventHandler deadEventHandler;
+  private static final class Shared {
+    final MainThread mainThread;
+    /** Used to find handler methods in register and unregister. */
+    final HandlerFinder handlerFinder;
+    final DeadEventHandler deadEventHandler;
+    // ArrayDeque is an array-backed queue that grows and shrinks, so it won't create a lot of
+    // unnecessary objects for the GC to deal with.
+    final Queue<Object> dispatchEventQueue;
+    final Queue<OttoBus> dispatchBusQueue;
+    final Queue<EventHandler> dispatchHandlerQueue;
+    final HierarchyFlattener hierarchyFlattener;
+    final OttoBus root;
+
+    Shared(MainThread mainThread, HandlerFinder handlerFinder, DeadEventHandler deadEventHandler,
+        OttoBus root) {
+      this.mainThread = mainThread;
+      this.handlerFinder = handlerFinder;
+      this.deadEventHandler = deadEventHandler;
+      this.root = root;
+      this.hierarchyFlattener = new HierarchyFlattener();
+      this.dispatchEventQueue = new ArrayDeque<Object>();
+      this.dispatchBusQueue = new ArrayDeque<OttoBus>();
+      this.dispatchHandlerQueue = new ArrayDeque<EventHandler>();
+    }
+  }
+
   private final Map<Class<?>, Set<EventHandler>> handlersByEventType =
       new HashMap<Class<?>, Set<EventHandler>>();
   // We use LinkedHashSet essentially so that our tests are deterministic.  Consistent iteration
   // over children is NOT part of the contract and should not be relied upon by clients.
   private final Set<OttoBus> children = new LinkedHashSet<OttoBus>();
-  // ArrayDeque is an array-backed queue that grows and shrinks, so it won't create a lot of
-  // unnecessary objects for the GC to deal with.
-  private final Queue<Object> dispatchEventQueue;
-  private final Queue<OttoBus> dispatchBusQueue;
-  private final Queue<EventHandler> dispatchHandlerQueue;
-  private final HierarchyFlattener hierarchyFlattener;
+
   /** null if a root bus. */
   private final OttoBus parent;
-  /** this if a root bus. */
-  private final OttoBus root;
-  private MainThread mainThread;
+  private final Shared shared;
   private boolean dispatching;
   private boolean destroyed;
 
@@ -67,30 +83,17 @@ public final class OttoBus implements Bus {
 
   /** Create a root bus. */
   OttoBus(MainThread mainThread, HandlerFinder handlerFinder, DeadEventHandler deadEventHandler) {
-    this.mainThread = mainThread == null ? new AndroidMainThread() : mainThread;
-    this.mainThread.enforce();
+    if (mainThread == null) mainThread = new AndroidMainThread();
+    mainThread.enforce();
     this.parent = null;
-    this.root = this;
-    this.handlerFinder = handlerFinder;
-    this.deadEventHandler = deadEventHandler;
-    this.hierarchyFlattener = new HierarchyFlattener();
-    this.dispatchEventQueue = new ArrayDeque<Object>();
-    this.dispatchBusQueue = new ArrayDeque<OttoBus>();
-    this.dispatchHandlerQueue = new ArrayDeque<EventHandler>();
+    this.shared = new Shared(mainThread, handlerFinder, deadEventHandler, this);
   }
 
   /** Create a non-root bus. */
-  private OttoBus(OttoBus parent, OttoBus root) {
-    root.mainThread.enforce();
+  private OttoBus(OttoBus parent, Shared shared) {
+    shared.mainThread.enforce();
     this.parent = parent;
-    this.root = root;
-    this.mainThread = root.mainThread;
-    this.handlerFinder = root.handlerFinder;
-    this.deadEventHandler = root.deadEventHandler;
-    this.hierarchyFlattener = root.hierarchyFlattener;
-    this.dispatchBusQueue = root.dispatchBusQueue;
-    this.dispatchEventQueue = root.dispatchEventQueue;
-    this.dispatchHandlerQueue = root.dispatchHandlerQueue;
+    this.shared = shared;
     parent.children.add(this);
   }
 
@@ -110,10 +113,10 @@ public final class OttoBus implements Bus {
   }
 
   @Override public void register(Object subscriber) {
-    mainThread.enforce();
+    shared.mainThread.enforce();
     if (destroyed) throw new IllegalStateException("Bus has been destroyed.");
 
-    Map<Class<?>, Set<EventHandler>> handlers = handlerFinder.findAllSubscribers(subscriber);
+    Map<Class<?>, Set<EventHandler>> handlers = shared.handlerFinder.findAllSubscribers(subscriber);
 
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : handlers.entrySet()) {
       Class<?> eventType = entry.getKey();
@@ -128,31 +131,31 @@ public final class OttoBus implements Bus {
   }
 
   @Override public void post(Object event) {
-    mainThread.enforce();
+    shared.mainThread.enforce();
     if (!destroyed) {
-      boolean dispatched = root.doPost(event);
+      boolean dispatched = shared.root.doPost(event);
       if (dispatched) {
         dispatchQueuedEvents();
         return;
       }
     }
-    deadEventHandler.onDeadEvent(event);
+    shared.deadEventHandler.onDeadEvent(event);
   }
 
   /** @return true iff event was dispatched to some subscriber. */
   private boolean doPost(Object event) {
     boolean dispatched = false;
     if (destroyed) return false;
-    Set<Class<?>> dispatchTypes = hierarchyFlattener.flatten(event.getClass());
+    Set<Class<?>> dispatchTypes = shared.hierarchyFlattener.flatten(event.getClass());
 
     for (Class eventType : dispatchTypes) {
       Set<EventHandler> eventHandlers = handlersByEventType.get(eventType);
       if (eventHandlers != null && !eventHandlers.isEmpty()) {
         dispatched = true;
         for (EventHandler handler : eventHandlers) {
-          dispatchBusQueue.add(this);
-          dispatchEventQueue.add(event);
-          dispatchHandlerQueue.add(handler);
+          shared.dispatchBusQueue.add(this);
+          shared.dispatchEventQueue.add(event);
+          shared.dispatchHandlerQueue.add(handler);
         }
       }
     }
@@ -166,10 +169,10 @@ public final class OttoBus implements Bus {
     if (dispatching) return;
     try {
       dispatching = true;
-      while ((!destroyed) && (!dispatchEventQueue.isEmpty())) {
-        OttoBus bus = dispatchBusQueue.poll();
-        EventHandler handler = dispatchHandlerQueue.poll();
-        Object event = dispatchEventQueue.poll();
+      while ((!destroyed) && (!shared.dispatchEventQueue.isEmpty())) {
+        OttoBus bus = shared.dispatchBusQueue.poll();
+        EventHandler handler = shared.dispatchHandlerQueue.poll();
+        Object event = shared.dispatchEventQueue.poll();
         if (bus.destroyed) continue;
         try {
           handler.handleEvent(event);
@@ -180,20 +183,20 @@ public final class OttoBus implements Bus {
         }
       }
     } finally {
-      dispatchBusQueue.clear();
-      dispatchHandlerQueue.clear();
-      dispatchEventQueue.clear();
+      shared.dispatchBusQueue.clear();
+      shared.dispatchHandlerQueue.clear();
+      shared.dispatchEventQueue.clear();
       dispatching = false;
     }
   }
 
   @Override public void postOnMainThread(final Object event) {
-    mainThread.forbid();
-    mainThread.post(event);
+    shared.mainThread.forbid();
+    shared.mainThread.post(event);
   }
 
   @Override public void destroy() {
-    mainThread.enforce();
+    shared.mainThread.enforce();
 
     if (destroyed) return;
     if (parent != null) parent.children.remove(this);
@@ -210,7 +213,7 @@ public final class OttoBus implements Bus {
 
   @Override public Bus spawn() {
     // Main thread enforcement is handled by the constructor.
-    return new OttoBus(this, root);
+    return new OttoBus(this, shared);
   }
 
   /**
