@@ -24,7 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public final class OttoBus implements Bus {
+final class OttoBus implements Bus {
 
   private static final class Shared {
     final MainThread mainThread;
@@ -57,16 +57,7 @@ public final class OttoBus implements Bus {
 
   private boolean destroyed;
 
-  /** Create a root bus that ignores dead events. */
-  public OttoBus() {
-    this(HandlerFinder.ANNOTATED, DeadEventHandler.IGNORE_DEAD_EVENTS);
-  }
-
-  /** Create a root bus. */
-  public OttoBus(DeadEventHandler deadEventHandler) {
-    this(HandlerFinder.ANNOTATED, deadEventHandler);
-  }
-
+  /** Create a root bus with an {@linkplain AndroidMainThread}. */
   OttoBus(HandlerFinder handlerFinder, DeadEventHandler deadEventHandler) {
     this(null, handlerFinder, deadEventHandler);
   }
@@ -179,18 +170,6 @@ public final class OttoBus implements Bus {
   @Override public Bus spawn() {
     // Main thread enforcement is handled by the constructor.
     return new OttoBus(this, shared);
-  }
-
-  /**
-   * Retrieves a mutable set of the currently registered handlers for {@code type}.  If no handlers
-   * are currently registered for {@code type}, this method may either return {@code null} or an
-   * empty set.
-   *
-   * @param type type of handlers to retrieve.
-   * @return currently registered handlers, or {@code null}.
-   */
-  Set<EventHandler> getHandlersForEventType(Class<?> type) {
-    return handlersByEventType.get(type);
   }
 
   /**

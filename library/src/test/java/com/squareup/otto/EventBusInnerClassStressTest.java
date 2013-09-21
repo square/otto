@@ -21,7 +21,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
 import static junit.framework.Assert.assertTrue;
 
 /**
@@ -42,7 +41,7 @@ public class EventBusInnerClassStressTest {
     }
   }
 
-  Bus eb = new OttoBus(IGNORE_DEAD_EVENTS);
+  Bus eb = Otto.createBus();
 
   Sub sub = new Sub();
 

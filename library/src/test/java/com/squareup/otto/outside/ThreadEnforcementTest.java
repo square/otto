@@ -17,27 +17,19 @@
 package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
-import com.squareup.otto.OttoBus;
+import com.squareup.otto.Otto;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
-import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
-
 @RunWith(RobolectricTestRunner.class)
 public class ThreadEnforcementTest {
 
-  Bus bus;
-  ExecutorService backgroundThread;
-
-  @Before public void setUp() {
-    bus = new OttoBus(IGNORE_DEAD_EVENTS);
-    backgroundThread = Executors.newSingleThreadExecutor();
-  }
+  Bus bus = Otto.createBus();
+  ExecutorService backgroundThread = Executors.newSingleThreadExecutor();
 
   @Test(expected = AssertionError.class) public void registerEnforcesThread() throws Throwable {
     enforcesThread(new Runnable() {
@@ -74,7 +66,7 @@ public class ThreadEnforcementTest {
   @Test(expected = AssertionError.class) public void busBuilderEnforcesThread() throws Throwable {
     enforcesThread(new Runnable() {
       @Override public void run() {
-        new OttoBus(IGNORE_DEAD_EVENTS);
+        Otto.createBus();
       }
     });
   }

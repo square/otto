@@ -20,16 +20,12 @@ package com.squareup.otto;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 
 /**
@@ -41,19 +37,11 @@ import static junit.framework.Assert.fail;
 public class BusTest {
   private static final String EVENT = "Hello";
 
-  private OttoBus bus;
-
-  @Before public void setUp() throws Exception {
-    bus = new OttoBus(IGNORE_DEAD_EVENTS);
-  }
+  private Bus bus = Otto.createBus();
 
   @Test public void basicCatcherDistribution() {
     StringCatcher catcher = new StringCatcher();
     bus.register(catcher);
-
-    Set<EventHandler> wrappers = bus.getHandlersForEventType(String.class);
-    assertNotNull("Should have at least one method registered.", wrappers);
-    assertEquals("One method should be registered.", 1, wrappers.size());
 
     bus.post(EVENT);
 
@@ -153,7 +141,7 @@ public class BusTest {
 
   @Test public void subscribingToInterfaceFails() {
     try {
-      new OttoBus(IGNORE_DEAD_EVENTS).register(new InterfaceSubscriber());
+      Otto.createBus().register(new InterfaceSubscriber());
       fail("Annotation finder allowed subscription to illegal interface type.");
     } catch (IllegalArgumentException expected) {
       // Do nothing.
