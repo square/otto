@@ -17,28 +17,19 @@
 package com.squareup.otto.outside;
 
 import com.squareup.otto.Bus;
-import com.squareup.otto.OttoBus;
+import com.squareup.otto.Otto;
 import com.squareup.otto.StringCatcher;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
-import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
-
 @RunWith(RobolectricTestRunner.class)
 public class DestructionTest {
   private static final String EVENT = "Hello";
-  private Bus root;
-  private Bus child;
-  private StringCatcher catcher;
-
-  @Before public void setUp() {
-    root = new OttoBus(IGNORE_DEAD_EVENTS);
-    child = root.spawn();
-    catcher = new StringCatcher();
-  }
+  private Bus root = Otto.createBus();
+  private Bus child = root.spawn();
+  private StringCatcher catcher = new StringCatcher();
 
   @Test public void destroyedBusDoesNotDispatchEvents() {
     root.register(catcher);

@@ -18,7 +18,6 @@ package com.squareup.otto;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -30,13 +29,8 @@ import static org.fest.assertions.api.Assertions.assertThat;
 public class DeadEventTest {
   private static final String EVENT = "Hello";
 
-  DeadEventCatcher catcher;
-  Bus bus;
-
-  @Before public void setUp() throws Exception {
-    catcher = new DeadEventCatcher();
-    bus = new OttoBus(catcher);
-  }
+  DeadEventCatcher catcher = new DeadEventCatcher();;
+  Bus bus = Otto.createBus(catcher);;
 
   @Test public void eventDiesIfNoSubscribers() {
     // A String -- an event for which no-one has registered.

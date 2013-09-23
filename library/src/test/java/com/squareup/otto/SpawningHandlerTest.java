@@ -16,14 +16,12 @@
 
 package com.squareup.otto;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.squareup.otto.BusSpawningPostingCatcher.IntegerCatcher;
-import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 /** Test case for subscribers which spawn a new child bus while handling an event. */
@@ -31,12 +29,7 @@ import static org.fest.assertions.api.Assertions.assertThat;
 public class SpawningHandlerTest {
 
   private static final String EVENT = "Hello";
-  private Bus bus;
-
-  @Before
-  public void setUp() throws Exception {
-    bus = new OttoBus(IGNORE_DEAD_EVENTS);
-  }
+  private Bus bus = Otto.createBus();
 
   @Test public void spawnBusInHandler() throws Exception {
     IntegerCatcher integerCatcher = new IntegerCatcher();

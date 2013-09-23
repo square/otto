@@ -18,27 +18,21 @@ package com.squareup.otto.outside;
 
 import android.os.Looper;
 import com.squareup.otto.Bus;
-import com.squareup.otto.OttoBus;
+import com.squareup.otto.Otto;
 import com.squareup.otto.StringCatcher;
 import com.squareup.otto.Subscribe;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
-import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
 public class PostOnMainThreadTest {
 
   private static final String EVENT = "Hello";
-  Bus bus;
-
-  @Before public void setUp() {
-    bus = new OttoBus(IGNORE_DEAD_EVENTS);
-  }
+  Bus bus = Otto.createBus();
 
   @Test public void postFromMainThreadIsSynchronous() {
     StringCatcher catcher = new StringCatcher();

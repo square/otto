@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.squareup.otto.DeadEventHandler.IGNORE_DEAD_EVENTS;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 
@@ -40,7 +39,7 @@ public class ReentrantEventsTest {
   static final String FIRST = "one";
   static final Double SECOND = 2.0d;
 
-  final Bus bus = new OttoBus(IGNORE_DEAD_EVENTS);
+  final Bus bus = Otto.createBus();
 
   @Test public void noReentrantEvents() {
     ReentrantEventsHater hater = new ReentrantEventsHater();
