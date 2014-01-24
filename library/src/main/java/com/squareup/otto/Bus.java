@@ -35,8 +35,10 @@ public interface Bus {
   void register(Object subscriber);
 
   /**
-   * Create a child Bus.  All subscribers to a child bus will receive events sent to its ancestors.
-   * Events posted to a child bus will not be sent to subscribers of its ancestors.
+   * Create a child Bus. Children provide no scoping with respect to posting events:
+   * any event posted to any undestroyed bus in the tree will be processed by all
+   * undestroyed buses. Children are useful because they are the only way to unregister
+   * subscribers.
    *
    * Must be called on the main thread.
    */
