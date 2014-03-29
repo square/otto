@@ -76,10 +76,13 @@
             to an instance of the class in which the previous method was present, we can register using the
             following:</p>
             <pre class="prettyprint">bus.register(this);</pre>
-            <p><strong>Registering will only find methods on the immediate class type.</strong> Unlike the Guava event
+            <p><strong>Registering defaults to only find methods on the immediate class type.</strong> Unlike the Guava event
             bus, Otto will not traverse the class hierarchy and add methods from base classes or interfaces that are
             annotated. This is an explicit design decision to improve performance of the library as well as keep your
             code simple and unambiguous.</p>
+            <p>In case you want to register inherited methods anyway you can annotate your classes with
+            <code>@ProcessSuperClass</code>. Otto will recursively traverse the inheritance hierarchy until it finds a class
+            which is not being annotated with this annotation or no more super classes can be found.</p>
             <p>Remember to also call the <code>unregister</code> method when appropriate. See the sample application
             included in the download for a complete example.</p>
 

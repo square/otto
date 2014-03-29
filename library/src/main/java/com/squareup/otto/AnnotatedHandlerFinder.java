@@ -19,6 +19,7 @@ package com.squareup.otto;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -49,7 +50,12 @@ final class AnnotatedHandlerFinder {
     Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
     Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
 
-    for (Method method : listenerClass.getDeclaredMethods()) {
+    Set<Method> allMethods = new HashSet<Method>();
+    Collections.addAll(allMethods, listenerClass.getDeclaredMethods());
+
+    addSuperMethodsRecursively(allMethods, listenerClass);
+
+    for (Method method : allMethods) {
       if (method.isAnnotationPresent(Subscribe.class)) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length != 1) {
@@ -108,6 +114,14 @@ final class AnnotatedHandlerFinder {
 
     PRODUCERS_CACHE.put(listenerClass, producerMethods);
     SUBSCRIBERS_CACHE.put(listenerClass, subscriberMethods);
+  }
+
+  private static void addSuperMethodsRecursively(Set<Method> allMethods, Class<?> listenerClass) {
+    Class<?> superclass = listenerClass.getSuperclass();
+    if (superclass != null && listenerClass.isAnnotationPresent(ProcessSuperClass.class)) {
+      Collections.addAll(allMethods, superclass.getDeclaredMethods());
+      addSuperMethodsRecursively(allMethods, superclass);
+    }
   }
 
   /** This implementation finds all methods marked with a {@link Produce} annotation. */
