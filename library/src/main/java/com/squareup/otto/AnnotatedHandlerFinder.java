@@ -49,7 +49,9 @@ final class AnnotatedHandlerFinder {
     Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
 
     for (Method method : listenerClass.getDeclaredMethods()) {
-      if (method.isAnnotationPresent(Subscribe.class)) {
+      // Look for real methods with @Subscribe. Ignore synthetic bridge methods.
+      // JDK 8 fixed bug JDK-6695379 and now copies annotations to bridge methods.
+      if (method.isAnnotationPresent(Subscribe.class) && !method.isBridge()) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length != 1) {
           throw new IllegalArgumentException("Method "
