@@ -37,9 +37,9 @@ final class DispatchQueue {
   private static void throwRuntimeException(String msg, InvocationTargetException e) {
     Throwable cause = e.getCause();
     if (cause != null) {
-      throw new RuntimeException(msg, cause);
+      throw new RuntimeException(msg + ": " + cause.getMessage(), cause);
     } else {
-      throw new RuntimeException(msg);
+      throw new RuntimeException(msg + ": " + e.getMessage(), e);
     }
   }
 
