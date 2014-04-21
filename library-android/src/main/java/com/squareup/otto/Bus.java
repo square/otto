@@ -74,6 +74,11 @@ package com.squareup.otto;
  */
 public class Bus extends com.squareup.otto.vanilla.Bus {
 
+    /** Creates a new Bus named "default" that enforces actions on the main thread. */
+    public Bus() {
+        this(DEFAULT_IDENTIFIER);
+    }
+
     /**
      * Creates a new Bus with the given {@code identifier} that enforces Main thread for its actions.
      *
