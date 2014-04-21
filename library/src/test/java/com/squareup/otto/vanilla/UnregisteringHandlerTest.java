@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package com.squareup.otto;
+package com.squareup.otto.vanilla;
 
+import com.squareup.otto.Produce;
+import com.squareup.otto.Subscribe;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -68,7 +70,8 @@ public class UnregisteringHandlerTest {
   @Test public void unregisterProducerInHandler() throws Exception {
     final Object producer = new Object() {
       private int calls = 0;
-      @Produce public String produceString() {
+      @Produce
+      public String produceString() {
         calls++;
         if (calls > 1) {
           fail("Should only have been called once, then unregistered and never called again.");
@@ -78,7 +81,8 @@ public class UnregisteringHandlerTest {
     };
     bus.register(producer);
     bus.register(new Object() {
-      @Subscribe public void firstUnsubscribeTheProducer(String produced) {
+      @Subscribe
+      public void firstUnsubscribeTheProducer(String produced) {
         bus.unregister(producer);
       }
       @Subscribe public void shouldNeverBeCalled(String uhoh) {

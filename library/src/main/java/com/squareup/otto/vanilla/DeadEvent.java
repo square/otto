@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.squareup.otto;
+package com.squareup.otto.vanilla;
 
 /**
  * Wraps an event that was posted, but which had no subscribers and thus could not be delivered.

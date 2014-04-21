@@ -34,6 +34,7 @@
 
   <modules>
     <module>library</module>
+    <module>library-android</module>
     <module>sample</module>
   </modules>
 

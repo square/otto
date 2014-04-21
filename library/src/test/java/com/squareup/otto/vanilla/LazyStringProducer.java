@@ -1,4 +1,6 @@
-package com.squareup.otto;
+package com.squareup.otto.vanilla;
+
+import com.squareup.otto.Produce;
 
 public class LazyStringProducer {
   public String value = null;

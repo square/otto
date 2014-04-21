@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package com.squareup.otto;
-
-import android.os.Looper;
+package com.squareup.otto.vanilla;
 
 /**
  * Enforces a thread confinement policy for methods on a particular event bus.
@@ -37,15 +35,6 @@ public interface ThreadEnforcer {
   ThreadEnforcer ANY = new ThreadEnforcer() {
     @Override public void enforce(Bus bus) {
       // Allow any thread.
-    }
-  };
-
-  /** A {@link ThreadEnforcer} that confines {@link Bus} methods to the main thread. */
-  ThreadEnforcer MAIN = new ThreadEnforcer() {
-    @Override public void enforce(Bus bus) {
-      if (Looper.myLooper() != Looper.getMainLooper()) {
-        throw new IllegalStateException("Event bus " + bus + " accessed from non-main thread " + Looper.myLooper());
-      }
     }
   };
 

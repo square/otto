@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.squareup.otto;
+package com.squareup.otto.vanilla;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
@@ -77,7 +77,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  *
  * <h2>Dead Events</h2>
  * If an event is posted, but no registered handlers can accept it, it is considered "dead."  To give the system a
- * second chance to handle dead events, they are wrapped in an instance of {@link com.squareup.otto.DeadEvent} and
+ * second chance to handle dead events, they are wrapped in an instance of {@link DeadEvent} and
  * reposted.
  *
  * <p>This class is safe for concurrent use.
@@ -131,7 +131,7 @@ public class Bus {
    * @param identifier a brief name for this bus, for debugging purposes.  Should be a valid Java identifier.
    */
   public Bus(String identifier) {
-    this(ThreadEnforcer.MAIN, identifier);
+    this(ThreadEnforcer.ANY, identifier);
   }
 
   /**
