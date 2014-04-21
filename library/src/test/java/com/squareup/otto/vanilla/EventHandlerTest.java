@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.squareup.otto;
+package com.squareup.otto.vanilla;
 
+import com.squareup.otto.vanilla.EventHandler;
 import org.junit.Before;
 import org.junit.Test;
 

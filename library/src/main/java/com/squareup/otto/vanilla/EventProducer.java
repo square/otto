@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.squareup.otto;
+package com.squareup.otto.vanilla;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

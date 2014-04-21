@@ -1,12 +1,13 @@
 // Copyright 2012 Square, Inc.
-package com.squareup.otto;
+package com.squareup.otto.vanilla;
 
+import com.squareup.otto.Subscribe;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertTrue;
 
 /**
- * Stress test of {@link Bus} against inner classes. The anon inner class tests
+ * Stress test of {@link com.squareup.otto.vanilla.Bus} against inner classes. The anon inner class tests
  * were broken when we switched to weak references.
  *
  * @author Ray Ryan (ray@squareup.com)

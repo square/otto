@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-package com.squareup.otto;
+package com.squareup.otto.vanilla;
+
+import com.squareup.otto.Produce;
+import com.squareup.otto.Subscribe;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -25,7 +28,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Helper methods for finding methods annotated with {@link Produce} and {@link Subscribe}.
+ * Helper methods for finding methods annotated with {@link com.squareup.otto.Produce}
+ * and {@link com.squareup.otto.Subscribe}.
  *
  * @author Cliff Biffle
  * @author Louis Wasserman
@@ -42,7 +46,8 @@ final class AnnotatedHandlerFinder {
       new HashMap<Class<?>, Map<Class<?>, Set<Method>>>();
 
   /**
-   * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective caches for the
+   * Load all methods annotated with {@link com.squareup.otto.Produce} or
+   * {@link com.squareup.otto.Subscribe} into their respective caches for the
    * specified class.
    */
   private static void loadAnnotatedMethods(Class<?> listenerClass) {

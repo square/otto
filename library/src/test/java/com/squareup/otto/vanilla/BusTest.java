@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package com.squareup.otto;
+package com.squareup.otto.vanilla;
 
+import com.squareup.otto.Produce;
+import com.squareup.otto.Subscribe;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,7 +33,7 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 /**
- * Test case for {@link Bus}.
+ * Test case for {@link com.squareup.otto.vanilla.Bus}.
  *
  * @author Cliff Biffle
  */
@@ -76,7 +78,8 @@ public class BusTest {
     final List<Object> objectEvents = new ArrayList<Object>();
     Object objCatcher = new Object() {
       @SuppressWarnings("unused")
-      @Subscribe public void eat(Object food) {
+      @Subscribe
+      public void eat(Object food) {
         objectEvents.add(food);
       }
     };
@@ -205,7 +208,8 @@ public class BusTest {
     }
     try {
       bus.register(new Object() {
-        @Produce protected Object method() { return null; }
+        @Produce
+        protected Object method() { return null; }
       });
       fail();
     } catch (IllegalArgumentException expected) {

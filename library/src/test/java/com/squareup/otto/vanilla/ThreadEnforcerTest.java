@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package com.squareup.otto;
+package com.squareup.otto.vanilla;
 
+import com.squareup.otto.vanilla.Bus;
+import com.squareup.otto.vanilla.ThreadEnforcer;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertFalse;

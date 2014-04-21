@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Square, Inc.
+ * Copyright (C) 2007 The Guava Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,35 +14,33 @@
  * limitations under the License.
  */
 
-package com.squareup.otto;
+package com.squareup.otto.vanilla;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/** An EventHandler mock that records a String and unregisters itself in the handler. */
-public class UnregisteringStringCatcher {
-  private final Bus bus;
+import com.squareup.otto.Subscribe;
+import junit.framework.Assert;
 
+/**
+ * A simple EventHandler mock that records Strings.
+ *
+ * For testing fun, also includes a landmine method that Bus tests are
+ * required <em>not</em> to call ({@link #methodWithoutAnnotation(String)}).
+ *
+ * @author Cliff Biffle
+ */
+public class StringCatcher {
   private List<String> events = new ArrayList<String>();
 
-  public UnregisteringStringCatcher(Bus bus) {
-    this.bus = bus;
+  @Subscribe
+  public void hereHaveAString(String string) {
+    events.add(string);
   }
 
-  @Subscribe public void unregisterOnString(String event) {
-    bus.unregister(this);
-    events.add(event);
+  public void methodWithoutAnnotation(String string) {
+    Assert.fail("Event bus must not call methods without @Subscribe!");
   }
-
-  @Subscribe public void zzzSleepinOnStrings(String event) {
-    events.add(event);
-  }
-
-  @Subscribe public void haveAnInteger(Integer event) {}
-
-  @Subscribe public void enjoyThisLong(Long event) {}
-
-  @Subscribe public void perhapsATastyDouble(Double event) {}
 
   public List<String> getEvents() {
     return events;

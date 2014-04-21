@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.squareup.otto;
+package com.squareup.otto.vanilla;
 
+import com.squareup.otto.Subscribe;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 
 /**
- * Validate that {@link Bus} behaves carefully when listeners publish
+ * Validate that {@link com.squareup.otto.vanilla.Bus} behaves carefully when listeners publish
  * their own events.
  *
  * @author Jesse Wilson

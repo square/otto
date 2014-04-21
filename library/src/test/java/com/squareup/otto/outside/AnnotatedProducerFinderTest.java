@@ -16,10 +16,10 @@
 
 package com.squareup.otto.outside;
 
-import com.squareup.otto.Bus;
+import com.squareup.otto.vanilla.Bus;
 import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
-import com.squareup.otto.ThreadEnforcer;
+import com.squareup.otto.vanilla.ThreadEnforcer;
 import org.junit.Test;
 
 import java.util.ArrayList;
