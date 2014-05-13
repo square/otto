@@ -402,4 +402,27 @@ public class BusTest {
     // Exists only for hierarchy mapping; no members.
   }
 
+  interface SubscriberInterface<T> {
+    @Subscribe
+    void subscribeToT(T value);
+  }
+
+  static class SubscriberImpl implements SubscriberInterface<Number> {
+    @Subscribe
+    public void subscribeToT(Number value) {
+      // No numbers are expected to be published.
+      fail();
+    }
+
+    // javac creates a synthetic bridge method with an erased signature that is equivalent to:
+    // public void subscribeToT(Object value) {}
+    // As of java 8, the @Subscribe annotation will be copied over to the bridge method.
+  }
+
+  @Test public void ignoreSyntheticBridgeMethods() {
+    SubscriberImpl catcher = new SubscriberImpl();
+    bus.register(catcher);
+    bus.post(EVENT);
+  }
+
 }
