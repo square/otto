@@ -50,6 +50,13 @@ final class AnnotatedHandlerFinder {
     Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
 
     for (Method method : listenerClass.getDeclaredMethods()) {
+      // The compiler sometimes creates synthetic bridge methods as part of the
+      // type erasure process. As of JDK8 these methods now include the same
+      // annotations as the original declarations. They should be ignored for
+      // subscribe/produce.
+      if (method.isBridge()) {
+        continue;
+      }
       if (method.isAnnotationPresent(Subscribe.class)) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length != 1) {
