@@ -239,6 +239,27 @@ public class Bus {
     }
   }
 
+  /**
+   * Registers a new EventHandler for events of the provided type that will execute
+   * the provided callback whenever it is posted.
+   *
+   * @param type event class to subscribe to.
+   * @param callback Callback instance that will be executed when an event of the
+   *                 provided type is posted.
+   */
+  public void register(Class type, Callback callback) {
+    Set<EventHandler> handlers = handlersByType.get(type);
+    if (handlers == null) {
+      //concurrent put if absent
+      Set<EventHandler> handlersCreation = new CopyOnWriteArraySet<EventHandler>();
+      handlers = handlersByType.putIfAbsent(type, handlersCreation);
+      if (handlers == null) {
+        handlers = handlersCreation;
+      }
+    }
+    handlers.add(new EventHandler(callback));
+  }
+
   private void dispatchProducerResultToHandler(EventHandler handler, EventProducer producer) {
     Object event = null;
     try {
@@ -297,6 +318,31 @@ public class Bus {
       }
       currentHandlers.removeAll(eventMethodsInListener);
     }
+  }
+
+  /**
+   * Unregisters a Callback for a particular event type
+   *
+   * @param type event class to unsubscribe from.
+   * @param callback Callback instance that would be executed when an event of the
+   *                 provided type was posted.
+   */
+  public void unregister(Class type, Callback callback) {
+    Set<EventHandler> currentHandlers = getHandlersForEventType(type);
+    if (currentHandlers == null) {
+      throw new IllegalArgumentException("There are no EventHandlers for type " + type);
+    }
+    EventHandler eventHandler = null;
+    for (EventHandler candidate : currentHandlers) {
+      if (candidate.hasCallback(callback)) {
+        eventHandler = candidate;
+      }
+    }
+    if (eventHandler == null) {
+      throw new IllegalArgumentException("There is no EventHandler for type " + type + " with callback " + callback);
+    }
+    eventHandler.invalidate();
+    currentHandlers.remove(eventHandler);
   }
 
   /**

@@ -19,6 +19,7 @@ package com.squareup.otto;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -303,6 +304,66 @@ public class BusTest {
                  expectedEvents, catcher1.getEvents());
     assertEquals("Shouldn't catch any more events when unregistered.",
                  expectedEvents, catcher2.getEvents());
+  }
+
+  @Test public void unregisterCallback() {
+    final StringCatcher catcher1 = new StringCatcher();
+    final StringCatcher catcher2 = new StringCatcher();
+    Callback catcher1Callback = new Callback<String>() {
+      @Override
+      public void call(String event) throws InvocationTargetException {
+        catcher1.hereHaveAString(event);
+      }
+    };
+    Callback catcher2Callback = new Callback<String>() {
+      @Override
+      public void call(String event) throws InvocationTargetException {
+        catcher2.hereHaveAString(event);
+      }
+    };
+    try {
+      bus.unregister(String.class, catcher1Callback);
+      fail("Attempting to unregister an unregistered object succeeded");
+    } catch (IllegalArgumentException expected) {
+      // OK.
+    }
+
+    bus.register(String.class, catcher1Callback);
+    bus.post(EVENT);
+    bus.register(String.class, catcher2Callback);
+    bus.post(EVENT);
+
+    List<String> expectedEvents = new ArrayList<String>();
+    expectedEvents.add(EVENT);
+    expectedEvents.add(EVENT);
+
+    assertEquals("Two correct events should be delivered.",
+        expectedEvents, catcher1.getEvents());
+
+    assertEquals("One correct event should be delivered.",
+        Arrays.asList(EVENT), catcher2.getEvents());
+
+    bus.unregister(String.class, catcher1Callback);
+    bus.post(EVENT);
+
+    assertEquals("Shouldn't catch any more events when unregistered.",
+        expectedEvents, catcher1.getEvents());
+    assertEquals("Two correct events should be delivered.",
+        expectedEvents, catcher2.getEvents());
+
+    try {
+      bus.unregister(String.class, catcher1Callback);
+      fail("Attempting to unregister an unregistered object succeeded");
+    } catch (IllegalArgumentException expected) {
+      // OK.
+    }
+
+    bus.unregister(String.class, catcher2Callback);
+    bus.post(EVENT);
+    assertEquals("Shouldn't catch any more events when unregistered.",
+        expectedEvents, catcher1.getEvents());
+    assertEquals("Shouldn't catch any more events when unregistered.",
+        expectedEvents, catcher2.getEvents());
   }
 
   @Test public void producingNullIsInvalid() {
