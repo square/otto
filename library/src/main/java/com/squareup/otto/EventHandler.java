@@ -25,7 +25,7 @@ import java.lang.reflect.Method;
  *
  * <p>This class only verifies the suitability of the method and event type if something fails.  Callers are expected t
  * verify their uses of this class.
- *
+ * <p/>
  * <p>Two EventHandlers are equivalent when they refer to the same method on the same object (not class).   This
  * property is used to ensure that no handler method is registered more than once.
  *
@@ -33,10 +33,8 @@ import java.lang.reflect.Method;
  */
 class EventHandler {
 
-  /** Object sporting the handler method. */
-  private final Object target;
-  /** Handler method. */
-  private final Method method;
+  /** Handler Callback. */
+  private final Callback callback;
   /** Object hash code. */
   private final int hashCode;
   /** Should this handler receive events? */
@@ -50,14 +48,23 @@ class EventHandler {
       throw new NullPointerException("EventHandler method cannot be null.");
     }
 
-    this.target = target;
-    this.method = method;
-    method.setAccessible(true);
+    // Compute hash code eagerly since we know it will be used frequently and we cannot estimate the runtime of the
+    // target's hashCode call.
+    final int prime = 31;
+    this.callback = new MethodInvokingCallback(target, method);
+    this.hashCode = (prime + callback.hashCode()) * prime + target.hashCode();
+  }
+
+  EventHandler(final Callback callback) {
+    if (callback == null) {
+      throw new NullPointerException("EventHandler callback cannot be null.");
+    }
 
     // Compute hash code eagerly since we know it will be used frequently and we cannot estimate the runtime of the
     // target's hashCode call.
     final int prime = 31;
-    hashCode = (prime + method.hashCode()) * prime + target.hashCode();
+    this.callback = callback;
+    this.hashCode = (prime + callback.hashCode()) * prime;
   }
 
   public boolean isValid() {
@@ -74,31 +81,24 @@ class EventHandler {
   }
 
   /**
-   * Invokes the wrapped handler method to handle {@code event}.
+   * Invokes the wrapped handler callback to handle {@code event}.
    *
-   * @param event  event to handle
-   * @throws java.lang.IllegalStateException  if previously invalidated.
-   * @throws java.lang.reflect.InvocationTargetException  if the wrapped method throws any {@link Throwable} that is not
-   *     an {@link Error} ({@code Error}s are propagated as-is).
+   * @param event event to handle
+   * @throws java.lang.reflect.InvocationTargetException if the wrapped callback throws any
+   *                                                     {@link Throwable} that is not
+   *                                                     an {@link Error} ({@code Error}s
+   *                                                     are propagated as-is).
    */
+  @SuppressWarnings("unchecked")
   public void handleEvent(Object event) throws InvocationTargetException {
     if (!valid) {
       throw new IllegalStateException(toString() + " has been invalidated and can no longer handle events.");
     }
-    try {
-      method.invoke(target, event);
-    } catch (IllegalAccessException e) {
-      throw new AssertionError(e);
-    } catch (InvocationTargetException e) {
-      if (e.getCause() instanceof Error) {
-        throw (Error) e.getCause();
-      }
-      throw e;
-    }
+    callback.call(event);
   }
 
   @Override public String toString() {
-    return "[EventHandler " + method + "]";
+    return "[EventHandler " + callback.toString() + "]";
   }
 
   @Override public int hashCode() {
@@ -120,7 +120,11 @@ class EventHandler {
 
     final EventHandler other = (EventHandler) obj;
 
-    return method.equals(other.method) && target == other.target;
+    return callback.equals(other.callback);
   }
 
+
+  public boolean hasCallback(Callback callback) {
+    return this.callback.equals(callback);
+  }
 }

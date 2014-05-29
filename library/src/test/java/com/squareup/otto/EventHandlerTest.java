@@ -65,6 +65,16 @@ public class EventHandlerTest {
     }
   }
 
+  /** Checks that EventHandler's constructor disallows null callbacks. */
+  @Test public void rejectionOfNullCallbacks() {
+    try {
+      new EventHandler(null);
+      fail("EventHandler must immediately reject null methods.");
+    } catch (NullPointerException expected) {
+      // Hooray!
+    }
+  }
+
   /** Checks that EventHandler's constructor disallows null targets. */
   @Test public void rejectionOfNullTargets() throws NoSuchMethodException {
     Method method = getRecordingMethod();
