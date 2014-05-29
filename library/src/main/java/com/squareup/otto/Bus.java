@@ -321,7 +321,7 @@ public class Bus {
   }
 
   /**
-   * Unregisters a Callback for a particular event type
+   * Unregisters a Callback for a particular event type.
    *
    * @param type event class to unsubscribe from.
    * @param callback Callback instance that would be executed when an event of the
