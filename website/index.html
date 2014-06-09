@@ -130,7 +130,8 @@ Bus bus2 = new Bus(ThreadEnforcer.MAIN);</pre>
   &lt;version><span class="version pln"><em>(insert latest version)</em></span>&lt;/version>
 &lt;/dependency></pre>
             <p>Once you've installed Otto, add the following lines to your <code>proguard-project.txt</code> file:</p>
-            <pre class="prettyprint">-keepclassmembers class ** {
+            <pre class="prettyprint">-keepattributes *Annotation*
+-keepclassmembers class ** {
     @com.squareup.otto.Subscribe public *;
     @com.squareup.otto.Produce public *;
 }</pre>
