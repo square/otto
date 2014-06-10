@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 1.3.5 *(2014-06-09)*
+----------------------------
+
+ * Fix: Ignore synthetic bridge methods created by JDK 8.
+
+
 Version 1.3.4 *(2013-06-24)*
 ----------------------------
 
