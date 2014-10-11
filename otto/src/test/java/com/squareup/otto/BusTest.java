@@ -27,6 +27,7 @@ import java.util.Set;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
@@ -423,6 +424,17 @@ public class BusTest {
     SubscriberImpl catcher = new SubscriberImpl();
     bus.register(catcher);
     bus.post(EVENT);
+  }
+
+  @Test public void produceWithExistingProducer() {
+    StringProducer producer = new StringProducer();
+    bus.register(producer);
+
+    assertEquals(StringProducer.VALUE, bus.produce(String.class));
+  }
+
+  @Test public void produceWithNotExistingProducer() {
+    assertNull(bus.produce(Integer.class));
   }
 
 }

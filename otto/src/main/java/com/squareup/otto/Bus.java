@@ -337,6 +337,31 @@ public class Bus {
   }
 
   /**
+   * <p>Produce and return one event for the provided type.</p>
+   * <p>This methode will not send this event to all registered listeners.
+   * It will juste ask the producer (if it exists) to produce the event and return the value to the caller.</p>
+   *
+   * @param type type of event to produce
+   * @return the current event value or {@code null} if no producer are currently registered for this event type.
+   */
+  public <T> T produce(Class<T> type) {
+    if (type == null) {
+      throw new NullPointerException("Type to produce must not be null.");
+    }
+    EventProducer producer = getProducerForEventType(type);
+    if (producer == null) {
+      return null;
+    }
+    try {
+      return (T) producer.produceEvent();
+    } catch (InvocationTargetException e) {
+      throwRuntimeException(
+              "Could not produce event: " + type, e);
+    }
+    return null;
+  }
+
+  /**
    * Queue the {@code event} for dispatch during {@link #dispatchQueuedEvents()}. Events are queued in-order of
    * occurrence so they can be dispatched in the same order.
    */
