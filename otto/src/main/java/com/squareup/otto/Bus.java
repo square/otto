@@ -18,6 +18,7 @@
 package com.squareup.otto;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -441,6 +442,7 @@ public class Bus {
       if (parent != null) {
         parents.add(parent);
       }
+      parents.addAll(Arrays.asList(clazz.getInterfaces()));
     }
     return classes;
   }

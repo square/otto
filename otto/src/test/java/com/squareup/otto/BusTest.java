@@ -247,8 +247,10 @@ public class BusTest {
     HierarchyFixture fixture = new HierarchyFixture();
     Set<Class<?>> hierarchy = bus.flattenHierarchy(fixture.getClass());
 
-    assertEquals(3, hierarchy.size());
+    assertEquals(5, hierarchy.size());
     assertContains(Object.class, hierarchy);
+    assertContains(HierarchyFixtureInterface.class, hierarchy);
+    assertContains(HierarchyFixtureSubinterface.class, hierarchy);
     assertContains(HierarchyFixtureParent.class, hierarchy);
     assertContains(HierarchyFixture.class, hierarchy);
   }
