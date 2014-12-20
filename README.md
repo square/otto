@@ -19,14 +19,19 @@ Download
 Downloadable .jars can be found on the [GitHub download page][2].
 
 You can also depend on the .jar through Maven:
-
 ```xml
 <dependency>
-    <groupId>com.squareup</groupId>
-    <artifactId>otto</artifactId>
-    <version>(insert latest version)</version>
+  <groupId>com.squareup</groupId>
+  <artifactId>otto</artifactId>
+  <version>(insert latest version)</version>
 </dependency>
 ```
+or Gradle:
+```groovy
+compile 'com.squareup:otto:(version)'
+```
+
+Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
 
 
 
@@ -52,3 +57,4 @@ License
 
  [1]: http://square.github.com/otto/
  [2]: http://github.com/square/otto/downloads
+ [snap]: https://oss.sonatype.org/content/repositories/snapshots/
