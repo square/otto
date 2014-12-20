@@ -1,13 +1,31 @@
-language: java
+language: android
 
-jdk: oraclejdk7
+android:
+  components:
+    - build-tools-20.0.0
+    - android-16
 
-before_install:
-  - export TERM=dumb
-  - sudo apt-get install -qq libstdc++6:i386 lib32z1
-  - export COMPONENTS=build-tools-19.0.1,android-16
-  - curl -L https://raw.github.com/embarkmobile/android-sdk-installer/version-1/android-sdk-installer | bash /dev/stdin --install=$COMPONENTS
-  - source ~/.android-sdk-installer/env
+jdk:
+  - oraclejdk7
+  - oraclejdk8
+
+after_success:
+  - .buildscript/deploy_snapshot.sh
+
+env:
+  global:
+    - secure: "Yb3rvGm3Q8/gzx+T8YhYkzw1VQQa4HgGs19WOx3iqPyXeeIDB9BIY53Bt11RGtF0Ymmh+OARjtij02M6jZWoJYkD9R80ysJQkItUsSXU7pnojBGBoKDzSH9PVkT8B3rP7al8/1BPZw3w4VGwxV5wqc/SEMcKZQiShoiZ5wjxhtA="
+    - secure: "aFWVcDyY6ARGd5AZ++GPMFFL8WbwOdhMhEWCspHhBg6y5Lse7Q5mgxp7esICLcHa3JTGBk1I7pG0SafzYvwtzzR5cErN2KKphTmbBUFo6uCeJ0tith2auiAsE49/ResDhCDcABUUGQPUv166u8Q/T4XxVdw/2id+e+UeDAx1TX8="
+
+branches:
+  except:
+    - gh-pages
 
 notifications:
   email: false
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.m2
