@@ -57,10 +57,12 @@ public class AnnotatedHandlerFinderTest {
       return handler;
     }
 
+    protected Bus bus;
+
     @Before
     public void setUp() throws Exception {
       handler = createHandler();
-      Bus bus = new Bus(ThreadEnforcer.ANY);
+      bus = new Bus(ThreadEnforcer.ANY);
       bus.register(handler);
       bus.post(EVENT);
     }
@@ -132,6 +134,66 @@ public class AnnotatedHandlerFinderTest {
 
     @Test public void overriddenInSubclassNowhereAnnotated() {
       assertThat(getHandler().overriddenInSubclassNowhereAnnotatedEvents).isEmpty();
+    }
+
+    @Override SubClass createHandler() {
+      return new SubClass();
+    }
+  }
+
+  public static class AnnotatedInSuperclassTest
+            extends AbstractEventBusTest<AnnotatedInSuperclassTest.SubClass> {
+
+    static class SuperClass {
+      final List<Object> annotatedInSuperclass = new ArrayList<Object>();
+      final List<Object> overriddenInSubclass = new ArrayList<Object>();
+      final List<Object> differentParametersInSubclass = new ArrayList<Object>();
+
+      @Subscribe
+      public void annotatedInSuperclass(Object o){
+        annotatedInSuperclass.add(o);
+      }
+
+      @Subscribe
+      public void overriddenInSubclass(Object o){
+        overriddenInSubclass.add(o);
+      }
+
+      @Subscribe
+      public void differentSignatureInSubclass(Object o){
+        differentParametersInSubclass.add(o);
+      }
+    }
+
+    static class SubClass extends SuperClass {
+      final List<Object> overriddenInSubclass2 = new ArrayList<Object>();
+      final List<Object> differentParametersInSubclass2 = new ArrayList<Object>();
+
+      @Subscribe
+      public void overriddenInSubclass(Object o){
+        overriddenInSubclass2.add(o);
+      }
+
+      @Subscribe
+      public void differentSignatureInSubclass(String o){
+        differentParametersInSubclass2.add(o);
+      }
+    }
+
+    @Test public void annotatedInSuperclass() {
+      assertThat(getHandler().annotatedInSuperclass).containsExactly(EVENT);
+    }
+
+    @Test public void overriddenInSubclass() {
+      assertThat(getHandler().overriddenInSubclass).isEmpty();
+      assertThat(getHandler().overriddenInSubclass2).containsExactly(EVENT);
+    }
+
+    @Test public void differentSignatureInSubclass() {
+      String stringEvent = "event";
+      bus.post(stringEvent);
+      assertThat(getHandler().differentParametersInSubclass).containsExactly(EVENT, stringEvent);
+      assertThat(getHandler().differentParametersInSubclass2).containsExactly(stringEvent);
     }
 
     @Override SubClass createHandler() {

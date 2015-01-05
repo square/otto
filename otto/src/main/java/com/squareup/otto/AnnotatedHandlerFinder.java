@@ -19,8 +19,11 @@ package com.squareup.otto;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -48,73 +51,128 @@ final class AnnotatedHandlerFinder {
   private static void loadAnnotatedMethods(Class<?> listenerClass) {
     Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
     Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
+    Set<MethodIdentifier> identifiers = new HashSet<MethodIdentifier>();
 
-    for (Method method : listenerClass.getDeclaredMethods()) {
-      // The compiler sometimes creates synthetic bridge methods as part of the
-      // type erasure process. As of JDK8 these methods now include the same
-      // annotations as the original declarations. They should be ignored for
-      // subscribe/produce.
-      if (method.isBridge()) {
-        continue;
-      }
-      if (method.isAnnotationPresent(Subscribe.class)) {
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        if (parameterTypes.length != 1) {
-          throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation but requires "
-              + parameterTypes.length + " arguments.  Methods must require a single argument.");
+    List<Class<?>> supers = getSuperClasses(listenerClass);
+    for (Class<?> clazz : supers) {
+      for (Method method : clazz.getDeclaredMethods()) {
+        // The compiler sometimes creates synthetic bridge methods as part of the
+        // type erasure process. As of JDK8 these methods now include the same
+        // annotations as the original declarations. They should be ignored for
+        // subscribe/produce.
+        if (method.isBridge()) {
+            continue;
         }
 
-        Class<?> eventType = parameterTypes[0];
-        if (eventType.isInterface()) {
-          throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
-              + " which is an interface.  Subscription must be on a concrete class type.");
+        MethodIdentifier identifier = new MethodIdentifier(method);
+        if (identifiers.contains(identifier)) {
+          continue;
         }
 
-        if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
-          throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
-              + " but is not 'public'.");
-        }
+        if (method.isAnnotationPresent(Subscribe.class)) {
+          Class<?>[] parameterTypes = method.getParameterTypes();
+          if (parameterTypes.length != 1) {
+            throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation but requires "
+                + parameterTypes.length + " arguments.  Methods must require a single argument.");
+          }
 
-        Set<Method> methods = subscriberMethods.get(eventType);
-        if (methods == null) {
-          methods = new HashSet<Method>();
-          subscriberMethods.put(eventType, methods);
-        }
-        methods.add(method);
-      } else if (method.isAnnotationPresent(Produce.class)) {
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        if (parameterTypes.length != 0) {
-          throw new IllegalArgumentException("Method " + method + "has @Produce annotation but requires "
-              + parameterTypes.length + " arguments.  Methods must require zero arguments.");
-        }
-        if (method.getReturnType() == Void.class) {
-          throw new IllegalArgumentException("Method " + method
-              + " has a return type of void.  Must declare a non-void type.");
-        }
+          Class<?> eventType = parameterTypes[0];
+          if (eventType.isInterface()) {
+            throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
+                + " which is an interface.  Subscription must be on a concrete class type.");
+          }
 
-        Class<?> eventType = method.getReturnType();
-        if (eventType.isInterface()) {
-          throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
-              + " which is an interface.  Producers must return a concrete class type.");
-        }
-        if (eventType.equals(Void.TYPE)) {
-          throw new IllegalArgumentException("Method " + method + " has @Produce annotation but has no return type.");
-        }
+          if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
+            throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
+                + " but is not 'public'.");
+          }
 
-        if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
-          throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
-              + " but is not 'public'.");
-        }
+          Set<Method> methods = subscriberMethods.get(eventType);
+          if (methods == null) {
+            methods = new HashSet<Method>();
+            subscriberMethods.put(eventType, methods);
+          }
+          methods.add(method);
+          identifiers.add(identifier);
+        } else if (method.isAnnotationPresent(Produce.class)) {
+          Class<?>[] parameterTypes = method.getParameterTypes();
+          if (parameterTypes.length != 0) {
+            throw new IllegalArgumentException("Method " + method + "has @Produce annotation but requires "
+                + parameterTypes.length + " arguments.  Methods must require zero arguments.");
+          }
+          if (method.getReturnType() == Void.class) {
+            throw new IllegalArgumentException("Method " + method
+                + " has a return type of void.  Must declare a non-void type.");
+          }
 
-        if (producerMethods.containsKey(eventType)) {
-          throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
+          Class<?> eventType = method.getReturnType();
+          if (eventType.isInterface()) {
+            throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
+                + " which is an interface.  Producers must return a concrete class type.");
+          }
+          if (eventType.equals(Void.TYPE)) {
+            throw new IllegalArgumentException("Method " + method + " has @Produce annotation but has no return type.");
+          }
+
+          if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
+            throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
+                + " but is not 'public'.");
+          }
+
+          if (producerMethods.containsKey(eventType)) {
+            throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
+          }
+          producerMethods.put(eventType, method);
+          identifiers.add(identifier);
         }
-        producerMethods.put(eventType, method);
       }
     }
 
     PRODUCERS_CACHE.put(listenerClass, producerMethods);
     SUBSCRIBERS_CACHE.put(listenerClass, subscriberMethods);
+  }
+
+  /** Get super classes, stopping once a class in "java." or "android." package is reached. */
+  static List<Class<?>> getSuperClasses(Class<?> clazz) {
+    List<Class<?>> classes = new ArrayList<Class<?>>();
+    while (shouldCheck(clazz)) {
+      classes.add(clazz);
+      clazz = clazz.getSuperclass();
+    }
+    return classes;
+  }
+
+  static boolean shouldCheck(Class<?> clazz) {
+    if (clazz == null) {
+      return false;
+    }
+    String name = clazz.getName();
+    return !name.startsWith("java.") && !name.startsWith("android.");
+  }
+
+  private static final class MethodIdentifier {
+
+    private final String name;
+    private final List<Class<?>> parameterTypes;
+
+    MethodIdentifier(Method method) {
+      this.name = method.getName();
+      this.parameterTypes = Arrays.asList(method.getParameterTypes());
+    }
+
+    @Override
+    public int hashCode() {
+      return Arrays.hashCode(new Object[]{name, parameterTypes});
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (o instanceof MethodIdentifier) {
+        MethodIdentifier ident = (MethodIdentifier) o;
+        return name.equals(ident.name) && parameterTypes.equals(ident.parameterTypes);
+      }
+      return false;
+    }
   }
 
   /** This implementation finds all methods marked with a {@link Produce} annotation. */
