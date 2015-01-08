@@ -49,69 +49,78 @@ final class AnnotatedHandlerFinder {
     Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
     Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
 
-    for (Method method : listenerClass.getDeclaredMethods()) {
-      // The compiler sometimes creates synthetic bridge methods as part of the
-      // type erasure process. As of JDK8 these methods now include the same
-      // annotations as the original declarations. They should be ignored for
-      // subscribe/produce.
-      if (method.isBridge()) {
-        continue;
-      }
-      if (method.isAnnotationPresent(Subscribe.class)) {
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        if (parameterTypes.length != 1) {
-          throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation but requires "
-              + parameterTypes.length + " arguments.  Methods must require a single argument.");
-        }
+     Class<?> clazz = listenerClass;
 
-        Class<?> eventType = parameterTypes[0];
-        if (eventType.isInterface()) {
-          throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
-              + " which is an interface.  Subscription must be on a concrete class type.");
-        }
+      do {
+          for (Method method : clazz.getDeclaredMethods()) {
+              // The compiler sometimes creates synthetic bridge methods as part of the
+              // type erasure process. As of JDK8 these methods now include the same
+              // annotations as the original declarations. They should be ignored for
+              // subscribe/produce.
+              if (method.isBridge()) {
+                  continue;
+              }
+              if (method.isAnnotationPresent(Subscribe.class)) {
+                  Class<?>[] parameterTypes = method.getParameterTypes();
+                  if (parameterTypes.length != 1) {
+                      throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation but requires "
+                              + parameterTypes.length + " arguments.  Methods must require a single argument.");
+                  }
 
-        if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
-          throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
-              + " but is not 'public'.");
-        }
+                  Class<?> eventType = parameterTypes[0];
+                  if (eventType.isInterface()) {
+                      throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
+                              + " which is an interface.  Subscription must be on a concrete class type.");
+                  }
 
-        Set<Method> methods = subscriberMethods.get(eventType);
-        if (methods == null) {
-          methods = new HashSet<Method>();
-          subscriberMethods.put(eventType, methods);
-        }
-        methods.add(method);
-      } else if (method.isAnnotationPresent(Produce.class)) {
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        if (parameterTypes.length != 0) {
-          throw new IllegalArgumentException("Method " + method + "has @Produce annotation but requires "
-              + parameterTypes.length + " arguments.  Methods must require zero arguments.");
-        }
-        if (method.getReturnType() == Void.class) {
-          throw new IllegalArgumentException("Method " + method
-              + " has a return type of void.  Must declare a non-void type.");
-        }
+                  if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
+                      throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
+                              + " but is not 'public'.");
+                  }
 
-        Class<?> eventType = method.getReturnType();
-        if (eventType.isInterface()) {
-          throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
-              + " which is an interface.  Producers must return a concrete class type.");
-        }
-        if (eventType.equals(Void.TYPE)) {
-          throw new IllegalArgumentException("Method " + method + " has @Produce annotation but has no return type.");
-        }
+                  Set<Method> methods = subscriberMethods.get(eventType);
+                  if (methods == null) {
+                      methods = new HashSet<Method>();
+                      subscriberMethods.put(eventType, methods);
+                  }
+                  methods.add(method);
+              } else if (method.isAnnotationPresent(Produce.class)) {
+                  Class<?>[] parameterTypes = method.getParameterTypes();
+                  if (parameterTypes.length != 0) {
+                      throw new IllegalArgumentException("Method " + method + "has @Produce annotation but requires "
+                              + parameterTypes.length + " arguments.  Methods must require zero arguments.");
+                  }
+                  if (method.getReturnType() == Void.class) {
+                      throw new IllegalArgumentException("Method " + method
+                              + " has a return type of void.  Must declare a non-void type.");
+                  }
 
-        if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
-          throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
-              + " but is not 'public'.");
-        }
+                  Class<?> eventType = method.getReturnType();
+                  if (eventType.isInterface()) {
+                      throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
+                              + " which is an interface.  Producers must return a concrete class type.");
+                  }
+                  if (eventType.equals(Void.TYPE)) {
+                      throw new IllegalArgumentException("Method " + method + " has @Produce annotation but has no return type.");
+                  }
 
-        if (producerMethods.containsKey(eventType)) {
-          throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
-        }
-        producerMethods.put(eventType, method);
-      }
-    }
+                  if ((method.getModifiers() & Modifier.PUBLIC) == 0) {
+                      throw new IllegalArgumentException("Method " + method + " has @Produce annotation on " + eventType
+                              + " but is not 'public'.");
+                  }
+
+                  if (producerMethods.containsKey(eventType)) {
+                      throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
+                  }
+                  producerMethods.put(eventType, method);
+              }
+          }
+          if(clazz.isAnnotationPresent(InheritSubscribers.class)) {
+              clazz = clazz.getSuperclass();
+          } else {
+              clazz = null;
+          }
+      } while (clazz != null);
 
     PRODUCERS_CACHE.put(listenerClass, producerMethods);
     SUBSCRIBERS_CACHE.put(listenerClass, subscriberMethods);
