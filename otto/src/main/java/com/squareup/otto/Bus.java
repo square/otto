@@ -219,7 +219,9 @@ public class Bus {
         }
       }
       final Set<EventHandler> foundHandlers = foundHandlersMap.get(type);
-      handlers.addAll(foundHandlers);
+      if (!handlers.addAll(foundHandlers)) {
+        throw new IllegalArgumentException("Object already registered.");
+      }
     }
 
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : foundHandlersMap.entrySet()) {
