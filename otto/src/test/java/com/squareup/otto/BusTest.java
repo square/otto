@@ -45,6 +45,17 @@ public class BusTest {
     bus = new Bus(ThreadEnforcer.ANY, BUS_IDENTIFIER);
   }
 
+  @Test public void registeringSameObjectTwiceFails() {
+    StringCatcher catcher = new StringCatcher();
+    bus.register(catcher);
+    try {
+      bus.register(catcher);
+      fail();
+    } catch (IllegalArgumentException e) {
+      assertEquals("Object already registered.", e.getMessage());
+    }
+  }
+
   @Test public void basicCatcherDistribution() {
     StringCatcher catcher = new StringCatcher();
     bus.register(catcher);
