@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 1.3.6 *(2015-01-19)*
+----------------------------
+
+ * Explicitly prevent registering the same instance twice.
+
+
 Version 1.3.5 *(2014-06-09)*
 ----------------------------
 
