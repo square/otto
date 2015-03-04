@@ -4,6 +4,8 @@
 .checkstyle
 eclipsebin
 
+.gradle
+local.properties
 bin
 gen
 build
