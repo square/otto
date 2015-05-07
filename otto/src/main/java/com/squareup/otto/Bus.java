@@ -424,7 +424,7 @@ public class Bus {
       Set<Class<?>> classesCreation = getClassesFor(concreteClass);
       classes = flattenHierarchyCache.putIfAbsent(concreteClass, classesCreation);
       if (classes == null) {
-          classes = classesCreation;
+        classes = classesCreation;
       }
     }
 
