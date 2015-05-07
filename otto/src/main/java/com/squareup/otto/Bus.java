@@ -19,7 +19,6 @@ package com.squareup.otto;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -422,8 +421,11 @@ public class Bus {
   Set<Class<?>> flattenHierarchy(Class<?> concreteClass) {
     Set<Class<?>> classes = flattenHierarchyCache.get(concreteClass);
     if (classes == null) {
-      classes = getClassesFor(concreteClass);
-      flattenHierarchyCache.put(concreteClass, classes);
+      Set<Class<?>> classesCreation = getClassesFor(concreteClass);
+      classes = flattenHierarchyCache.putIfAbsent(concreteClass, classesCreation);
+      if (classes == null) {
+        classes = classesCreation;
+      }
     }
 
     return classes;
@@ -461,8 +463,8 @@ public class Bus {
     }
   }
 
-  private final Map<Class<?>, Set<Class<?>>> flattenHierarchyCache =
-      new HashMap<Class<?>, Set<Class<?>>>();
+  private final ConcurrentMap<Class<?>, Set<Class<?>>> flattenHierarchyCache =
+      new ConcurrentHashMap<Class<?>, Set<Class<?>>>();
 
   /** Simple struct representing an event and its handler. */
   static class EventWithHandler {
