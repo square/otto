@@ -80,4 +80,24 @@ public class AnnotatedProducerFinderTest {
     bus.register(new Subscriber());
     assertThat(producer.produceCalled).isEqualTo(2);
   }
+
+
+  public static class ExtendedProducerTest {
+
+    static class ExtendedProducer extends SimpleProducer {
+    }
+
+    @Test public void subclassedProducer() {
+      Bus bus = new Bus(ThreadEnforcer.ANY);
+      Subscriber subscriber = new Subscriber();
+      ExtendedProducer producer = new ExtendedProducer();
+
+      bus.register(producer);
+      assertThat(producer.produceCalled).isEqualTo(0);
+      bus.register(subscriber);
+      assertThat(producer.produceCalled).isEqualTo(1);
+      assertEquals(Arrays.asList(SimpleProducer.VALUE), subscriber.events);
+    }
+  }
+
 }
