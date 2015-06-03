@@ -124,10 +124,11 @@ final class AnnotatedHandlerFinder {
     final Class<?> listenerClass = listener.getClass();
     Map<Class<?>, EventProducer> handlersInMethod = new HashMap<Class<?>, EventProducer>();
 
-    if (!PRODUCERS_CACHE.containsKey(listenerClass)) {
-      loadAnnotatedMethods(listenerClass);
-    }
     Map<Class<?>, Method> methods = PRODUCERS_CACHE.get(listenerClass);
+    if (null == methods) {
+      loadAnnotatedMethods(listenerClass);
+      methods = PRODUCERS_CACHE.get(listenerClass);
+    }
     if (!methods.isEmpty()) {
       for (Map.Entry<Class<?>, Method> e : methods.entrySet()) {
         EventProducer producer = new EventProducer(listener, e.getValue());
@@ -143,10 +144,11 @@ final class AnnotatedHandlerFinder {
     Class<?> listenerClass = listener.getClass();
     Map<Class<?>, Set<EventHandler>> handlersInMethod = new HashMap<Class<?>, Set<EventHandler>>();
 
-    if (!SUBSCRIBERS_CACHE.containsKey(listenerClass)) {
-      loadAnnotatedMethods(listenerClass);
-    }
     Map<Class<?>, Set<Method>> methods = SUBSCRIBERS_CACHE.get(listenerClass);
+    if (null == methods) {
+      loadAnnotatedMethods(listenerClass);
+      methods = SUBSCRIBERS_CACHE.get(listenerClass);
+    }
     if (!methods.isEmpty()) {
       for (Map.Entry<Class<?>, Set<Method>> e : methods.entrySet()) {
         Set<EventHandler> handlers = new HashSet<EventHandler>();
