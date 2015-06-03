@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Helper methods for finding methods annotated with {@link Produce} and {@link Subscribe}.
@@ -34,12 +36,12 @@ import java.util.Set;
 final class AnnotatedHandlerFinder {
 
   /** Cache event bus producer methods for each class. */
-  private static final Map<Class<?>, Map<Class<?>, Method>> PRODUCERS_CACHE =
-      new HashMap<Class<?>, Map<Class<?>, Method>>();
+  private static final ConcurrentMap<Class<?>, Map<Class<?>, Method>> PRODUCERS_CACHE =
+      new ConcurrentHashMap<Class<?>, Map<Class<?>, Method>>();
 
   /** Cache event bus subscriber methods for each class. */
-  private static final Map<Class<?>, Map<Class<?>, Set<Method>>> SUBSCRIBERS_CACHE =
-      new HashMap<Class<?>, Map<Class<?>, Set<Method>>>();
+  private static final ConcurrentMap<Class<?>, Map<Class<?>, Set<Method>>> SUBSCRIBERS_CACHE =
+      new ConcurrentHashMap<Class<?>, Map<Class<?>, Set<Method>>>();
 
   /**
    * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective caches for the
