@@ -37,27 +37,29 @@ final class AnnotatedHandlerFinder {
 
   /** Cache event bus producer methods for each class. */
   private static final ConcurrentMap<Class<?>, Map<Class<?>, Method>> PRODUCERS_CACHE =
-      new ConcurrentHashMap<Class<?>, Map<Class<?>, Method>>();
+    new ConcurrentHashMap<Class<?>, Map<Class<?>, Method>>();
 
   /** Cache event bus subscriber methods for each class. */
   private static final ConcurrentMap<Class<?>, Map<Class<?>, Set<Method>>> SUBSCRIBERS_CACHE =
-      new ConcurrentHashMap<Class<?>, Map<Class<?>, Set<Method>>>();
+    new ConcurrentHashMap<Class<?>, Map<Class<?>, Set<Method>>>();
 
   private static void loadAnnotatedProducerMethods(Class<?> listenerClass, Map<Class<?>, Method> producerMethods) {
-      Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
-      loadAnnotatedMethods(listenerClass, producerMethods, subscriberMethods);
+    Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
+    loadAnnotatedMethods(listenerClass, producerMethods, subscriberMethods);
   }
 
-  private static void loadAnnotatedSubscriberMethods(Class<?> listenerClass, Map<Class<?>, Set<Method>> subscriberMethods) {
-      Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
-      loadAnnotatedMethods(listenerClass, producerMethods, subscriberMethods);
+  private static void loadAnnotatedSubscriberMethods(Class<?> listenerClass, Map<Class<?>,
+      Set<Method>> subscriberMethods) {
+    Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
+    loadAnnotatedMethods(listenerClass, producerMethods, subscriberMethods);
   }
 
   /**
    * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective caches for the
    * specified class.
    */
-  private static void loadAnnotatedMethods(Class<?> listenerClass, Map<Class<?>, Method> producerMethods, Map<Class<?>, Set<Method>> subscriberMethods) {
+  private static void loadAnnotatedMethods(Class<?> listenerClass, Map<Class<?>, Method> producerMethods, Map<Class<?>,
+      Set<Method>> subscriberMethods) {
     for (Method method : listenerClass.getDeclaredMethods()) {
       // The compiler sometimes creates synthetic bridge methods as part of the
       // type erasure process. As of JDK8 these methods now include the same
