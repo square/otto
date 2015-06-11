@@ -43,14 +43,21 @@ final class AnnotatedHandlerFinder {
   private static final ConcurrentMap<Class<?>, Map<Class<?>, Set<Method>>> SUBSCRIBERS_CACHE =
       new ConcurrentHashMap<Class<?>, Map<Class<?>, Set<Method>>>();
 
+  private static void loadAnnotatedProducerMethods(Class<?> listenerClass, Map<Class<?>, Method> producerMethods) {
+      Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
+      loadAnnotatedMethods(listenerClass, producerMethods, subscriberMethods);
+  }
+
+  private static void loadAnnotatedSubscriberMethods(Class<?> listenerClass, Map<Class<?>, Set<Method>> subscriberMethods) {
+      Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
+      loadAnnotatedMethods(listenerClass, producerMethods, subscriberMethods);
+  }
+
   /**
    * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective caches for the
    * specified class.
    */
-  private static void loadAnnotatedMethods(Class<?> listenerClass) {
-    Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
-    Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
-
+  private static void loadAnnotatedMethods(Class<?> listenerClass, Map<Class<?>, Method> producerMethods, Map<Class<?>, Set<Method>> subscriberMethods) {
     for (Method method : listenerClass.getDeclaredMethods()) {
       // The compiler sometimes creates synthetic bridge methods as part of the
       // type erasure process. As of JDK8 these methods now include the same
@@ -126,8 +133,8 @@ final class AnnotatedHandlerFinder {
 
     Map<Class<?>, Method> methods = PRODUCERS_CACHE.get(listenerClass);
     if (null == methods) {
-      loadAnnotatedMethods(listenerClass);
-      methods = PRODUCERS_CACHE.get(listenerClass);
+      methods = new HashMap<Class<?>, Method>();
+      loadAnnotatedProducerMethods(listenerClass, methods);
     }
     if (!methods.isEmpty()) {
       for (Map.Entry<Class<?>, Method> e : methods.entrySet()) {
@@ -146,8 +153,8 @@ final class AnnotatedHandlerFinder {
 
     Map<Class<?>, Set<Method>> methods = SUBSCRIBERS_CACHE.get(listenerClass);
     if (null == methods) {
-      loadAnnotatedMethods(listenerClass);
-      methods = SUBSCRIBERS_CACHE.get(listenerClass);
+      methods = new HashMap<Class<?>, Set<Method>>();
+      loadAnnotatedSubscriberMethods(listenerClass, methods);
     }
     if (!methods.isEmpty()) {
       for (Map.Entry<Class<?>, Set<Method>> e : methods.entrySet()) {
