@@ -23,12 +23,12 @@ You can also depend on the .jar through Maven:
 <dependency>
   <groupId>com.squareup</groupId>
   <artifactId>otto</artifactId>
-  <version>1.3.7</version>
+  <version>1.3.8</version>
 </dependency>
 ```
 or Gradle:
 ```groovy
-compile 'com.squareup:otto:1.3.7'
+compile 'com.squareup:otto:1.3.8'
 ```
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].

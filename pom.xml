@@ -44,7 +44,7 @@
 
     <!-- Dependencies -->
     <android.version>4.1.1.4</android.version>
-    <android.platform>16</android.platform>
+    <android.platform>22</android.platform>
     <android.support.version>r7</android.support.version>
 
     <!-- Test Dependencies -->
