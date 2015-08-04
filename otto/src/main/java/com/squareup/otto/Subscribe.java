@@ -34,4 +34,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Subscribe {
+
+    /**
+     * Default event name.
+     * <p>
+     * If its empty, the class type will be used instead.
+     */
+    String event() default "";
 }
