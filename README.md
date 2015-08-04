@@ -1,3 +1,7 @@
+Fork of Square Otto
+=============================
+https://github.com/square/otto
+
 Otto - An event bus by Square
 =============================
 
