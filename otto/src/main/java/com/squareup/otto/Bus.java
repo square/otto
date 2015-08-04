@@ -18,6 +18,7 @@
 package com.squareup.otto;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -106,18 +107,21 @@ public class Bus {
 
   /** Queues of events for the current thread to dispatch. */
   private final ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>> eventsToDispatch =
-      new ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>>() {
-        @Override protected ConcurrentLinkedQueue<EventWithHandler> initialValue() {
-          return new ConcurrentLinkedQueue<EventWithHandler>();
-        }
-      };
+          new ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>>() {
+            @Override
+            protected ConcurrentLinkedQueue<EventWithHandler> initialValue() {
+              return new ConcurrentLinkedQueue<EventWithHandler>();
+            }
+          };
 
   /** True if the current thread is currently dispatching an event. */
   private final ThreadLocal<Boolean> isDispatching = new ThreadLocal<Boolean>() {
-    @Override protected Boolean initialValue() {
+    @Override
+    protected Boolean initialValue() {
       return false;
     }
   };
+  private ArrayList<Object> mRegistered;
 
   /** Creates a new Bus named "default" that enforces actions on the main thread. */
   public Bus() {
@@ -160,12 +164,14 @@ public class Bus {
    * @param handlerFinder Used to discover event handlers and producers when registering/unregistering an object.
    */
   Bus(ThreadEnforcer enforcer, String identifier, HandlerFinder handlerFinder) {
-    this.enforcer =  enforcer;
+    this.enforcer = enforcer;
     this.identifier = identifier;
     this.handlerFinder = handlerFinder;
+    this.mRegistered = new ArrayList<>();
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return "[Bus \"" + identifier + "\"]";
   }
 
@@ -186,6 +192,8 @@ public class Bus {
       throw new NullPointerException("Object to register must not be null.");
     }
     enforcer.enforce(this);
+    mRegistered.add(object);
+
 
     // object has producer, so send the event to all handler
     Map<String, EventProducer> foundProducers = handlerFinder.findAllProducers(object);
@@ -196,8 +204,8 @@ public class Bus {
       //checking if the previous producer existed
       if (previousProducer != null) {
         throw new IllegalArgumentException("Producer method for type " + type
-          + " found on type " + producer.target.getClass()
-          + ", but already registered by type " + previousProducer.target.getClass() + ".");
+                + " found on type " + producer.target.getClass()
+                + ", but already registered by type " + previousProducer.target.getClass() + ".");
       }
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers != null && !handlers.isEmpty()) {
@@ -267,7 +275,9 @@ public class Bus {
     if (object == null) {
       throw new NullPointerException("Object to unregister must not be null.");
     }
+
     enforcer.enforce(this);
+    mRegistered.remove(object);
 
     Map<String, EventProducer> producersInListener = handlerFinder.findAllProducers(object);
     for (Map.Entry<String, EventProducer> entry : producersInListener.entrySet()) {
@@ -300,6 +310,12 @@ public class Bus {
         }
       }
       currentHandlers.removeAll(eventMethodsInListener);
+    }
+  }
+
+  public void unregisterAll() {
+    for (Object o : mRegistered.toArray()) {
+      unregister(o);
     }
   }
 
