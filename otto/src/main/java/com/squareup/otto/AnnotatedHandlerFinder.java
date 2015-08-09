@@ -123,15 +123,16 @@ final class AnnotatedHandlerFinder {
               + " but is not 'public'.");
         }
 
-        if (producerMethods.containsKey(eventType)) {
-          throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
-        }
-
         Produce annotation = method.getAnnotation(Produce.class);
         String keyName = annotation.event();
         if ("".equals(keyName)) {
           keyName = eventType.getName();
         }
+
+        if (producerMethods.containsKey(keyName)) {
+          throw new IllegalArgumentException("Producer for type " + eventType + " has already been registered.");
+        }
+
         producerMethods.put(keyName, method);
       }
     }
