@@ -2,7 +2,7 @@ Fork of Square Otto
 =============================
 https://github.com/square/otto
 
-Added feature of named event. 
+Added feature of named event.
 This allow multiple producer, productin same object type for different event name.
 As well as the subscriber will be able to subscribe event based on the name. 
 
@@ -23,6 +23,10 @@ bus.post('wifi_only_download', produceWifiConfigChange());
 ```
 
 Example above is just a very simple showcase of what can done with named event.
+
+
+Added feature for searching parent class for subscribe and produce annotation
+Based on https://github.com/thirogit/otto
 
 Otto - An event bus by Square
 =============================
