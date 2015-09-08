@@ -87,11 +87,11 @@ final class AnnotatedHandlerFinder {
                 }
 
                 Class<?> eventType = parameterTypes[0];
-                if (eventType.isInterface())
-                {
-                  throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
-                          + " which is an interface.  Subscription must be on a concrete class type.");
-                }
+//                if (eventType.isInterface())
+//                {
+//                  throw new IllegalArgumentException("Method " + method + " has @Subscribe annotation on " + eventType
+//                          + " which is an interface.  Subscription must be on a concrete class type.");
+//                }
 
                 if ((method.getModifiers() & Modifier.PUBLIC) == 0)
                 {
