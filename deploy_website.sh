@@ -2,13 +2,14 @@
 
 set -ex
 
+REPO="git@github.com:square/otto.git"
 DIR=temp-clone
 
 # Delete any existing temporary website clone
 rm -rf $DIR
 
 # Clone the current repo into temp folder
-git clone git@github.com:square/otto.git $DIR
+git clone $REPO $DIR
 
 # Move working directory into temp folder
 cd $DIR
@@ -16,8 +17,8 @@ cd $DIR
 # Checkout and track the gh-pages branch
 git checkout -t origin/gh-pages
 
-# Delete everything
-rm -rf *
+# Delete everything that isn't versioned (1.x, 2.x)
+ls | grep -E -v '^\d+\.x$' | xargs rm -rf
 
 # Copy website files from real repo
 cp -R ../website/* .
