@@ -44,6 +44,11 @@
       <artifactId>otto</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.squareup</groupId>
+      <artifactId>otto-android</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

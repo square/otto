@@ -105,11 +105,14 @@
 
             <h4>Thread Enforcement</h4>
             <p>Since at times it may be ambiguous on which thread you are receiving callbacks, Otto provides an
-            enforcement mechanism to ensure you are always called on the thread you desire. By default, all interaction
-            with an instance is confined to the main thread.</p>
+            enforcement mechanism to ensure you are always called on the thread you desire. By default, no enforcement
+            is performed.</p>
             <pre class="prettyprint">// Both of these are functionally equivalent.
 Bus bus1 = new Bus();
-Bus bus2 = new Bus(ThreadEnforcer.MAIN);</pre>
+Bus bus2 = new Bus(ThreadEnforcer.ANY);</pre>
+            <pre class="prettyprint">// To enforce Android Main Thread use the following.
+Bus bus2 = new Bus(ThreadEnforcerAndroid.MAIN);</pre>
+
             <p>If you are not concerned on which thread interaction is occurring, instantiate a bus instance with
             <code>ThreadEnforcer.ANY</code>. You can also provide your own implementation of the
             <code>ThreadEnforcer</code> interface if you need additional functionality or validation.</p>
@@ -121,12 +124,18 @@ Bus bus2 = new Bus(ThreadEnforcer.MAIN);</pre>
             <h4>Gradle</h4>
             <pre class="prettyprint">dependencies {
   compile 'com.squareup:otto:<span class="version">+</span>'
+  compile 'com.squareup:otto-android:<span class="version">+</span>'
 }</pre>
 
             <h4>Maven</h4>
             <pre class="prettyprint">&lt;dependency>
   &lt;groupId>com.squareup&lt;/groupId>
   &lt;artifactId>otto&lt;/artifactId>
+  &lt;version><span class="version pln"><em>(insert latest version)</em></span>&lt;/version>
+&lt;/dependency>
+&lt;dependency>
+  &lt;groupId>com.squareup&lt;/groupId>
+  &lt;artifactId>otto-android&lt;/artifactId>
   &lt;version><span class="version pln"><em>(insert latest version)</em></span>&lt;/version>
 &lt;/dependency></pre>
             <p>Once you've installed Otto, add the following lines to your <code>proguard-project.txt</code> file:</p>

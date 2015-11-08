@@ -25,11 +25,22 @@
   </parent>
 
   <groupId>com.squareup</groupId>
-  <artifactId>otto</artifactId>
+  <artifactId>otto-android</artifactId>
   <packaging>jar</packaging>
-  <name>Otto</name>
+  <name>Otto Android</name>
 
   <dependencies>
+    <dependency>
+      <groupId>com.squareup</groupId>
+      <artifactId>otto</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.android</groupId>
+      <artifactId>android</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
