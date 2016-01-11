@@ -187,7 +187,33 @@ public class Bus {
     }
     enforcer.enforce(this);
 
-    Map<Class<?>, EventProducer> foundProducers = handlerFinder.findAllProducers(object);
+    register(handlerFinder.findAllProducers(object), handlerFinder.findAllSubscribers(object));
+  }
+
+  /**
+   * Registers all handler methods on {@code object} to receive events and producer methods to provide events.
+   * <p>
+   * If any subscribers are registering for types which already have a producer they will be called immediately
+   * with the result of calling that producer.
+   * <p>
+   * If any producers are registering for types which already have subscribers, each subscriber will be called with
+   * the value from the result of calling the producer.
+   *
+   * @param object object whose handler methods should be registered.
+   * @throws NullPointerException if the object is null.
+   */
+  public void register(Object object, Class<?> listenerClass) {
+    if (object == null) {
+      throw new NullPointerException("Object to register must not be null.");
+    }
+    enforcer.enforce(this);
+
+    register(handlerFinder.findAllProducers(object, listenerClass),
+        handlerFinder.findAllSubscribers(object, listenerClass));
+  }
+
+  private void register(Map<Class<?>, EventProducer> foundProducers,
+      Map<Class<?>, Set<EventHandler>> foundHandlersMap) {
     for (Class<?> type : foundProducers.keySet()) {
 
       final EventProducer producer = foundProducers.get(type);
@@ -206,7 +232,6 @@ public class Bus {
       }
     }
 
-    Map<Class<?>, Set<EventHandler>> foundHandlersMap = handlerFinder.findAllSubscribers(object);
     for (Class<?> type : foundHandlersMap.keySet()) {
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers == null) {
@@ -266,7 +291,28 @@ public class Bus {
     }
     enforcer.enforce(this);
 
-    Map<Class<?>, EventProducer> producersInListener = handlerFinder.findAllProducers(object);
+    unregister(object, handlerFinder.findAllProducers(object), handlerFinder.findAllSubscribers(object));
+  }
+
+  /**
+   * Unregisters all producer and handler methods on a registered {@code object}.
+   *
+   * @param object object whose producer and handler methods should be unregistered.
+   * @throws IllegalArgumentException if the object was not previously registered.
+   * @throws NullPointerException if the object is null.
+   */
+  public void unregister(Object object, Class<?> listenerClass) {
+    if (object == null) {
+      throw new NullPointerException("Object to unregister must not be null.");
+    }
+    enforcer.enforce(this);
+
+    unregister(object, handlerFinder.findAllProducers(object, listenerClass),
+        handlerFinder.findAllSubscribers(object, listenerClass));
+  }
+
+  private void unregister(Object object, Map<Class<?>, EventProducer> producersInListener,
+      Map<Class<?>, Set<EventHandler>> handlersInListener) {
     for (Map.Entry<Class<?>, EventProducer> entry : producersInListener.entrySet()) {
       final Class<?> key = entry.getKey();
       EventProducer producer = getProducerForEventType(key);
@@ -280,7 +326,6 @@ public class Bus {
       producersByType.remove(key).invalidate();
     }
 
-    Map<Class<?>, Set<EventHandler>> handlersInListener = handlerFinder.findAllSubscribers(object);
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : handlersInListener.entrySet()) {
       Set<EventHandler> currentHandlers = getHandlersForEventType(entry.getKey());
       Collection<EventHandler> eventMethodsInListener = entry.getValue();
