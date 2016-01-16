@@ -11,6 +11,12 @@ bus as well as specializing it to the Android platform.
 
 *For usage instructions please see [the website][1].*
 
+Deprecated!
+-----------
+
+This project is deprecated in favor of [RxJava](https://github.com/ReactiveX/RxJava) and
+[RxAndroid](https://github.com/ReactiveX/RxAndroid). These projects permit the same event-driven
+programming model as Otto, but they’re more capable and offer better control of threading.
 
 
 Download
