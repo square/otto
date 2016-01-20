@@ -178,10 +178,13 @@ public class Bus {
    * If any producers are registering for types which already have subscribers, each subscriber will be called with
    * the value from the result of calling the producer.
    *
-   * @param object object whose handler methods should be registered.
+   * @param object object whose producer and handler methods should be registered.
    * @throws NullPointerException if the object is null.
    */
   public void register(Object object) {
+    if (object == null) {
+      throw new NullPointerException("Object to register must not be null.");
+    }
     register(object, object.getClass());
   }
 
@@ -194,12 +197,18 @@ public class Bus {
    * If any producers are registering for types which already have subscribers, each subscriber will be called with
    * the value from the result of calling the producer.
    *
-   * @param object object whose handler methods should be registered.
+   * @param object object used to trigger registered producer and handler methods. {@code object} must either be an
+   *               instanceof {@code listenerClass} or {@code listenerClass} must be assignable from the class of
+   *               {@code object}; ie a parent class of {@code object}.
+   * @param listenerClass class whose producer and handler methods should be registered.
    * @throws NullPointerException if the object is null.
    */
   public void register(Object object, Class<?> listenerClass) {
     if (object == null) {
-      throw new NullPointerException("Object to register must not be null.");
+      throw new NullPointerException("Object to trigger register methods not be null.");
+    }
+    if (listenerClass == null) {
+      throw new NullPointerException("Class to register must not be null.");
     }
     enforcer.enforce(this);
 
@@ -277,19 +286,28 @@ public class Bus {
    * @throws NullPointerException if the object is null.
    */
   public void unregister(Object object) {
+    if (object == null) {
+      throw new NullPointerException("Object to unregister must not be null.");
+    }
     unregister(object, object.getClass());
   }
 
   /**
    * Unregisters all producer and handler methods on a registered {@code object}.
    *
-   * @param object object whose producer and handler methods should be unregistered.
+   * @param object object used to trigger registered producer and handler methods. {@code object} must either be an
+   *               instanceof {@code listenerClass} or {@code listenerClass} must be assignable from the class of
+   *               {@code object}; ie a parent class of {@code object}.
+   * @param listenerClass class whose producer and handler methods should be unregistered.
    * @throws IllegalArgumentException if the object was not previously registered.
    * @throws NullPointerException if the object is null.
    */
   public void unregister(Object object, Class<?> listenerClass) {
     if (object == null) {
-      throw new NullPointerException("Object to unregister must not be null.");
+      throw new NullPointerException("Object to trigger register methods not be null.");
+    }
+    if (listenerClass == null) {
+      throw new NullPointerException("Class to unregister must not be null.");
     }
     enforcer.enforce(this);
 
@@ -301,7 +319,7 @@ public class Bus {
 
       if (value == null || !value.equals(producer)) {
         throw new IllegalArgumentException(
-            "Missing event producer for an annotated method. Is " + object.getClass()
+            "Missing event producer for an annotated method. Is " + listenerClass
                 + " registered?");
       }
       producersByType.remove(key).invalidate();
@@ -314,7 +332,7 @@ public class Bus {
 
       if (currentHandlers == null || !currentHandlers.containsAll(eventMethodsInListener)) {
         throw new IllegalArgumentException(
-            "Missing event handler for an annotated method. Is " + object.getClass()
+            "Missing event handler for an annotated method. Is " + listenerClass
                 + " registered?");
       }
 
