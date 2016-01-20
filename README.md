@@ -18,6 +18,8 @@ This project is deprecated in favor of [RxJava](https://github.com/ReactiveX/RxJ
 [RxAndroid](https://github.com/ReactiveX/RxAndroid). These projects permit the same event-driven
 programming model as Otto, but they’re more capable and offer better control of threading.
 
+If you’re looking for guidance on migrating from Otto to Rx, [this post]( http://nerds.weddingpartyapp.com/tech/2014/12/24/implementing-an-event-bus-with-rxjava-rxbus/)
+is a good start.
 
 Download
 --------
