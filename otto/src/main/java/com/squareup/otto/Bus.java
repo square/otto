@@ -182,12 +182,7 @@ public class Bus {
    * @throws NullPointerException if the object is null.
    */
   public void register(Object object) {
-    if (object == null) {
-      throw new NullPointerException("Object to register must not be null.");
-    }
-    enforcer.enforce(this);
-
-    register(handlerFinder.findAllProducers(object), handlerFinder.findAllSubscribers(object));
+    register(object, object.getClass());
   }
 
   /**
@@ -286,12 +281,7 @@ public class Bus {
    * @throws NullPointerException if the object is null.
    */
   public void unregister(Object object) {
-    if (object == null) {
-      throw new NullPointerException("Object to unregister must not be null.");
-    }
-    enforcer.enforce(this);
-
-    unregister(object, handlerFinder.findAllProducers(object), handlerFinder.findAllSubscribers(object));
+    unregister(object, object.getClass());
   }
 
   /**

@@ -49,22 +49,10 @@ final class AnnotatedHandlerFinder {
     loadAnnotatedMethods(listenerClass, producerMethods, subscriberMethods);
   }
 
-  private static void loadAnnotatedProducerMethods(Class<?> fakeListenerClass,
-      Class<?> listenerClass, Map<Class<?>, Method> producerMethods) {
-    Map<Class<?>, Set<Method>> subscriberMethods = new HashMap<Class<?>, Set<Method>>();
-    loadAnnotatedMethods(fakeListenerClass, listenerClass, producerMethods, subscriberMethods);
-  }
-
   private static void loadAnnotatedSubscriberMethods(Class<?> listenerClass,
       Map<Class<?>, Set<Method>> subscriberMethods) {
     Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
     loadAnnotatedMethods(listenerClass, producerMethods, subscriberMethods);
-  }
-
-  private static void loadAnnotatedSubscriberMethods(Class<?> fakeListenerClass,
-      Class<?> listenerClass, Map<Class<?>, Set<Method>> subscriberMethods) {
-    Map<Class<?>, Method> producerMethods = new HashMap<Class<?>, Method>();
-    loadAnnotatedMethods(fakeListenerClass, listenerClass, producerMethods, subscriberMethods);
   }
 
   /**
@@ -77,18 +65,6 @@ final class AnnotatedHandlerFinder {
 
     PRODUCERS_CACHE.put(listenerClass, producerMethods);
     SUBSCRIBERS_CACHE.put(listenerClass, subscriberMethods);
-  }
-
-  /**
-   * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective caches for the
-   * specified class.
-   */
-  private static void loadAnnotatedMethods(Class<?> fakeListenerClass, Class<?> listenerClass,
-      Map<Class<?>, Method> producerMethods, Map<Class<?>, Set<Method>> subscriberMethods) {
-    loadAnnotatedMethodsForListenerClass(listenerClass, producerMethods, subscriberMethods);
-
-    PRODUCERS_CACHE.put(fakeListenerClass, producerMethods);
-    SUBSCRIBERS_CACHE.put(fakeListenerClass, subscriberMethods);
   }
 
   /**
@@ -163,8 +139,7 @@ final class AnnotatedHandlerFinder {
   }
 
   /** This implementation finds all methods marked with a {@link Produce} annotation. */
-  static Map<Class<?>, EventProducer> findAllProducers(Object listener) {
-    final Class<?> listenerClass = listener.getClass();
+  static Map<Class<?>, EventProducer> findAllProducers(Object listener, Class<?> listenerClass) {
     Map<Class<?>, EventProducer> handlersInMethod = new HashMap<Class<?>, EventProducer>();
 
     Map<Class<?>, Method> methods = PRODUCERS_CACHE.get(listenerClass);
@@ -182,57 +157,14 @@ final class AnnotatedHandlerFinder {
     return handlersInMethod;
   }
 
-  /** This implementation finds all methods marked with a {@link Produce} annotation. */
-  static Map<Class<?>, EventProducer> findAllProducers(Object listener, Class<?> listenerClass) {
-    Class<?> fakeListenerClass = listener.getClass();
-    Map<Class<?>, EventProducer> handlersInMethod = new HashMap<Class<?>, EventProducer>();
-
-    Map<Class<?>, Method> methods = PRODUCERS_CACHE.get(fakeListenerClass);
-    if (null == methods) {
-      methods = new HashMap<Class<?>, Method>();
-      loadAnnotatedProducerMethods(fakeListenerClass, listenerClass, methods);
-    }
-    if (!methods.isEmpty()) {
-      for (Map.Entry<Class<?>, Method> e : methods.entrySet()) {
-        EventProducer producer = new EventProducer(listener, e.getValue());
-        handlersInMethod.put(e.getKey(), producer);
-      }
-    }
-
-    return handlersInMethod;
-  }
-
   /** This implementation finds all methods marked with a {@link Subscribe} annotation. */
-  static Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener) {
-    Class<?> listenerClass = listener.getClass();
+  static Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener, Class<?> listenerClass) {
     Map<Class<?>, Set<EventHandler>> handlersInMethod = new HashMap<Class<?>, Set<EventHandler>>();
 
     Map<Class<?>, Set<Method>> methods = SUBSCRIBERS_CACHE.get(listenerClass);
     if (null == methods) {
       methods = new HashMap<Class<?>, Set<Method>>();
       loadAnnotatedSubscriberMethods(listenerClass, methods);
-    }
-    if (!methods.isEmpty()) {
-      for (Map.Entry<Class<?>, Set<Method>> e : methods.entrySet()) {
-        Set<EventHandler> handlers = new HashSet<EventHandler>();
-        for (Method m : e.getValue()) {
-          handlers.add(new EventHandler(listener, m));
-        }
-        handlersInMethod.put(e.getKey(), handlers);
-      }
-    }
-
-    return handlersInMethod;
-  }
-
-  static Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener, Class<?> listenerClass) {
-    Class<?> fakeListenerClass = listener.getClass();
-    Map<Class<?>, Set<EventHandler>> handlersInMethod = new HashMap<Class<?>, Set<EventHandler>>();
-
-    Map<Class<?>, Set<Method>> methods = SUBSCRIBERS_CACHE.get(fakeListenerClass);
-    if (null == methods) {
-      methods = new HashMap<Class<?>, Set<Method>>();
-      loadAnnotatedSubscriberMethods(fakeListenerClass, listenerClass, methods);
     }
     if (!methods.isEmpty()) {
       for (Map.Entry<Class<?>, Set<Method>> e : methods.entrySet()) {

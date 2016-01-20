@@ -22,29 +22,15 @@ import java.util.Set;
 /** Finds producer and subscriber methods. */
 interface HandlerFinder {
 
-  Map<Class<?>, EventProducer> findAllProducers(Object listener);
-
   Map<Class<?>, EventProducer> findAllProducers(Object listener, Class<?> targetClass);
-
-  Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener);
 
   Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener, Class<?> targetClass);
 
   HandlerFinder ANNOTATED = new HandlerFinder() {
 
     @Override
-    public Map<Class<?>, EventProducer> findAllProducers(Object listener) {
-      return AnnotatedHandlerFinder.findAllProducers(listener);
-    }
-
-    @Override
     public Map<Class<?>, EventProducer> findAllProducers(Object listener, Class<?> targetClass) {
       return AnnotatedHandlerFinder.findAllProducers(listener, targetClass);
-    }
-
-    @Override
-    public Map<Class<?>, Set<EventHandler>> findAllSubscribers(Object listener) {
-      return AnnotatedHandlerFinder.findAllSubscribers(listener);
     }
 
     @Override
