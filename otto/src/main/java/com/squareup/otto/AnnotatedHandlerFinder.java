@@ -61,18 +61,6 @@ final class AnnotatedHandlerFinder {
    */
   private static void loadAnnotatedMethods(Class<?> listenerClass,
       Map<Class<?>, Method> producerMethods, Map<Class<?>, Set<Method>> subscriberMethods) {
-    loadAnnotatedMethodsForListenerClass(listenerClass, producerMethods, subscriberMethods);
-
-    PRODUCERS_CACHE.put(listenerClass, producerMethods);
-    SUBSCRIBERS_CACHE.put(listenerClass, subscriberMethods);
-  }
-
-  /**
-   * Load all methods annotated with {@link Produce} or {@link Subscribe} into their respective caches for the
-   * specified class.
-   */
-  private static void loadAnnotatedMethodsForListenerClass(Class<?> listenerClass, Map<Class<?>, Method> producerMethods,
-      Map<Class<?>, Set<Method>> subscriberMethods) {
     for (Method method : listenerClass.getDeclaredMethods()) {
       // The compiler sometimes creates synthetic bridge methods as part of the
       // type erasure process. As of JDK8 these methods now include the same
@@ -136,6 +124,9 @@ final class AnnotatedHandlerFinder {
         producerMethods.put(eventType, method);
       }
     }
+
+    PRODUCERS_CACHE.put(listenerClass, producerMethods);
+    SUBSCRIBERS_CACHE.put(listenerClass, subscriberMethods);
   }
 
   /** This implementation finds all methods marked with a {@link Produce} annotation. */

@@ -203,12 +203,7 @@ public class Bus {
     }
     enforcer.enforce(this);
 
-    register(handlerFinder.findAllProducers(object, listenerClass),
-        handlerFinder.findAllSubscribers(object, listenerClass));
-  }
-
-  private void register(Map<Class<?>, EventProducer> foundProducers,
-      Map<Class<?>, Set<EventHandler>> foundHandlersMap) {
+    Map<Class<?>, EventProducer> foundProducers = handlerFinder.findAllProducers(object, listenerClass);
     for (Class<?> type : foundProducers.keySet()) {
 
       final EventProducer producer = foundProducers.get(type);
@@ -227,6 +222,7 @@ public class Bus {
       }
     }
 
+    Map<Class<?>, Set<EventHandler>> foundHandlersMap = handlerFinder.findAllSubscribers(object, listenerClass);
     for (Class<?> type : foundHandlersMap.keySet()) {
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers == null) {
@@ -297,12 +293,7 @@ public class Bus {
     }
     enforcer.enforce(this);
 
-    unregister(object, handlerFinder.findAllProducers(object, listenerClass),
-        handlerFinder.findAllSubscribers(object, listenerClass));
-  }
-
-  private void unregister(Object object, Map<Class<?>, EventProducer> producersInListener,
-      Map<Class<?>, Set<EventHandler>> handlersInListener) {
+    Map<Class<?>, EventProducer> producersInListener = handlerFinder.findAllProducers(object, listenerClass);
     for (Map.Entry<Class<?>, EventProducer> entry : producersInListener.entrySet()) {
       final Class<?> key = entry.getKey();
       EventProducer producer = getProducerForEventType(key);
@@ -316,6 +307,7 @@ public class Bus {
       producersByType.remove(key).invalidate();
     }
 
+    Map<Class<?>, Set<EventHandler>> handlersInListener = handlerFinder.findAllSubscribers(object, listenerClass);
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : handlersInListener.entrySet()) {
       Set<EventHandler> currentHandlers = getHandlersForEventType(entry.getKey());
       Collection<EventHandler> eventMethodsInListener = entry.getValue();
