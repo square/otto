@@ -179,7 +179,7 @@ public class Bus {
    * the value from the result of calling the producer.
    *
    * @param object object whose producer and handler methods should be registered.
-   * @throws NullPointerException if the object is null.
+   * @throws NullPointerException if {@code object} or {@code listenerClass} is null.
    */
   public void register(Object object) {
     if (object == null) {
@@ -300,7 +300,7 @@ public class Bus {
    *               {@code object}; ie a parent class of {@code object}.
    * @param listenerClass class whose producer and handler methods should be unregistered.
    * @throws IllegalArgumentException if the object was not previously registered.
-   * @throws NullPointerException if the object is null.
+   * @throws NullPointerException if {@code object} or {@code listenerClass} is null.
    */
   public void unregister(Object object, Class<?> listenerClass) {
     if (object == null) {
