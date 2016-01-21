@@ -197,9 +197,8 @@ public class Bus {
    * If any producers are registering for types which already have subscribers, each subscriber will be called with
    * the value from the result of calling the producer.
    *
-   * @param object object used to trigger registered producer and handler methods. {@code object} must either be an
-   *               instanceof {@code listenerClass} or {@code listenerClass} must be assignable from the class of
-   *               {@code object}; ie a parent class of {@code object}.
+   * @param object object used to trigger registered producer and handler methods. The {@code object}s class must be
+   *               assignable to objects of the type {@code listenerClass}.
    * @param listenerClass class whose producer and handler methods should be registered.
    * @throws NullPointerException if {@code object} or {@code listenerClass} is null.
    */
@@ -209,6 +208,9 @@ public class Bus {
     }
     if (listenerClass == null) {
       throw new NullPointerException("Class to register must not be null.");
+    }
+    if (!listenerClass.isAssignableFrom(object.getClass())) {
+      throw new IllegalArgumentException("Class to unregister must be an instance of or assignable from Object class.");
     }
     enforcer.enforce(this);
 
@@ -295,9 +297,8 @@ public class Bus {
   /**
    * Unregisters all producer and handler methods on a registered {@code object}.
    *
-   * @param object object used to trigger registered producer and handler methods. {@code object} must either be an
-   *               instanceof {@code listenerClass} or {@code listenerClass} must be assignable from the class of
-   *               {@code object}; ie a parent class of {@code object}.
+   * @param object object used to trigger registered producer and handler methods. The {@code object}s class must be
+   *               assignable to objects of the type {@code listenerClass}.
    * @param listenerClass class whose producer and handler methods should be unregistered.
    * @throws IllegalArgumentException if the object was not previously registered.
    * @throws NullPointerException if {@code object} or {@code listenerClass} is null.
@@ -308,6 +309,9 @@ public class Bus {
     }
     if (listenerClass == null) {
       throw new NullPointerException("Class to unregister must not be null.");
+    }
+    if (!listenerClass.isAssignableFrom(object.getClass())) {
+      throw new IllegalArgumentException("Class to unregister must be an instance of or assignable from Object class.");
     }
     enforcer.enforce(this);
 
