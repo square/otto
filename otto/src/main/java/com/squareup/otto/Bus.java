@@ -103,6 +103,9 @@ public class Bus {
 
   /** Used to find handler methods in register and unregister. */
   private final HandlerFinder handlerFinder;
+  
+  /*Used to handle post events when call through non-UI thread*/
+  private final android.os.Handler handler = new android.os.Handler(Looper.getMainLooper());
 
   /** Queues of events for the current thread to dispatch. */
   private final ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>> eventsToDispatch =
@@ -310,31 +313,57 @@ public class Bus {
    * @param event event to post.
    * @throws NullPointerException if the event is null.
    */
-  public void post(Object event) {
-    if (event == null) {
-      throw new NullPointerException("Event to post must not be null.");
-    }
-    enforcer.enforce(this);
+  public void post(final Object event) {
+    if(Looper.myLooper()==Looper.getMainLooper()){
+	  enforcer.enforce(this);
 
-    Set<Class<?>> dispatchTypes = flattenHierarchy(event.getClass());
+      Set<Class<?>> dispatchTypes = flattenHierarchy(event.getClass());
 
-    boolean dispatched = false;
-    for (Class<?> eventType : dispatchTypes) {
-      Set<EventHandler> wrappers = getHandlersForEventType(eventType);
+      boolean dispatched = false;
+      for (Class<?> eventType : dispatchTypes) {
+        Set<EventHandler> wrappers = getHandlersForEventType(eventType);
 
-      if (wrappers != null && !wrappers.isEmpty()) {
-        dispatched = true;
-        for (EventHandler wrapper : wrappers) {
-          enqueueEvent(event, wrapper);
+        if (wrappers != null && !wrappers.isEmpty()) {
+          dispatched = true;
+          for (EventHandler wrapper : wrappers) {
+            enqueueEvent(event, wrapper);
+          }
         }
       }
-    }
 
-    if (!dispatched && !(event instanceof DeadEvent)) {
-      post(new DeadEvent(this, event));
-    }
+      if (!dispatched && !(event instanceof DeadEvent)) {
+        post(new DeadEvent(this, event));
+      }
 
-    dispatchQueuedEvents();
+      dispatchQueuedEvents();
+	} else {
+	  handler.post(new Runnable(){
+	    @override
+		public void run(){
+		  enforcer.enforce(this);
+
+		  Set<Class<?>> dispatchTypes = flattenHierarchy(event.getClass());
+
+		  boolean dispatched = false;
+		  for (Class<?> eventType : dispatchTypes) {
+		    Set<EventHandler> wrappers = getHandlersForEventType(eventType);
+
+		    if (wrappers != null && !wrappers.isEmpty()) {
+		  	  dispatched = true;
+			  for (EventHandler wrapper : wrappers) {
+			    enqueueEvent(event, wrapper);
+			  }
+		    }
+		  }
+
+		  if (!dispatched && !(event instanceof DeadEvent)) {
+		    post(new DeadEvent(this, event));
+		  }
+
+		  dispatchQueuedEvents();
+		}
+	  });
+	}
   }
 
   /**
