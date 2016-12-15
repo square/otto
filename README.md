@@ -1,3 +1,33 @@
+Fork of Square Otto
+=============================
+https://github.com/square/otto
+
+Added feature of named event.
+This allow multiple producer, productin same object type for different event name.
+As well as the subscriber will be able to subscribe event based on the name. 
+
+The ultimate conclusion of this changes is now you can use simple object like String or boolean with different name
+
+``` java
+@Subscriber(event = 'push_configuration');
+@Producer(event = 'push_configuration') producePushConfigChange();
+
+@Subscriber(event = 'wifi_only_download');
+@Producer(event = 'wifi_only_download') produceWifiConfigChange();
+
+bus.post('push_configuration', true);
+bus.post('push_configuration', producePushConfigChange());
+
+bus.post('wifi_only_download', true);
+bus.post('wifi_only_download', produceWifiConfigChange());
+```
+
+Example above is just a very simple showcase of what can done with named event.
+
+
+Added feature for searching parent class for subscribe and produce annotation
+Based on https://github.com/thirogit/otto
+
 Otto - An event bus by Square
 =============================
 

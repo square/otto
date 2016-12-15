@@ -18,6 +18,7 @@
 package com.squareup.otto;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -88,12 +89,12 @@ public class Bus {
   public static final String DEFAULT_IDENTIFIER = "default";
 
   /** All registered event handlers, indexed by event type. */
-  private final ConcurrentMap<Class<?>, Set<EventHandler>> handlersByType =
-          new ConcurrentHashMap<Class<?>, Set<EventHandler>>();
+  private final ConcurrentMap<String, Set<EventHandler>> handlersByType =
+          new ConcurrentHashMap<>();
 
   /** All registered event producers, index by event type. */
-  private final ConcurrentMap<Class<?>, EventProducer> producersByType =
-          new ConcurrentHashMap<Class<?>, EventProducer>();
+  private final ConcurrentMap<String, EventProducer> producersByType =
+          new ConcurrentHashMap<>();
 
   /** Identifier used to differentiate the event bus instance. */
   private final String identifier;
@@ -106,18 +107,21 @@ public class Bus {
 
   /** Queues of events for the current thread to dispatch. */
   private final ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>> eventsToDispatch =
-      new ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>>() {
-        @Override protected ConcurrentLinkedQueue<EventWithHandler> initialValue() {
-          return new ConcurrentLinkedQueue<EventWithHandler>();
-        }
-      };
+          new ThreadLocal<ConcurrentLinkedQueue<EventWithHandler>>() {
+            @Override
+            protected ConcurrentLinkedQueue<EventWithHandler> initialValue() {
+              return new ConcurrentLinkedQueue<EventWithHandler>();
+            }
+          };
 
   /** True if the current thread is currently dispatching an event. */
   private final ThreadLocal<Boolean> isDispatching = new ThreadLocal<Boolean>() {
-    @Override protected Boolean initialValue() {
+    @Override
+    protected Boolean initialValue() {
       return false;
     }
   };
+  private ArrayList<Object> mRegistered;
 
   /** Creates a new Bus named "default" that enforces actions on the main thread. */
   public Bus() {
@@ -160,12 +164,14 @@ public class Bus {
    * @param handlerFinder Used to discover event handlers and producers when registering/unregistering an object.
    */
   Bus(ThreadEnforcer enforcer, String identifier, HandlerFinder handlerFinder) {
-    this.enforcer =  enforcer;
+    this.enforcer = enforcer;
     this.identifier = identifier;
     this.handlerFinder = handlerFinder;
+    this.mRegistered = new ArrayList<>();
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return "[Bus \"" + identifier + "\"]";
   }
 
@@ -186,17 +192,20 @@ public class Bus {
       throw new NullPointerException("Object to register must not be null.");
     }
     enforcer.enforce(this);
+    mRegistered.add(object);
 
-    Map<Class<?>, EventProducer> foundProducers = handlerFinder.findAllProducers(object);
-    for (Class<?> type : foundProducers.keySet()) {
+
+    // object has producer, so send the event to all handler
+    Map<String, EventProducer> foundProducers = handlerFinder.findAllProducers(object);
+    for (String type : foundProducers.keySet()) {
 
       final EventProducer producer = foundProducers.get(type);
       EventProducer previousProducer = producersByType.putIfAbsent(type, producer);
       //checking if the previous producer existed
       if (previousProducer != null) {
         throw new IllegalArgumentException("Producer method for type " + type
-          + " found on type " + producer.target.getClass()
-          + ", but already registered by type " + previousProducer.target.getClass() + ".");
+                + " found on type " + producer.target.getClass()
+                + ", but already registered by type " + previousProducer.target.getClass() + ".");
       }
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers != null && !handlers.isEmpty()) {
@@ -206,8 +215,9 @@ public class Bus {
       }
     }
 
-    Map<Class<?>, Set<EventHandler>> foundHandlersMap = handlerFinder.findAllSubscribers(object);
-    for (Class<?> type : foundHandlersMap.keySet()) {
+    // find available handler from object
+    Map<String, Set<EventHandler>> foundHandlersMap = handlerFinder.findAllSubscribers(object);
+    for (String type : foundHandlersMap.keySet()) {
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers == null) {
         //concurrent put if absent
@@ -223,8 +233,9 @@ public class Bus {
       }
     }
 
-    for (Map.Entry<Class<?>, Set<EventHandler>> entry : foundHandlersMap.entrySet()) {
-      Class<?> type = entry.getKey();
+    // foundHandlersMap from new object, and dispatch event it subsribe
+    for (Map.Entry<String, Set<EventHandler>> entry : foundHandlersMap.entrySet()) {
+      String type = entry.getKey();
       EventProducer producer = producersByType.get(type);
       if (producer != null && producer.isValid()) {
         Set<EventHandler> foundHandlers = entry.getValue();
@@ -264,11 +275,13 @@ public class Bus {
     if (object == null) {
       throw new NullPointerException("Object to unregister must not be null.");
     }
-    enforcer.enforce(this);
 
-    Map<Class<?>, EventProducer> producersInListener = handlerFinder.findAllProducers(object);
-    for (Map.Entry<Class<?>, EventProducer> entry : producersInListener.entrySet()) {
-      final Class<?> key = entry.getKey();
+    enforcer.enforce(this);
+    mRegistered.remove(object);
+
+    Map<String, EventProducer> producersInListener = handlerFinder.findAllProducers(object);
+    for (Map.Entry<String, EventProducer> entry : producersInListener.entrySet()) {
+      final String key = entry.getKey();
       EventProducer producer = getProducerForEventType(key);
       EventProducer value = entry.getValue();
 
@@ -280,8 +293,8 @@ public class Bus {
       producersByType.remove(key).invalidate();
     }
 
-    Map<Class<?>, Set<EventHandler>> handlersInListener = handlerFinder.findAllSubscribers(object);
-    for (Map.Entry<Class<?>, Set<EventHandler>> entry : handlersInListener.entrySet()) {
+    Map<String, Set<EventHandler>> handlersInListener = handlerFinder.findAllSubscribers(object);
+    for (Map.Entry<String, Set<EventHandler>> entry : handlersInListener.entrySet()) {
       Set<EventHandler> currentHandlers = getHandlersForEventType(entry.getKey());
       Collection<EventHandler> eventMethodsInListener = entry.getValue();
 
@@ -297,6 +310,12 @@ public class Bus {
         }
       }
       currentHandlers.removeAll(eventMethodsInListener);
+    }
+  }
+
+  public void unregisterAll() {
+    for (Object o : mRegistered.toArray()) {
+      unregister(o);
     }
   }
 
@@ -320,13 +339,46 @@ public class Bus {
 
     boolean dispatched = false;
     for (Class<?> eventType : dispatchTypes) {
-      Set<EventHandler> wrappers = getHandlersForEventType(eventType);
+      Set<EventHandler> wrappers = getHandlersForEventType(eventType.getName());
 
       if (wrappers != null && !wrappers.isEmpty()) {
         dispatched = true;
         for (EventHandler wrapper : wrappers) {
           enqueueEvent(event, wrapper);
         }
+      }
+    }
+
+    if (!dispatched && !(event instanceof DeadEvent)) {
+      post(new DeadEvent(this, event));
+    }
+
+    dispatchQueuedEvents();
+  }
+
+  /**
+   * Posts an event to all registered handlers.  This method will return successfully after the event has been posted to
+   * all handlers, and regardless of any exceptions thrown by handlers.
+   *
+   * <p>If no handlers have been subscribed for {@code event}'s class, and {@code event} is not already a
+   * {@link DeadEvent}, it will be wrapped in a DeadEvent and reposted.
+   *
+   * @param event event to post.
+   * @throws NullPointerException if the event is null.
+   */
+  public void post(String name, Object event) {
+    if (event == null) {
+      throw new NullPointerException("Event to post must not be null.");
+    }
+    enforcer.enforce(this);
+
+    boolean dispatched = false;
+    Set<EventHandler> wrappers = getHandlersForEventType(name);
+
+    if (wrappers != null && !wrappers.isEmpty()) {
+      dispatched = true;
+      for (EventHandler wrapper : wrappers) {
+        enqueueEvent(event, wrapper);
       }
     }
 
@@ -396,7 +448,7 @@ public class Bus {
    * @param type type of producer to retrieve.
    * @return currently registered producer, or {@code null}.
    */
-  EventProducer getProducerForEventType(Class<?> type) {
+  EventProducer getProducerForEventType(String type) {
     return producersByType.get(type);
   }
 
@@ -407,7 +459,7 @@ public class Bus {
    * @param type type of handlers to retrieve.
    * @return currently registered handlers, or {@code null}.
    */
-  Set<EventHandler> getHandlersForEventType(Class<?> type) {
+  Set<EventHandler> getHandlersForEventType(String type) {
     return handlersByType.get(type);
   }
 
