@@ -3,7 +3,7 @@
 .settings
 .checkstyle
 eclipsebin
-
+.gradle
 bin
 gen
 build
