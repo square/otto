@@ -36,7 +36,7 @@ You can also depend on the .jar through Maven:
 ```
 or Gradle:
 ```groovy
-compile 'com.squareup:otto:1.3.8'
+implementation 'com.squareup:otto:1.3.8'
 ```
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
