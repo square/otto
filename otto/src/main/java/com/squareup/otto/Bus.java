@@ -178,16 +178,43 @@ public class Bus {
    * If any producers are registering for types which already have subscribers, each subscriber will be called with
    * the value from the result of calling the producer.
    *
-   * @param object object whose handler methods should be registered.
-   * @throws NullPointerException if the object is null.
+   * @param object object whose producer and handler methods should be registered.
+   * @throws NullPointerException if {@code object} is null.
    */
   public void register(Object object) {
     if (object == null) {
       throw new NullPointerException("Object to register must not be null.");
     }
+    register(object, object.getClass());
+  }
+
+  /**
+   * Registers all handler methods on {@code object} to receive events and producer methods to provide events.
+   * <p>
+   * If any subscribers are registering for types which already have a producer they will be called immediately
+   * with the result of calling that producer.
+   * <p>
+   * If any producers are registering for types which already have subscribers, each subscriber will be called with
+   * the value from the result of calling the producer.
+   *
+   * @param object object used to trigger registered producer and handler methods. The {@code object}s class must be
+   *               assignable to objects of the type {@code listenerClass}.
+   * @param listenerClass class whose producer and handler methods should be registered.
+   * @throws NullPointerException if {@code object} or {@code listenerClass} is null.
+   */
+  public void register(Object object, Class<?> listenerClass) {
+    if (object == null) {
+      throw new NullPointerException("Object to trigger register methods not be null.");
+    }
+    if (listenerClass == null) {
+      throw new NullPointerException("Class to register must not be null.");
+    }
+    if (!listenerClass.isAssignableFrom(object.getClass())) {
+      throw new IllegalArgumentException("Class to unregister must be an instance of or assignable from Object class.");
+    }
     enforcer.enforce(this);
 
-    Map<Class<?>, EventProducer> foundProducers = handlerFinder.findAllProducers(object);
+    Map<Class<?>, EventProducer> foundProducers = handlerFinder.findAllProducers(object, listenerClass);
     for (Class<?> type : foundProducers.keySet()) {
 
       final EventProducer producer = foundProducers.get(type);
@@ -206,7 +233,7 @@ public class Bus {
       }
     }
 
-    Map<Class<?>, Set<EventHandler>> foundHandlersMap = handlerFinder.findAllSubscribers(object);
+    Map<Class<?>, Set<EventHandler>> foundHandlersMap = handlerFinder.findAllSubscribers(object, listenerClass);
     for (Class<?> type : foundHandlersMap.keySet()) {
       Set<EventHandler> handlers = handlersByType.get(type);
       if (handlers == null) {
@@ -258,15 +285,37 @@ public class Bus {
    *
    * @param object object whose producer and handler methods should be unregistered.
    * @throws IllegalArgumentException if the object was not previously registered.
-   * @throws NullPointerException if the object is null.
+   * @throws NullPointerException if {@code object} is null.
    */
   public void unregister(Object object) {
     if (object == null) {
       throw new NullPointerException("Object to unregister must not be null.");
     }
+    unregister(object, object.getClass());
+  }
+
+  /**
+   * Unregisters all producer and handler methods on a registered {@code object}.
+   *
+   * @param object object used to trigger registered producer and handler methods. The {@code object}s class must be
+   *               assignable to objects of the type {@code listenerClass}.
+   * @param listenerClass class whose producer and handler methods should be unregistered.
+   * @throws IllegalArgumentException if the object was not previously registered.
+   * @throws NullPointerException if {@code object} or {@code listenerClass} is null.
+   */
+  public void unregister(Object object, Class<?> listenerClass) {
+    if (object == null) {
+      throw new NullPointerException("Object to trigger register methods not be null.");
+    }
+    if (listenerClass == null) {
+      throw new NullPointerException("Class to unregister must not be null.");
+    }
+    if (!listenerClass.isAssignableFrom(object.getClass())) {
+      throw new IllegalArgumentException("Class to unregister must be an instance of or assignable from Object class.");
+    }
     enforcer.enforce(this);
 
-    Map<Class<?>, EventProducer> producersInListener = handlerFinder.findAllProducers(object);
+    Map<Class<?>, EventProducer> producersInListener = handlerFinder.findAllProducers(object, listenerClass);
     for (Map.Entry<Class<?>, EventProducer> entry : producersInListener.entrySet()) {
       final Class<?> key = entry.getKey();
       EventProducer producer = getProducerForEventType(key);
@@ -274,20 +323,20 @@ public class Bus {
 
       if (value == null || !value.equals(producer)) {
         throw new IllegalArgumentException(
-            "Missing event producer for an annotated method. Is " + object.getClass()
+            "Missing event producer for an annotated method. Is " + listenerClass
                 + " registered?");
       }
       producersByType.remove(key).invalidate();
     }
 
-    Map<Class<?>, Set<EventHandler>> handlersInListener = handlerFinder.findAllSubscribers(object);
+    Map<Class<?>, Set<EventHandler>> handlersInListener = handlerFinder.findAllSubscribers(object, listenerClass);
     for (Map.Entry<Class<?>, Set<EventHandler>> entry : handlersInListener.entrySet()) {
       Set<EventHandler> currentHandlers = getHandlersForEventType(entry.getKey());
       Collection<EventHandler> eventMethodsInListener = entry.getValue();
 
       if (currentHandlers == null || !currentHandlers.containsAll(eventMethodsInListener)) {
         throw new IllegalArgumentException(
-            "Missing event handler for an annotated method. Is " + object.getClass()
+            "Missing event handler for an annotated method. Is " + listenerClass
                 + " registered?");
       }
 
