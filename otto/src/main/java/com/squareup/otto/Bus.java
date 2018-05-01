@@ -66,7 +66,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * <p>Handlers should not, in general, throw.  If they do, the Bus will wrap the exception and
  * re-throw it.
  *
- * <p>The Bus by default enforces that all interactions occur on the main thread.  You can provide an alternate
+ * <p>The Bus does not by default enforces any thread.  You can provide an alternate
  * enforcement by passing a {@link ThreadEnforcer} to the constructor.
  *
  * <h2>Producer Methods</h2>
@@ -119,18 +119,18 @@ public class Bus {
     }
   };
 
-  /** Creates a new Bus named "default" that enforces actions on the main thread. */
+  /** Creates a new Bus named "default" that does not enforce actions on a given thread. */
   public Bus() {
     this(DEFAULT_IDENTIFIER);
   }
 
   /**
-   * Creates a new Bus with the given {@code identifier} that enforces actions on the main thread.
+   * Creates a new Bus with the given {@code identifier} that does not enforce actions on a given thread.
    *
    * @param identifier a brief name for this bus, for debugging purposes.  Should be a valid Java identifier.
    */
   public Bus(String identifier) {
-    this(ThreadEnforcer.MAIN, identifier);
+    this(ThreadEnforcer.ANY, identifier);
   }
 
   /**

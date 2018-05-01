@@ -17,13 +17,14 @@
 package com.squareup.otto.sample;
 
 import com.squareup.otto.Bus;
+import com.squareup.otto.ThreadEnforcerAndroid;
 
 /**
  * Maintains a singleton instance for obtaining the bus. Ideally this would be replaced with a more efficient means
  * such as through injection directly into interested classes.
  */
 public final class BusProvider {
-  private static final Bus BUS = new Bus();
+  private static final Bus BUS = new Bus(ThreadEnforcerAndroid.MAIN);
 
   public static Bus getInstance() {
     return BUS;
